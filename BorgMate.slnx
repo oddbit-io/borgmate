@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BorgMate/BorgMate.csproj" />
+  <Project Path="BorgMate.Tests/BorgMate.Tests.csproj" />
+</Solution>

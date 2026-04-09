@@ -1,0 +1,75 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="280"
+        x:Class="BorgMate.Views.AboutWindow"
+        Title="About BorgMate"
+        Width="350"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="Button.hyperlink">
+            <Setter Property="Foreground" Value="#3C81F7"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="Button.hyperlink:pointerover">
+            <Setter Property="Foreground" Value="#5A9BFF"/>
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Margin="20" Spacing="16" HorizontalAlignment="Center">
+        <Image Source="/Assets/borgmate-256.png" Width="128" Height="128"
+               HorizontalAlignment="Center"/>
+
+        <StackPanel Spacing="4" HorizontalAlignment="Center">
+            <TextBlock Text="BorgMate" FontSize="20" FontWeight="Bold"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Cross-platform Desktop GUI for BorgBackup" Classes="secondary"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Name="VersionText" Classes="secondary"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center"
+                   Foreground="{DynamicResource ThemeForegroundLowBrush}"
+                   FontSize="12" MaxWidth="330"
+                   Text="BorgBackup is one of the best backup tools out there, but it never had a proper desktop GUI. The few that existed were either abandoned or hard to use. BorgMate was built to change that — a clean, modern interface that makes borg accessible to everyone."/>
+
+        <StackPanel Spacing="4" HorizontalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                <TextBlock Text="Website:" Classes="secondary" VerticalAlignment="Center"/>
+                <Button Name="WebsiteLink" Content="borgmate.oddbit.io"
+                        Classes="hyperlink" Padding="0" MinWidth="0" MinHeight="0"
+                        Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                <TextBlock Text="Made by" Classes="secondary" VerticalAlignment="Center"/>
+                <Button Name="StudioLink" Content="ODDBIT STUDIO"
+                        Classes="hyperlink" Padding="0" MinWidth="0" MinHeight="0"
+                        Background="Transparent" BorderThickness="0" Cursor="Hand"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Spacing="2" HorizontalAlignment="Center">
+            <TextBlock Text="Licensed under GPL-3.0 or commercial license" FontSize="11"
+                       Foreground="{DynamicResource ThemeForegroundLowBrush}"
+                       HorizontalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                <Button Name="LicenseLink" Content="GPL-3.0"
+                        Classes="hyperlink" Padding="0" MinWidth="0" MinHeight="0"
+                        Background="Transparent" BorderThickness="0" Cursor="Hand" FontSize="11"/>
+                <TextBlock Text="·" FontSize="11" Classes="secondary" VerticalAlignment="Center"/>
+                <Button Name="ThirdPartyLink" Content="Third-Party Notices"
+                        Classes="hyperlink" Padding="0" MinWidth="0" MinHeight="0"
+                        Background="Transparent" BorderThickness="0" Cursor="Hand" FontSize="11"/>
+                <TextBlock Text="·" FontSize="11" Classes="secondary" VerticalAlignment="Center"/>
+                <Button Name="ContactLink" Content="contact@oddbit.io"
+                        Classes="hyperlink" Padding="0" MinWidth="0" MinHeight="0"
+                        Background="Transparent" BorderThickness="0" Cursor="Hand" FontSize="11"/>
+            </StackPanel>
+        </StackPanel>
+    </StackPanel>
+</Window>

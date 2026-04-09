@@ -1,0 +1,202 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:BorgMate.ViewModels"
+        xmlns:models="using:BorgMate.Models"
+        xmlns:loc="using:BorgMate.Localization"
+        xmlns:ctrl="using:BorgMate.Views.Controls"
+        xmlns:conv="using:BorgMate.Views.Converters"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="500"
+        x:Class="BorgMate.Views.BrowseArchiveWindow"
+        x:DataType="vm:BrowseArchiveViewModel"
+        Title="{Binding Title}"
+        Width="650"
+        Height="500"
+        CanResize="True"
+        MinWidth="400"
+        MinHeight="300"
+        WindowStartupLocation="CenterOwner">
+
+    <Design.DataContext>
+        <x:Static Member="vm:DesignData.BrowseArchive"/>
+    </Design.DataContext>
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="TreeListBrush" Color="White"/>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="TreeListBrush" Color="#1C1C1E"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.Styles>
+        <!-- Remove hover/selection highlighting from ListBoxItem -->
+        <Style Selector="ListBox.file-tree ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+        </Style>
+        <Style Selector="ListBox.file-tree ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBox.file-tree ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBox.file-tree ListBoxItem:selected:focus /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBox.file-tree ListBoxItem:selected:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+        <!-- Toolbar -->
+        <Border DockPanel.Dock="Top" Classes="toolbar"
+                IsVisible="{Binding !IsLoading}">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Name="RestoreButton"
+                        IsEnabled="{Binding HasSelection}"
+                        Classes="toolbar-btn">
+                    <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <ctrl:BootstrapIcon Kind="BoxArrowDown" Width="16" Height="16"
+                                                    HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding [RestoreSelected], Source={x:Static loc:Strings.Instance}}"
+                                   FontSize="10" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding ToggleShowChangesCommand}"
+                        IsEnabled="{Binding HasPreviousArchive}"
+                        Classes="toolbar-btn">
+                    <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <Panel>
+                            <ctrl:BootstrapIcon Kind="FileDiff" Width="16" Height="16"
+                                                       HorizontalAlignment="Center"
+                                                       IsVisible="{Binding !IsLoadingDiff}"
+                                                       Foreground="{Binding IsShowingChanges, Converter={x:Static conv:BrowseArchiveConverters.ToggleActiveForeground}}"/>
+                            <ctrl:SpinnerControl Width="16" Height="16"
+                                                  Foreground="{DynamicResource SecondaryTextBrush}"
+                                                  IsVisible="{Binding IsLoadingDiff}"/>
+                        </Panel>
+                        <TextBlock Text="{Binding [BrowseArchive.ShowChanges], Source={x:Static loc:Strings.Instance}}"
+                                   FontSize="10" HorizontalAlignment="Center">
+                            <TextBlock.Foreground>
+                                <Binding Path="IsShowingChanges">
+                                    <Binding.Converter>
+                                        <x:Static Member="conv:BrowseArchiveConverters.ToggleActiveForeground"/>
+                                    </Binding.Converter>
+                                </Binding>
+                            </TextBlock.Foreground>
+                        </TextBlock>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Bottom detail pane -->
+        <Border DockPanel.Dock="Bottom"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
+                Height="52"
+                IsVisible="{Binding !IsLoading}">
+            <ScrollViewer Margin="12,8" VerticalScrollBarVisibility="Auto">
+                <TextBlock Classes="secondary" Text="{Binding StatusText}"/>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Content area -->
+        <Panel>
+            <!-- Loading spinner -->
+            <StackPanel IsVisible="{Binding IsLoading}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Spacing="8" Orientation="Horizontal">
+                <ctrl:SpinnerControl Width="16" Height="16"
+                                     Foreground="{DynamicResource SecondaryTextBrush}" />
+                <TextBlock Text="{Binding [LoadingContents], Source={x:Static loc:Strings.Instance}}"
+                           Classes="secondary" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Error message -->
+            <TextBlock Text="{Binding ErrorMessage}"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       Foreground="Red" TextWrapping="Wrap"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Margin="20"/>
+
+            <!-- File list (virtualized flat ListBox simulating a tree) -->
+            <Border ClipToBounds="True"
+                    IsVisible="{Binding !IsLoading}">
+                <ListBox Name="FileList" Classes="file-tree"
+                         ItemsSource="{Binding FlatNodes}"
+                         BorderThickness="0"
+                         Background="{DynamicResource TreeListBrush}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:ArchiveFileNode">
+                            <DockPanel Margin="{Binding Depth, Converter={x:Static conv:BrowseArchiveConverters.DepthToMargin}}"
+                                       Height="24">
+                                <!-- Modified date (right-aligned) -->
+                                <TextBlock DockPanel.Dock="Right" Classes="secondary"
+                                           VerticalAlignment="Center" Margin="8,0,4,0"
+                                           Text="{Binding ModifiedDisplay}" Width="120"
+                                           TextAlignment="Right"/>
+                                <!-- Size (right-aligned) -->
+                                <TextBlock DockPanel.Dock="Right" Classes="secondary"
+                                           VerticalAlignment="Center" Margin="8,0,0,0"
+                                           Text="{Binding SizeDisplay}" Width="70"
+                                           TextAlignment="Right"/>
+                                <!-- Expand toggle -->
+                                <Panel Width="16" VerticalAlignment="Center">
+                                    <Button Name="ExpandToggle" Click="OnExpandToggle"
+                                            IsVisible="{Binding CanExpand}"
+                                            Background="Transparent" BorderThickness="0"
+                                            Padding="0" MinWidth="0" MinHeight="0"
+                                            Width="16" Height="16"
+                                            Cursor="Hand"
+                                            HorizontalContentAlignment="Center"
+                                            VerticalContentAlignment="Center">
+                                        <Panel>
+                                            <ctrl:BootstrapIcon Kind="ChevronRight" Width="10" Height="10"
+                                                                       IsVisible="{Binding !IsExpanded}"
+                                                                       Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                            <ctrl:BootstrapIcon Kind="ChevronDown" Width="10" Height="10"
+                                                                       IsVisible="{Binding IsExpanded}"
+                                                                       Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                        </Panel>
+                                    </Button>
+                                </Panel>
+                                <!-- Checkbox -->
+                                <CheckBox IsChecked="{Binding IsChecked}" IsThreeState="True"
+                                          VerticalAlignment="Center" Margin="0,0,4,0"
+                                          MinWidth="0"/>
+                                <!-- File icon -->
+                                <ctrl:BootstrapIcon Width="14" Height="14"
+                                                           VerticalAlignment="Center" Margin="0,0,6,0"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}">
+                                    <ctrl:BootstrapIcon.Kind>
+                                        <Binding Path=".">
+                                            <Binding.Converter>
+                                                <x:Static Member="conv:BrowseArchiveConverters.FileIcon"/>
+                                            </Binding.Converter>
+                                        </Binding>
+                                    </ctrl:BootstrapIcon.Kind>
+                                </ctrl:BootstrapIcon>
+                                <!-- File name -->
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"
+                                           FontWeight="{Binding ChangeKind, Converter={x:Static conv:BrowseArchiveConverters.ChangeFontWeight}}"
+                                           Foreground="{Binding ChangeKind, Converter={x:Static conv:BrowseArchiveConverters.ChangeForeground}}"/>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Panel>
+    </DockPanel>
+</Window>

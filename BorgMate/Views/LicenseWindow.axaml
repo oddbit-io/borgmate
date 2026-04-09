@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="using:System"
+        x:Class="BorgMate.Views.LicenseWindow"
+        x:DataType="sys:String"
+        Title="License — GNU General Public License v3.0"
+        Width="550" Height="500"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <ListBox Name="LinesList"
+             Padding="16"
+             BorderThickness="0">
+        <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="sys:String">
+                <TextBlock Text="{Binding}"
+                           FontFamily="Consolas, Menlo, monospace"
+                           FontSize="11"
+                           Padding="0"/>
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+        <ListBox.ItemContainerTheme>
+            <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="MinHeight" Value="0"/>
+                <Setter Property="IsHitTestVisible" Value="False"/>
+            </ControlTheme>
+        </ListBox.ItemContainerTheme>
+    </ListBox>
+</Window>

@@ -1,0 +1,454 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctrl="using:BorgMate.Views.Controls">
+
+    <Styles.Resources>
+        <ResourceDictionary>
+            <!-- Shared (theme-independent) — macOS system blue -->
+            <Color x:Key="AccentColor">#2857B8</Color>
+            <Color x:Key="AccentHoverColor">#3468CC</Color>
+            <Color x:Key="AccentPressedColor">#1E4A9E</Color>
+            <Color x:Key="SelectedTextColor">White</Color>
+            <Color x:Key="SecondarySelectedTextColor">#CCFFFFFF</Color>
+            <Color x:Key="ValidationColor">#FF3B30</Color>
+
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}"/>
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="{StaticResource AccentPressedColor}"/>
+            <SolidColorBrush x:Key="ValidationErrorBrush" Color="{StaticResource ValidationColor}"/>
+
+            <!-- Spacing -->
+            <Thickness x:Key="ViewPadding">12</Thickness>
+            <Thickness x:Key="ModalPadding">12</Thickness>
+            <x:Double x:Key="FormSpacing">12</x:Double>
+            <x:Double x:Key="FieldSpacing">4</x:Double>
+            <x:Double x:Key="SecondaryFontSize">11</x:Double>
+            <x:Double x:Key="ModalWidth">460</x:Double>
+            <x:Double x:Key="ValidationFontSize">11</x:Double>
+
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="SecondaryColor">#8F8F94</Color>
+                    <Color x:Key="ToolbarBgColor">#E8E8ED</Color>
+                    <LinearGradientBrush x:Key="ButtonBgBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#E2E2E7" Offset="0"/>
+                        <GradientStop Color="#D4D4D9" Offset="1"/>
+                    </LinearGradientBrush>
+                    <Color x:Key="HoverOverlayColor">#10000000</Color>
+                    <Color x:Key="PressedOverlayColor">#14000000</Color>
+                    <SolidColorBrush x:Key="BorderBrush" Color="#14000000"/>
+                    <SolidColorBrush x:Key="SubtleBgBrush" Color="#06000000"/>
+                    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#8F8F94"/>
+                    <SolidColorBrush x:Key="InputBorderBrush" Color="#2A000000"/>
+                    <Color x:Key="ListItemHoverColor">#0A000000</Color>
+                    <Color x:Key="ListItemSelectedHoverColor">#0055BB</Color>
+                    <SolidColorBrush x:Key="SidebarBrush" Color="#F0F0F0"/>
+                    <SolidColorBrush x:Key="WindowBrush" Color="#F5F5F7"/>
+                    <SolidColorBrush x:Key="ButtonBevelBrush" Color="#22000000"/>
+                    <SolidColorBrush x:Key="ButtonPressedBevelBrush" Color="#30000000"/>
+                    <LinearGradientBrush x:Key="AccentBevelBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#30FFFFFF" Offset="0"/>
+                        <GradientStop Color="#20000000" Offset="1"/>
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="AccentPressedBevelBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#20000000" Offset="0"/>
+                        <GradientStop Color="#10FFFFFF" Offset="1"/>
+                    </LinearGradientBrush>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="SecondaryColor">#98989D</Color>
+                    <Color x:Key="ToolbarBgColor">#252528</Color>
+                    <LinearGradientBrush x:Key="ButtonBgBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Color="#424244" Offset="0"/>
+                        <GradientStop Color="#333335" Offset="1"/>
+                    </LinearGradientBrush>
+                    <Color x:Key="HoverOverlayColor">#33FFFFFF</Color>
+                    <Color x:Key="PressedOverlayColor">#08FFFFFF</Color>
+                    <SolidColorBrush x:Key="BorderBrush" Color="#14FFFFFF"/>
+                    <SolidColorBrush x:Key="SubtleBgBrush" Color="#08FFFFFF"/>
+                    <SolidColorBrush x:Key="SecondaryTextBrush" Color="#98989D"/>
+                    <SolidColorBrush x:Key="InputBorderBrush" Color="#24FFFFFF"/>
+                    <Color x:Key="ListItemHoverColor">#3A3A3C</Color>
+                    <Color x:Key="ListItemSelectedHoverColor">#3468CC</Color>
+                    <SolidColorBrush x:Key="SidebarBrush" Color="#2C2C2E"/>
+                    <SolidColorBrush x:Key="WindowBrush" Color="#1C1C1E"/>
+                    <SolidColorBrush x:Key="ButtonBevelBrush" Color="#18FFFFFF"/>
+                    <SolidColorBrush x:Key="ButtonPressedBevelBrush" Color="#10FFFFFF"/>
+                    <LinearGradientBrush x:Key="AccentBevelBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#28FFFFFF" Offset="0"/>
+                        <GradientStop Color="#18000000" Offset="1"/>
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="AccentPressedBevelBrush" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#18000000" Offset="0"/>
+                        <GradientStop Color="#08FFFFFF" Offset="1"/>
+                    </LinearGradientBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <!-- ===== Window and layout ===== -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{DynamicResource WindowBrush}"/>
+    </Style>
+
+    <!-- ===== Global corner radius ===== -->
+    <Style Selector="TextBox">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
+    </Style>
+    <Style Selector="NumericUpDown">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+    </Style>
+    <Style Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner">
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    <Style Selector="CheckBox">
+        <Setter Property="CornerRadius" Value="3"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+    </Style>
+    <Style Selector="CheckBox /template/ Grid > Border">
+        <Setter Property="CornerRadius" Value="3"/>
+    </Style>
+    <Style Selector="ComboBox /template/ Popup Border">
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Border.card">
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+
+    <!-- ===== Input height and vertical centering ===== -->
+    <Style Selector="TextBox">
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="NumericUpDown">
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="NumericUpDown /template/ TextBox#PART_TextBox">
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Padding" Value="6,0"/>
+    </Style>
+    <Style Selector="NumericUpDown /template/ ButtonSpinner#PART_Spinner">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ===== Buttons ===== -->
+    <Style Selector="Button">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="MinWidth" Value="90"/>
+        <Setter Property="MinHeight" Value="30"/>
+        <Setter Property="Padding" Value="10 5"/>
+        <Setter Property="BorderThickness" Value="1,1,1,1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBevelBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource ButtonBgBrush}"/>
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource HoverOverlayColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBevelBrush}"/>
+    </Style>
+    <Style Selector="Button:pressed">
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonPressedBevelBrush}"/>
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PressedOverlayColor}"/>
+    </Style>
+    <Style Selector="Button:disabled">
+        <Setter Property="Opacity" Value="0.35"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+
+    <!-- Accent button -->
+    <Style Selector="Button.accent">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="WhiteSmoke"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBevelBrush}"/>
+    </Style>
+    <Style Selector="Button.accent:pressed">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentPressedBevelBrush}"/>
+    </Style>
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+        <Setter Property="Foreground" Value="WhiteSmoke"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBevelBrush}"/>
+    </Style>
+    <Style Selector="Button.accent:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentPressedBrush}"/>
+        <Setter Property="Foreground" Value="WhiteSmoke"/>
+    </Style>
+
+    <!-- Toolbar bar -->
+    <Style Selector="Border.toolbar">
+        <Setter Property="Background" Value="{DynamicResource ToolbarBgColor}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="Padding" Value="4"/>
+    </Style>
+
+    <!-- Toolbar button -->
+    <Style Selector="Button.toolbar-btn">
+        <Setter Property="Padding" Value="6,3"/>
+        <Setter Property="MinWidth" Value="60"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="{DynamicResource ToolbarBgColor}"/>
+    </Style>
+
+    <!-- Sidebar buttons -->
+    <Style Selector=".sidebar Button">
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <!-- Dialog bottom button bar -->
+    <Style Selector="StackPanel.dialog-buttons">
+        <Setter Property="DockPanel.Dock" Value="Bottom"/>
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="Spacing" Value="8"/>
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="Margin" Value="0,16,0,0"/>
+    </Style>
+    <Style Selector="StackPanel.dialog-buttons > Button">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="MinHeight" Value="20"/>
+        <Setter Property="MinWidth" Value="90"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ===== Text ===== -->
+    <Style Selector="TextBlock.secondary">
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+    <Style Selector="TextBlock.placeholder">
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="TextAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="24"/>
+    </Style>
+
+    <!-- ===== ListBox ===== -->
+    <Style Selector="ListBox">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="2"/>
+    </Style>
+    <Style Selector="ListBoxItem">
+        <Setter Property="Margin" Value="2"/>
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ListItemHoverColor}"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverColor}"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource SelectedTextColor}"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected TextBlock.secondary">
+        <Setter Property="Foreground" Value="{StaticResource SecondarySelectedTextColor}"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected ctrl|BootstrapIcon">
+        <Setter Property="Foreground" Value="{StaticResource SelectedTextColor}"/>
+    </Style>
+    <Style Selector="ListBoxItem Ellipse.spinner-ellipse">
+        <Setter Property="Stroke" Value="{DynamicResource ThemeAccentBrush}"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected Ellipse.spinner-ellipse">
+        <Setter Property="Stroke" Value="White"/>
+    </Style>
+
+    <!-- ===== ComboBox dropdown ===== -->
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ListItemHoverColor}"/>
+    </Style>
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+    <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverColor}"/>
+    </Style>
+    <Style Selector="ComboBoxItem:selected TextBlock">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <!-- ===== TreeViewItem, MenuItem focus ===== -->
+    <Style Selector="TreeViewItem:selected /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+
+    <!-- ===== MenuFlyout / ContextMenu ===== -->
+    <Style Selector="MenuFlyoutPresenter">
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="ContextMenu">
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="MenuItem">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="0,4,6,4"/>
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="MenuItem ctrl|BootstrapIcon">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="MenuItem /template/ ContentPresenter#PART_IconPresenter">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,0,4,0"/>
+    </Style>
+    <Style Selector="MenuItem /template/ Border">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="MenuItem:pointerover /template/ Border">
+        <Setter Property="Background" Value="{DynamicResource ListItemHoverColor}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="MenuItem:selected">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="MenuItem:selected /template/ Border">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="MenuItem:selected:pointerover /template/ Border">
+        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverColor}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="MenuItem:pressed">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="MenuItem:pressed /template/ Border">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="MenuItem:selected TextBlock">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="MenuItem:selected ctrl|BootstrapIcon">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="MenuItem:pressed TextBlock">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="MenuItem:pressed ctrl|BootstrapIcon">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="MenuItem > Separator">
+        <Setter Property="Margin" Value="4,2"/>
+    </Style>
+
+    <!-- ===== ToolTip ===== -->
+    <Style Selector="ToolTip">
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <!-- ===== TabControl (macOS segmented style) ===== -->
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="TabControl /template/ ItemsPresenter#PART_ItemsPresenter">
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="TabControl > TabItem">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Padding" Value="14,4"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+        <Setter Property="BorderThickness" Value="1,1,1,1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+        <Setter Property="CornerRadius" Value="0"/>
+    </Style>
+    <Style Selector="TabControl > TabItem:not(:nth-child(1))">
+        <Setter Property="BorderThickness" Value="0,1,1,1"/>
+    </Style>
+    <Style Selector="TabControl > TabItem:nth-child(1)">
+        <Setter Property="CornerRadius" Value="5,0,0,5"/>
+    </Style>
+    <Style Selector="TabControl > TabItem:nth-last-child(1)">
+        <Setter Property="CornerRadius" Value="0,5,5,0"/>
+    </Style>
+    <Style Selector="TabControl > TabItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}"/>
+    </Style>
+    <Style Selector="TabControl > TabItem:selected">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+    </Style>
+    <Style Selector="TabControl > TabItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="TabControl > TabItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}"/>
+    </Style>
+    <Style Selector="TabControl > TabItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <!-- ===== ProgressBar ===== -->
+    <Style Selector="ProgressBar">
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="CornerRadius" Value="2.5"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        ClipToBounds="True">
+                    <Panel>
+                        <Border Name="PART_Indicator"
+                                Background="{TemplateBinding Foreground}"
+                                CornerRadius="{TemplateBinding CornerRadius}"/>
+                    </Panel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+</Styles>
