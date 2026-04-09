@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:BorgMate.Localization"
+        xmlns:ctrl="using:BorgMate.Views.Controls"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="350"
+        x:Class="BorgMate.Views.UpdateChangelogWindow"
+        Width="450"
+        SizeToContent="Height"
+        MaxHeight="500"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="{StaticResource ModalPadding}">
+        <StackPanel Classes="dialog-buttons">
+            <Button Content="{Binding [Cancel], Source={x:Static loc:Strings.Instance}}" Name="CancelButton"/>
+            <Button Content="{Binding [UpdateDownload], Source={x:Static loc:Strings.Instance}}" Name="DownloadButton" Classes="accent"/>
+        </StackPanel>
+
+        <ScrollViewer MaxHeight="380">
+            <StackPanel Spacing="12">
+                <!-- Title -->
+                <DockPanel>
+                    <ctrl:BootstrapIcon Kind="ArrowUpCircle" Width="24" Height="24"
+                                               Foreground="#3C81F7" VerticalAlignment="Center"
+                                               Margin="0,0,12,0" DockPanel.Dock="Left"/>
+                    <TextBlock Name="TitleText" FontWeight="SemiBold" FontSize="14"
+                               TextWrapping="Wrap" VerticalAlignment="Center"/>
+                </DockPanel>
+
+                <!-- Changelog entries -->
+                <StackPanel Name="ChangelogPanel" Spacing="10"/>
+
+                <!-- Fallback when no changelog -->
+                <TextBlock Name="NoChangelogText"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           IsVisible="False"/>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

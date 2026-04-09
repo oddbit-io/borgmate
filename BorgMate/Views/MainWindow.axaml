@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:BorgMate.ViewModels"
+        xmlns:models="using:BorgMate.Models"
+        xmlns:views="using:BorgMate.Views"
+        xmlns:loc="using:BorgMate.Localization"
+        xmlns:conv="using:BorgMate.Views.Converters"
+        xmlns:ctrl="using:BorgMate.Views.Controls"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="600"
+        x:Class="BorgMate.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/borgmate.ico"
+        Title="BorgMate"
+        Width="950" Height="600">
+
+    <Design.DataContext>
+        <x:Static Member="vm:DesignData.MainWindow"/>
+    </Design.DataContext>
+
+    <DockPanel>
+        <!-- Update banner -->
+        <Border DockPanel.Dock="Top"
+                Background="#3C81F7"
+                IsVisible="{Binding Status.UpdateMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <StackPanel>
+                <DockPanel Margin="10,6">
+                    <Button DockPanel.Dock="Right"
+                            Content="{Binding Status.UpdateMessage}"
+                            Command="{Binding Status.PerformUpdateCommand}"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="White" FontWeight="SemiBold"
+                            FontSize="{StaticResource SecondaryFontSize}"
+                            VerticalAlignment="Center"
+                            Padding="8,2" Cursor="Hand" MinWidth="0"
+                            TextElement.FontWeight="SemiBold"/>
+                    <TextBlock Text="&#x2191;" Foreground="White" VerticalAlignment="Center"
+                               FontSize="14" Margin="0,0,6,0"/>
+                </DockPanel>
+                <ProgressBar Minimum="0" Maximum="100"
+                             Value="{Binding Status.UpdateProgress}"
+                             IsVisible="{Binding Status.IsDownloading}"
+                             MinHeight="3" Height="3" Padding="0"
+                             Foreground="White" Background="#2A6BD6"/>
+            </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="Auto,*">
+
+            <!-- Left: Navigation rail -->
+            <Border Grid.Column="0" Width="{Binding SidebarWidth}" ClipToBounds="True"
+                    Background="{DynamicResource SidebarBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+                <Border.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Width" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    </Transitions>
+                </Border.Transitions>
+                <DockPanel Classes="sidebar">
+                    <!-- Nav buttons -->
+                    <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="4,4,4,0">
+                        <!-- Expand/collapse toggle -->
+                        <Button Command="{Binding ToggleSidebarCommand}"
+                                Padding="10,11" Background="Transparent" BorderThickness="0"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <ctrl:BootstrapIcon Kind="List" Width="18" Height="18"/>
+                                <TextBlock Text="BorgMate" FontWeight="SemiBold" VerticalAlignment="Center"
+                                           IsVisible="{Binding IsSidebarExpanded}"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Repositories -->
+                        <Border CornerRadius="4">
+                            <Border.Background>
+                                <MultiBinding Converter="{x:Static conv:ActivePageToBrushConverter.Instance}" ConverterParameter="{x:Static models:AppPage.Repositories}">
+                                    <Binding Path="ActivePage"/>
+                                    <Binding Path="$parent[Window].ActualThemeVariant"/>
+                                </MultiBinding>
+                            </Border.Background>
+                            <Button Command="{Binding NavigateToCommand}"
+                                    CommandParameter="{x:Static models:AppPage.Repositories}"
+                                    Padding="10,11" Background="Transparent" BorderThickness="0"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                <Button.Foreground>
+                                    <MultiBinding Converter="{x:Static conv:ActivePageToForegroundConverter.Instance}" ConverterParameter="{x:Static models:AppPage.Repositories}">
+                                        <Binding Path="ActivePage"/>
+                                        <Binding Path="$parent[Window].ActualThemeVariant"/>
+                                    </MultiBinding>
+                                </Button.Foreground>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <ctrl:BootstrapIcon Kind="Database" Width="18" Height="18"/>
+                                    <TextBlock Text="{Binding [Repositories], Source={x:Static loc:Strings.Instance}}"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding IsSidebarExpanded}"/>
+                                </StackPanel>
+                            </Button>
+                        </Border>
+
+                        <!-- Notifications -->
+                        <Border CornerRadius="4">
+                            <Border.Background>
+                                <MultiBinding Converter="{x:Static conv:ActivePageToBrushConverter.Instance}" ConverterParameter="{x:Static models:AppPage.Notifications}">
+                                    <Binding Path="ActivePage"/>
+                                    <Binding Path="$parent[Window].ActualThemeVariant"/>
+                                </MultiBinding>
+                            </Border.Background>
+                            <Button Command="{Binding NavigateToCommand}"
+                                    CommandParameter="{x:Static models:AppPage.Notifications}"
+                                    Padding="10,11" Background="Transparent" BorderThickness="0"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                                <Button.Foreground>
+                                    <MultiBinding Converter="{x:Static conv:ActivePageToForegroundConverter.Instance}" ConverterParameter="{x:Static models:AppPage.Notifications}">
+                                        <Binding Path="ActivePage"/>
+                                        <Binding Path="$parent[Window].ActualThemeVariant"/>
+                                    </MultiBinding>
+                                </Button.Foreground>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Grid>
+                                        <ctrl:BootstrapIcon Kind="Bell" Width="18" Height="18"/>
+                                        <Border Background="#3C81F7" CornerRadius="7" MinWidth="14" Height="14"
+                                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                Margin="0,-4,-6,0" Padding="3,0"
+                                                IsVisible="{Binding Notifications.JournalService.UnreadCount}">
+                                            <TextBlock Text="{Binding Notifications.JournalService.UnreadCount}"
+                                                       Foreground="White" FontSize="9" FontWeight="Bold"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Text="{Binding [Notifications], Source={x:Static loc:Strings.Instance}}"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding IsSidebarExpanded}"/>
+                                </StackPanel>
+                            </Button>
+                        </Border>
+
+                    </StackPanel>
+
+                    <!-- Settings & About at bottom -->
+                    <StackPanel DockPanel.Dock="Bottom" Spacing="2" Margin="4,0,4,4">
+                        <Button Command="{Binding OpenAppSettingsCommand}"
+                                Padding="10,11" Background="Transparent" BorderThickness="0"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <ctrl:BootstrapIcon Kind="GearWideConnected" Width="18" Height="18"/>
+                                <TextBlock Text="{Binding [AppSettings], Source={x:Static loc:Strings.Instance}}"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding IsSidebarExpanded}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding OpenAboutCommand}"
+                                Padding="10,11" Background="Transparent" BorderThickness="0"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <ctrl:BootstrapIcon Kind="InfoCircle" Width="18" Height="18"/>
+                                <TextBlock Text="{Binding [About], Source={x:Static loc:Strings.Instance}}"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding IsSidebarExpanded}"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Fill remaining space -->
+                    <Panel/>
+                </DockPanel>
+            </Border>
+
+            <!-- Right: Content area -->
+            <Panel Grid.Column="1">
+
+                <!-- Repositories page -->
+                <Grid ColumnDefinitions="*,*" IsVisible="{Binding IsRepositoriesPage}">
+                    <Border Grid.Column="0"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+                        <views:RepositoryListView DataContext="{Binding RepositoryList}"/>
+                    </Border>
+
+                    <Panel Grid.Column="1">
+                        <TextBlock Text="{Binding [SelectRepoPrompt], Source={x:Static loc:Strings.Instance}}"
+                                   Classes="placeholder" IsVisible="{Binding !IsRepositorySelected}"/>
+
+                        <views:ArchiveListView DataContext="{Binding ArchiveList}"
+                                           IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsRepositorySelected}"/>
+                    </Panel>
+                </Grid>
+
+                <!-- Notifications page -->
+                <views:NotificationsView DataContext="{Binding Notifications}"
+                                   IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsNotificationsPage}"/>
+
+            </Panel>
+        </Grid>
+    </DockPanel>
+</Window>

@@ -1,0 +1,890 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
+  <data name="AppTitle" xml:space="preserve">
+    <value>BorgMate</value>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+  <data name="OpenBorgMate" xml:space="preserve">
+    <value>Открыть BorgMate</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Создать</value>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>Проверить</value>
+  </data>
+  <data name="Browse" xml:space="preserve">
+    <value>Обзор...</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="More" xml:space="preserve">
+    <value>Ещё</value>
+  </data>
+  <data name="Run" xml:space="preserve">
+    <value>Запуск</value>
+  </data>
+  <data name="Backup" xml:space="preserve">
+    <value>Бэкап</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="RestoreTo" xml:space="preserve">
+    <value>Восстановить в...</value>
+  </data>
+  <data name="Prune" xml:space="preserve">
+    <value>Очистка</value>
+  </data>
+  <data name="Compact" xml:space="preserve">
+    <value>Уплотнение</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>Статистика</value>
+  </data>
+  <data name="TotalSize" xml:space="preserve">
+    <value>Размер репозитория</value>
+  </data>
+  <data name="TotalChunks" xml:space="preserve">
+    <value>Всего блоков</value>
+  </data>
+  <data name="UniqueChunks" xml:space="preserve">
+    <value>Уникальных блоков</value>
+  </data>
+  <data name="TotalArchives" xml:space="preserve">
+    <value>Архивов</value>
+  </data>
+  <data name="BytesB" xml:space="preserve">
+    <value>Б</value>
+  </data>
+  <data name="BytesKB.bin" xml:space="preserve">
+    <value>КиБ</value>
+  </data>
+  <data name="BytesMB.bin" xml:space="preserve">
+    <value>МиБ</value>
+  </data>
+  <data name="BytesGB.bin" xml:space="preserve">
+    <value>ГиБ</value>
+  </data>
+  <data name="BytesTB.bin" xml:space="preserve">
+    <value>ТиБ</value>
+  </data>
+  <data name="BytesKB.dec" xml:space="preserve">
+    <value>КБ</value>
+  </data>
+  <data name="BytesMB.dec" xml:space="preserve">
+    <value>МБ</value>
+  </data>
+  <data name="BytesGB.dec" xml:space="preserve">
+    <value>ГБ</value>
+  </data>
+  <data name="BytesTB.dec" xml:space="preserve">
+    <value>ТБ</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Уведомления</value>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>Очистить все</value>
+  </data>
+  <data name="NoNotifications" xml:space="preserve">
+    <value>Нет уведомлений</value>
+  </data>
+  <data name="NoOperations" xml:space="preserve">
+    <value>Нет фоновых операций</value>
+  </data>
+  <data name="Job.Running" xml:space="preserve">
+    <value>Выполняется...</value>
+  </data>
+  <data name="Job.Completed" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="Job.Failed" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Job.Cancelled" xml:space="preserve">
+    <value>Отменено</value>
+  </data>
+  <data name="Job.Backup" xml:space="preserve">
+    <value>Резервное копирование</value>
+  </data>
+  <data name="Job.Restore" xml:space="preserve">
+    <value>Восстановление</value>
+  </data>
+  <data name="Job.Prune" xml:space="preserve">
+    <value>Очистка</value>
+  </data>
+  <data name="Job.Check" xml:space="preserve">
+    <value>Проверка</value>
+  </data>
+  <data name="Job.Compact" xml:space="preserve">
+    <value>Уплотнение</value>
+  </data>
+  <data name="Job.ListArchives" xml:space="preserve">
+    <value>Список архивов</value>
+  </data>
+  <data name="Job.ListContents" xml:space="preserve">
+    <value>Содержимое архива</value>
+  </data>
+  <data name="Job.Diff" xml:space="preserve">
+    <value>Сравнение архивов</value>
+  </data>
+  <data name="Job.Init" xml:space="preserve">
+    <value>Инициализация репозитория</value>
+  </data>
+  <data name="Job.DeleteArchive" xml:space="preserve">
+    <value>Удаление архива</value>
+  </data>
+  <data name="Job.StartedAt" xml:space="preserve">
+    <value>Начало: {0}</value>
+  </data>
+  <data name="Job.CompletedIn" xml:space="preserve">
+    <value>завершено за {0}</value>
+  </data>
+  <data name="Job.Left" xml:space="preserve">
+    <value>осталось</value>
+  </data>
+  <data name="SpeedPerSec" xml:space="preserve">
+    <value>с</value>
+  </data>
+  <data name="ComingSoon" xml:space="preserve">
+    <value>Скоро</value>
+  </data>
+  <data name="Notif.Backup" xml:space="preserve">
+    <value>Резервное копирование «{0}»</value>
+  </data>
+  <data name="Notif.Prune" xml:space="preserve">
+    <value>Очистка «{0}»</value>
+  </data>
+  <data name="Notif.Check" xml:space="preserve">
+    <value>Проверка «{0}»</value>
+  </data>
+  <data name="Notif.Compact" xml:space="preserve">
+    <value>Уплотнение «{0}»</value>
+  </data>
+  <data name="Notif.Delete" xml:space="preserve">
+    <value>Удаление «{0}»</value>
+  </data>
+  <data name="Notif.Create" xml:space="preserve">
+    <value>Создание «{0}»</value>
+  </data>
+  <data name="Notif.Restore" xml:space="preserve">
+    <value>Восстановление «{0}»</value>
+  </data>
+  <data name="Notif.PassphraseFailed" xml:space="preserve">
+    <value>Неверная парольная фраза для «{0}»</value>
+  </data>
+  <data name="Repositories" xml:space="preserve">
+    <value>Репозитории</value>
+  </data>
+  <data name="Archives" xml:space="preserve">
+    <value>Архивы</value>
+  </data>
+  <data name="CreateNew" xml:space="preserve">
+    <value>Создать</value>
+  </data>
+  <data name="OpenExisting" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="SelectRepoPrompt" xml:space="preserve">
+    <value>Выберите или добавьте репозиторий для начала работы.</value>
+  </data>
+  <data name="SelectRepoDetail" xml:space="preserve">
+    <value>Выберите репозиторий</value>
+  </data>
+  <data name="SelectArchiveDetail" xml:space="preserve">
+    <value>Выберите архив</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>Основное</value>
+  </data>
+  <data name="Advanced" xml:space="preserve">
+    <value>Дополнительно</value>
+  </data>
+  <data name="CreateNewRepo" xml:space="preserve">
+    <value>Создание репозитория</value>
+  </data>
+  <data name="EditRepo" xml:space="preserve">
+    <value>Редактирование репозитория</value>
+  </data>
+  <data name="OpenExistingRepo" xml:space="preserve">
+    <value>Открытие репозитория</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="DisplayName" xml:space="preserve">
+    <value>Отображаемое имя</value>
+  </data>
+  <data name="BorgVersion" xml:space="preserve">
+    <value>Версия Borg</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Расположение</value>
+  </data>
+  <data name="Local" xml:space="preserve">
+    <value>Локальный</value>
+  </data>
+  <data name="SSH" xml:space="preserve">
+    <value>SSH</value>
+  </data>
+  <data name="RepositoryPath" xml:space="preserve">
+    <value>Путь к репозиторию</value>
+  </data>
+  <data name="SshKeyPath" xml:space="preserve">
+    <value>Путь к SSH-ключу</value>
+  </data>
+  <data name="SshPort" xml:space="preserve">
+    <value>SSH-порт</value>
+  </data>
+  <data name="BorgRemotePath" xml:space="preserve">
+    <value>Удалённый путь к Borg (необязательно)</value>
+  </data>
+  <data name="BorgEncryptionMode" xml:space="preserve">
+    <value>Режим шифрования</value>
+  </data>
+  <data name="RateLimit" xml:space="preserve">
+    <value>Ограничение скорости (кБ/с, 0 = без ограничений)</value>
+  </data>
+  <data name="SourceDirectories" xml:space="preserve">
+    <value>Исходные каталоги</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Восстановление</value>
+  </data>
+  <data name="BrowseRestore" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="BrowseArchiveTitle" xml:space="preserve">
+    <value>Обзор: {0}</value>
+  </data>
+  <data name="BrowseArchive.ShowChanges" xml:space="preserve">
+    <value>Показать изменения</value>
+  </data>
+  <data name="BrowseArchive.DiffLoading" xml:space="preserve">
+    <value>Сравнение с предыдущей копией...</value>
+  </data>
+  <data name="RestoreSelected" xml:space="preserve">
+    <value>Восстановить выбранные в...</value>
+  </data>
+  <data name="LoadingContents" xml:space="preserve">
+    <value>Загрузка содержимого архива...</value>
+  </data>
+  <data name="SelectedFiles" xml:space="preserve">
+    <value>{0} файлов</value>
+  </data>
+  <data name="SelectedFilesWithSize" xml:space="preserve">
+    <value>{0} файлов, {1}</value>
+  </data>
+  <data name="NoFilesSelected" xml:space="preserve">
+    <value>Файлы не выбраны</value>
+  </data>
+  <data name="NameHeader" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="DateHeader" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="OriginalSize" xml:space="preserve">
+    <value>Исходный размер</value>
+  </data>
+  <data name="Files" xml:space="preserve">
+    <value>Файлы</value>
+  </data>
+  <data name="FetchDetails" xml:space="preserve">
+    <value>Загрузить детали архива</value>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>О программе</value>
+  </data>
+  <data name="AppSettings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Язык</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="BorgBinaryPath" xml:space="preserve">
+    <value>Путь к Borg</value>
+  </data>
+  <data name="BorgPathOverride" xml:space="preserve">
+    <value>Переопределение пути к Borg</value>
+  </data>
+  <data name="DetectedBorgPath" xml:space="preserve">
+    <value>Обнаружен: {0}</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Проверять обновления при запуске</value>
+  </data>
+  <data name="ShowNotifications" xml:space="preserve">
+    <value>Показывать системные уведомления</value>
+  </data>
+  <data name="StartAtLogin" xml:space="preserve">
+    <value>Запускать при входе в систему</value>
+  </data>
+  <data name="StartMinimized" xml:space="preserve">
+    <value>Запускать свёрнутым</value>
+  </data>
+  <data name="BinaryUnits" xml:space="preserve">
+    <value>Двоичные единицы размера (КиБ, МиБ, ГиБ)</value>
+  </data>
+  <data name="EnableLogging" xml:space="preserve">
+    <value>Включить отладочное журналирование</value>
+  </data>
+  <data name="SshKeepAlive" xml:space="preserve">
+    <value>SSH keep-alive</value>
+  </data>
+  <data name="SshKeepAliveInterval" xml:space="preserve">
+    <value>Интервал (сек)</value>
+  </data>
+  <data name="SshKeepAliveCountMax" xml:space="preserve">
+    <value>Макс. попыток</value>
+  </data>
+  <data name="LogRetention" xml:space="preserve">
+    <value>Хранение журналов</value>
+  </data>
+  <data name="LogRetentionPeriod" xml:space="preserve">
+    <value>Период хранения</value>
+  </data>
+  <data name="JournalRetention" xml:space="preserve">
+    <value>Хранение событий</value>
+  </data>
+  <data name="Retention.OneDay" xml:space="preserve">
+    <value>Один день</value>
+  </data>
+  <data name="Retention.OneWeek" xml:space="preserve">
+    <value>Одна неделя</value>
+  </data>
+  <data name="Retention.OneMonth" xml:space="preserve">
+    <value>Один месяц</value>
+  </data>
+  <data name="Retention.OneYear" xml:space="preserve">
+    <value>Один год</value>
+  </data>
+  <data name="Retention.Forever" xml:space="preserve">
+    <value>Бессрочно</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Доступно обновление: v{0}</value>
+  </data>
+  <data name="UpdateTitle" xml:space="preserve">
+    <value>Доступно обновление</value>
+  </data>
+  <data name="UpdateChangelogTitle" xml:space="preserve">
+    <value>Что нового в v{0}</value>
+  </data>
+  <data name="UpdateNoChangelog" xml:space="preserve">
+    <value>Список изменений недоступен.</value>
+  </data>
+  <data name="UpdateDownload" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="DownloadingUpdate" xml:space="preserve">
+    <value>Загрузка обновления...</value>
+  </data>
+  <data name="RestartToUpdate" xml:space="preserve">
+    <value>Обновление загружено. Перезапустить сейчас?</value>
+  </data>
+  <data name="PassphraseRequired" xml:space="preserve">
+    <value>Требуется парольная фраза</value>
+  </data>
+  <data name="EnterPassphraseFor" xml:space="preserve">
+    <value>Введите парольную фразу для «{0}»:</value>
+  </data>
+  <data name="WrongPassphraseRetry" xml:space="preserve">
+    <value>Неверная парольная фраза. Попробуйте ещё раз:</value>
+  </data>
+  <data name="SaveToKeychain" xml:space="preserve">
+    <value>Сохранить в связке ключей</value>
+  </data>
+  <data name="SshAuthentication" xml:space="preserve">
+    <value>Аутентификация SSH</value>
+  </data>
+  <data name="SshKeyPassphraseRequired" xml:space="preserve">
+    <value>Пароль SSH-ключа</value>
+  </data>
+  <data name="EnterSshKeyPassphrase" xml:space="preserve">
+    <value>Введите пароль SSH-ключа «{0}»:</value>
+  </data>
+  <data name="WrongSshKeyPassphrase" xml:space="preserve">
+    <value>Неверный пароль SSH-ключа. Попробуйте ещё раз:</value>
+  </data>
+  <data name="WatermarkSshKeyPassphrase" xml:space="preserve">
+    <value>Пароль SSH-ключа</value>
+  </data>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>Введите пароль</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Schedule" xml:space="preserve">
+    <value>Расписание</value>
+  </data>
+  <data name="ScheduleManualOnly" xml:space="preserve">
+    <value>Сейчас доступны только ручные бэкапы. Расписание будет доступно в будущем обновлении.</value>
+  </data>
+  <data name="Mode.Manual" xml:space="preserve">
+    <value>Вручную</value>
+  </data>
+  <data name="Mode.Scheduled" xml:space="preserve">
+    <value>По расписанию</value>
+  </data>
+  <data name="Frequency" xml:space="preserve">
+    <value>Частота</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="DayOfWeek" xml:space="preserve">
+    <value>День недели</value>
+  </data>
+  <data name="DayOfMonth" xml:space="preserve">
+    <value>День месяца</value>
+  </data>
+  <data name="RunEveryHours" xml:space="preserve">
+    <value>Запускать каждые (часов)</value>
+  </data>
+  <data name="Schedule.NextRun" xml:space="preserve">
+    <value>Следующий запуск</value>
+  </data>
+  <data name="Schedule.InTime" xml:space="preserve">
+    <value>через {0}</value>
+  </data>
+  <data name="Schedule.Now" xml:space="preserve">
+    <value>сейчас</value>
+  </data>
+  <data name="Schedule.RunMissed" xml:space="preserve">
+    <value>Запускать пропущенные при старте</value>
+  </data>
+  <data name="ScheduleEveryNHours" xml:space="preserve">
+    <value>Раз в {0}</value>
+  </data>
+  <data name="ScheduleDaily" xml:space="preserve">
+    <value>Ежедневно в {0}</value>
+  </data>
+  <data name="ScheduleWeekly" xml:space="preserve">
+    <value>{0} в {1}</value>
+  </data>
+  <data name="ScheduleMonthly" xml:space="preserve">
+    <value>{0}-го числа каждого месяца в {1}</value>
+  </data>
+  <data name="Freq.EveryNHours" xml:space="preserve">
+    <value>Каждые N часов</value>
+  </data>
+  <data name="Freq.Daily" xml:space="preserve">
+    <value>Ежедневно</value>
+  </data>
+  <data name="Freq.Weekly" xml:space="preserve">
+    <value>Еженедельно</value>
+  </data>
+  <data name="Freq.Monthly" xml:space="preserve">
+    <value>Ежемесячно</value>
+  </data>
+  <data name="Dow.Sunday" xml:space="preserve">
+    <value>Каждое воскресенье</value>
+  </data>
+  <data name="Dow.Monday" xml:space="preserve">
+    <value>Каждый понедельник</value>
+  </data>
+  <data name="Dow.Tuesday" xml:space="preserve">
+    <value>Каждый вторник</value>
+  </data>
+  <data name="Dow.Wednesday" xml:space="preserve">
+    <value>Каждую среду</value>
+  </data>
+  <data name="Dow.Thursday" xml:space="preserve">
+    <value>Каждый четверг</value>
+  </data>
+  <data name="Dow.Friday" xml:space="preserve">
+    <value>Каждую пятницу</value>
+  </data>
+  <data name="Dow.Saturday" xml:space="preserve">
+    <value>Каждую субботу</value>
+  </data>
+  <data name="Dow.Short.Sunday" xml:space="preserve">
+    <value>Вс</value>
+  </data>
+  <data name="Dow.Short.Monday" xml:space="preserve">
+    <value>Пн</value>
+  </data>
+  <data name="Dow.Short.Tuesday" xml:space="preserve">
+    <value>Вт</value>
+  </data>
+  <data name="Dow.Short.Wednesday" xml:space="preserve">
+    <value>Ср</value>
+  </data>
+  <data name="Dow.Short.Thursday" xml:space="preserve">
+    <value>Чт</value>
+  </data>
+  <data name="Dow.Short.Friday" xml:space="preserve">
+    <value>Пт</value>
+  </data>
+  <data name="Dow.Short.Saturday" xml:space="preserve">
+    <value>Сб</value>
+  </data>
+  <data name="WatermarkRepoName" xml:space="preserve">
+    <value>Мой репозиторий</value>
+  </data>
+  <data name="SshHost" xml:space="preserve">
+    <value>Хост</value>
+  </data>
+  <data name="SshUser" xml:space="preserve">
+    <value>Пользователь</value>
+  </data>
+  <data name="WatermarkSshHost" xml:space="preserve">
+    <value>напр. backup.example.com</value>
+  </data>
+  <data name="WatermarkSshUser" xml:space="preserve">
+    <value>напр. root</value>
+  </data>
+  <data name="WatermarkRepoPath" xml:space="preserve">
+    <value>/путь/к/репозиторию</value>
+  </data>
+  <data name="WatermarkSshKey" xml:space="preserve">
+    <value>~/.ssh/id_rsa</value>
+  </data>
+  <data name="WatermarkBorgRemotePath" xml:space="preserve">
+    <value>напр. /usr/local/bin/borg</value>
+  </data>
+  <data name="WatermarkSourceDir" xml:space="preserve">
+    <value>/путь/к/каталогу</value>
+  </data>
+  <data name="WatermarkBorgBinary" xml:space="preserve">
+    <value>borg</value>
+  </data>
+  <data name="WatermarkPassphrase" xml:space="preserve">
+    <value>Введите парольную фразу</value>
+  </data>
+  <data name="ErrorTitle" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Подтверждение</value>
+  </data>
+  <data name="ConfirmClearJournal" xml:space="preserve">
+    <value>Очистить все записи журнала?</value>
+  </data>
+  <data name="ConfirmDeleteRepo" xml:space="preserve">
+    <value>Удалить репозиторий «{0}» из списка?</value>
+  </data>
+  <data name="RepoExistsOpenInstead" xml:space="preserve">
+    <value>Репозиторий по этому пути уже существует. Открыть его?</value>
+  </data>
+  <data name="ValidationRequired" xml:space="preserve">
+    <value>Это поле обязательно</value>
+  </data>
+  <data name="ValidationSourceDirsRequired" xml:space="preserve">
+    <value>Необходимо добавить хотя бы один каталог</value>
+  </data>
+  <data name="ValidationIntervalRequired" xml:space="preserve">
+    <value>Интервал должен быть не менее 1 часа</value>
+  </data>
+  <data name="Status.BackupFailed" xml:space="preserve">
+    <value>Ошибка копирования: {0}</value>
+  </data>
+  <data name="Status.BackupRunning" xml:space="preserve">
+    <value>Выполняется резервное копирование «{0}»...</value>
+  </data>
+  <data name="Status.CalculatingSize" xml:space="preserve">
+    <value>Вычисление размера...</value>
+  </data>
+  <data name="Status.CalculatingSizeProgress" xml:space="preserve">
+    <value>Найдено {0} папок, {1} файлов ({2})</value>
+  </data>
+  <data name="Status.BackupProgress" xml:space="preserve">
+    <value>{0} из {1} файлов, {2} из {3}</value>
+  </data>
+  <data name="Status.BackupComplete" xml:space="preserve">
+    <value>Готово — {0} файлов, {1}</value>
+  </data>
+  <data name="Status.CheckingVersion" xml:space="preserve">
+    <value>Проверка версии borg...</value>
+  </data>
+  <data name="Status.BorgVersion" xml:space="preserve">
+    <value>Версия borg: {0}</value>
+  </data>
+  <data name="Status.CheckingRemotePath" xml:space="preserve">
+    <value>Проверка удалённого пути...</value>
+  </data>
+  <data name="Status.Found" xml:space="preserve">
+    <value>Найдено: {0}</value>
+  </data>
+  <data name="Status.InitializingRepo" xml:space="preserve">
+    <value>Инициализация репозитория...</value>
+  </data>
+  <data name="Status.RepoInitialized" xml:space="preserve">
+    <value>Репозиторий инициализирован: {0}</value>
+  </data>
+  <data name="Status.InitFailed" xml:space="preserve">
+    <value>Ошибка инициализации: {0}</value>
+  </data>
+  <data name="Status.RepoOpened" xml:space="preserve">
+    <value>Открыт репозиторий: {0}</value>
+  </data>
+  <data name="Status.RepoRemoved" xml:space="preserve">
+    <value>Репозиторий «{0}» удалён.</value>
+  </data>
+  <data name="Status.LoadingArchives" xml:space="preserve">
+    <value>Загрузка архивов...</value>
+  </data>
+  <data name="Status.ArchivesFound" xml:space="preserve">
+    <value>Найдено архивов: {0}.</value>
+  </data>
+  <data name="Status.ArchiveListError" xml:space="preserve">
+    <value>Ошибка списка архивов: {0}</value>
+  </data>
+  <data name="Status.DeletingArchive" xml:space="preserve">
+    <value>Удаление архива «{0}»...</value>
+  </data>
+  <data name="Status.ArchiveDeleted" xml:space="preserve">
+    <value>Архив «{0}» удалён.</value>
+  </data>
+  <data name="Status.ArchiveDeleteError" xml:space="preserve">
+    <value>Ошибка удаления архива: {0}</value>
+  </data>
+  <data name="ConfirmQuitWithRunningTasks" xml:space="preserve">
+    <value>Задачи ещё выполняются. Отменить и выйти?</value>
+  </data>
+  <data name="ConfirmPrune" xml:space="preserve">
+    <value>Очистить репозиторий «{0}»? Старые архивы будут удалены по правилам хранения.</value>
+  </data>
+  <data name="ConfirmCompact" xml:space="preserve">
+    <value>Уплотнить репозиторий «{0}»? Это освободит неиспользуемое пространство.</value>
+  </data>
+  <data name="ConfirmCancelOperation" xml:space="preserve">
+    <value>Отменить текущую операцию?</value>
+  </data>
+  <data name="ConfirmDeleteArchive" xml:space="preserve">
+    <value>Удалить архив «{0}»? Это действие необратимо.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="DeletingArchive" xml:space="preserve">
+    <value>Удаление архива...</value>
+  </data>
+  <data name="Status.Restoring" xml:space="preserve">
+    <value>Восстановление «{0}»...</value>
+  </data>
+  <data name="Status.Pruning" xml:space="preserve">
+    <value>Очистка «{0}»...</value>
+  </data>
+  <data name="Status.Checking" xml:space="preserve">
+    <value>Проверка «{0}»...</value>
+  </data>
+  <data name="Status.CheckingProgress" xml:space="preserve">
+    <value>Проверка целостности...</value>
+  </data>
+  <data name="Status.CheckComplete" xml:space="preserve">
+    <value>Проверка завершена</value>
+  </data>
+  <data name="Status.Compacting" xml:space="preserve">
+    <value>Уплотнение «{0}»...</value>
+  </data>
+  <data name="Status.CompactingProgress" xml:space="preserve">
+    <value>Уплотнение...</value>
+  </data>
+  <data name="Status.CompactComplete" xml:space="preserve">
+    <value>Уплотнение завершено</value>
+  </data>
+  <data name="Status.RestoreCompleted" xml:space="preserve">
+    <value>Восстановление завершено в {0}.</value>
+  </data>
+  <data name="Status.RestoreFailed" xml:space="preserve">
+    <value>Ошибка восстановления: {0}</value>
+  </data>
+  <data name="Status.NoRepoSelected" xml:space="preserve">
+    <value>Репозиторий не выбран.</value>
+  </data>
+  <data name="Status.NoArchiveSelected" xml:space="preserve">
+    <value>Выберите архив.</value>
+  </data>
+  <data name="Status.NoRestorePath" xml:space="preserve">
+    <value>Укажите путь для восстановления.</value>
+  </data>
+  <data name="Status.RetryingIn" xml:space="preserve">
+    <value>Соединение потеряно, повтор через {0} с...</value>
+  </data>
+  <data name="Status.RetryAttempt" xml:space="preserve">
+    <value>Повтор {0} из {1}...</value>
+  </data>
+  <data name="Status.Error" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="Theme.Auto" xml:space="preserve">
+    <value>Авто</value>
+  </data>
+  <data name="Theme.Light" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="Theme.Dark" xml:space="preserve">
+    <value>Тёмная</value>
+  </data>
+  <data name="Picker.SelectRepository" xml:space="preserve">
+    <value>Выберите репозиторий</value>
+  </data>
+  <data name="Picker.SelectSshKey" xml:space="preserve">
+    <value>Выберите SSH-ключ</value>
+  </data>
+  <data name="Picker.SelectSourceDirs" xml:space="preserve">
+    <value>Выберите исходные каталоги</value>
+  </data>
+  <data name="Picker.SelectRestoreDest" xml:space="preserve">
+    <value>Выберите путь восстановления</value>
+  </data>
+  <data name="Error.SshHostKeyVerificationFailed" xml:space="preserve">
+    <value>Ошибка проверки ключа SSH.
+
+Удалённый хост отсутствует в файле known_hosts. Подключитесь вручную для принятия ключа:
+  ssh &lt;user@host&gt;</value>
+  </data>
+  <data name="Error.SshPermissionDenied" xml:space="preserve">
+    <value>SSH: доступ запрещён.
+
+Возможные причины:
+  - Неверный SSH-ключ
+  - SSH-ключ требует пароль
+  - У удалённого пользователя нет доступа
+Проверьте путь к SSH-ключу и имя пользователя в настройках репозитория.</value>
+  </data>
+  <data name="Error.SshConnectionRefused" xml:space="preserve">
+    <value>SSH: соединение отклонено.
+
+Удалённый хост отклонил подключение. Проверьте:
+  - Правильность адреса хоста
+  - Запущен ли SSH на удалённом хосте
+  - Правильность SSH-порта (по умолчанию: 22)
+
+Borg использует контрольные точки — повторный запуск продолжит с места остановки.</value>
+  </data>
+  <data name="Error.SshConnectionTimedOut" xml:space="preserve">
+    <value>SSH: время подключения истекло.
+
+Удалённый хост не ответил. Проверьте:
+  - Правильность адреса хоста
+  - Доступность хоста в сети
+  - Не блокирует ли файрвол соединение
+
+Borg использует контрольные точки — повторный запуск продолжит с места остановки.</value>
+  </data>
+  <data name="Error.SshNoRouteToHost" xml:space="preserve">
+    <value>SSH: нет маршрута к хосту.
+
+Удалённый хост недоступен. Проверьте сетевое подключение и правильность адреса хоста.
+
+Borg использует контрольные точки — повторный запуск продолжит с места остановки.</value>
+  </data>
+  <data name="Error.SshHostnameNotFound" xml:space="preserve">
+    <value>SSH: не удалось разрешить имя хоста.
+
+Имя хоста не найдено. Проверьте:
+  - Правильность написания адреса хоста
+  - Работоспособность DNS</value>
+  </data>
+  <data name="Error.SshConnectionReset" xml:space="preserve">
+    <value>SSH: соединение закрыто удалённым хостом.
+
+Удалённый сервер разорвал соединение. Возможные причины:
+  - Слишком много неудачных попыток аутентификации
+  - Ограничения в конфигурации SSH на сервере
+  - Перегрузка удалённого сервера
+
+Borg использует контрольные точки — повторный запуск продолжит с места остановки.</value>
+  </data>
+  <data name="Error.SshKeyFileNotFound" xml:space="preserve">
+    <value>SSH-ключ не найден.
+
+Указанный путь к SSH-ключу не существует. Проверьте путь к ключу в настройках репозитория.</value>
+  </data>
+  <data name="Error.RepositoryNotFound" xml:space="preserve">
+    <value>Репозиторий Borg не найден.
+
+Путь к репозиторию не найден. Проверьте:
+  - Правильность пути
+  - Инициализирован ли репозиторий
+  - Наличие прав на чтение</value>
+  </data>
+  <data name="Error.RepositoryAlreadyExists" xml:space="preserve">
+    <value>Репозиторий Borg уже существует по этому пути.
+
+Используйте «Открыть существующий» вместо «Создать новый».</value>
+  </data>
+  <data name="Error.WrongPassphrase" xml:space="preserve">
+    <value>Неверная парольная фраза.
+
+Парольная фраза для этого репозитория неверна. Попробуйте ещё раз.</value>
+  </data>
+  <data name="Error.RepositoryLocked" xml:space="preserve">
+    <value>Репозиторий заблокирован.
+
+Другой процесс borg использует этот репозиторий. Дождитесь завершения или выполните &#x27;borg break-lock&#x27;.</value>
+  </data>
+  <data name="Error.InvalidRepository" xml:space="preserve">
+    <value>Недействительный репозиторий Borg.
+
+По указанному пути нет действительного репозитория. Проверьте:
+  - Путь указывает на репозиторий borg
+  - Репозиторий не повреждён
+  - Версия borg совпадает (borg1 или borg2)</value>
+  </data>
+  <data name="Error.IncompatibleRepository" xml:space="preserve">
+    <value>Несовместимая версия репозитория.
+
+Этот репозиторий создан другой версией borg. Проверьте настройку версии в настройках репозитория.</value>
+  </data>
+  <data name="Error.NoSpaceLeftOnDevice" xml:space="preserve">
+    <value>Нет свободного места на диске.
+
+Диск заполнен. Освободите место и повторите попытку.</value>
+  </data>
+  <data name="Error.BorgBinaryNotFound" xml:space="preserve">
+    <value>Borg не найден на удалённом хосте.
+
+Установите borg на удалённом сервере или укажите «Удалённый путь к Borg» в настройках репозитория.</value>
+  </data>
+  <data name="Error.BinaryNotFound" xml:space="preserve">
+    <value>Исполняемый файл не найден.
+
+Проверьте путь к borg в настройках приложения.</value>
+  </data>
+  <data name="Error.WslNotAvailable" xml:space="preserve">
+    <value>WSL недоступен.
+
+Для работы borg в Windows требуется подсистема Windows для Linux (WSL).
+Установите WSL и повторите попытку.</value>
+  </data>
+  <data name="Error.OperationCancelled" xml:space="preserve">
+    <value>Операция отменена.</value>
+  </data>
+  <data name="Error.Unknown" xml:space="preserve">
+    <value>Произошла неизвестная ошибка.</value>
+  </data>
+  <data name="TrayJobsRunning" xml:space="preserve">
+    <value>{0} выполняется</value>
+  </data>
+</root>

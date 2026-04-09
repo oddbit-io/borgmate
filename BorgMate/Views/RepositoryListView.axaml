@@ -1,0 +1,222 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:BorgMate.ViewModels"
+             xmlns:models="using:BorgMate.Models"
+             xmlns:loc="using:BorgMate.Localization"
+             xmlns:ctrl="using:BorgMate.Views.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="340" d:DesignHeight="600"
+             x:Class="BorgMate.Views.RepositoryListView"
+             x:DataType="vm:RepositoryListViewModel">
+
+    <Design.DataContext>
+        <x:Static Member="vm:DesignData.RepositoryList" />
+    </Design.DataContext>
+
+    <DockPanel>
+        <!-- Action buttons -->
+        <Border DockPanel.Dock="Top" Classes="toolbar">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Command="{Binding AddNewCommand}" Classes="toolbar-btn">
+                    <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <ctrl:BootstrapIcon Kind="PlusLg" Width="16" Height="16" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding [CreateNew], Source={x:Static loc:Strings.Instance}}" FontSize="10"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding OpenExistingCommand}" Classes="toolbar-btn">
+                    <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <ctrl:BootstrapIcon Kind="Folder2Open" Width="16" Height="16"
+                                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding [OpenExisting], Source={x:Static loc:Strings.Instance}}" FontSize="10"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding EditRepositoryCommand}" CommandParameter="{Binding SelectedRepository}"
+                        IsEnabled="{Binding CanEditOrRemove}"
+                        Classes="toolbar-btn">
+                    <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <ctrl:BootstrapIcon Kind="PencilSquare" Width="16" Height="16"
+                                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding [Edit], Source={x:Static loc:Strings.Instance}}" FontSize="10"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding RunBackupCommand}"
+                        IsEnabled="{Binding CanRunBackup}"
+                        Classes="toolbar-btn">
+                    <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <ctrl:BootstrapIcon Kind="PlayFill" Width="18" Height="18" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding [Backup], Source={x:Static loc:Strings.Instance}}" FontSize="10"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button IsEnabled="{Binding CanEditOrRemove}" Classes="toolbar-btn"
+                        Name="MoreButton">
+                    <Button.Flyout>
+                        <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                            <MenuItem Header="{Binding [Compact], Source={x:Static loc:Strings.Instance}}"
+                                      Command="{Binding CompactRepoCommand}">
+                                <MenuItem.Icon>
+                                    <ctrl:BootstrapIcon Kind="ArrowsCollapse" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="{Binding [Check], Source={x:Static loc:Strings.Instance}}"
+                                      Command="{Binding CheckRepoCommand}">
+                                <MenuItem.Icon>
+                                    <ctrl:BootstrapIcon Kind="ShieldCheck" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem Header="{Binding [Remove], Source={x:Static loc:Strings.Instance}}"
+                                      Command="{Binding RemoveRepositoryCommand}"
+                                      CommandParameter="{Binding SelectedRepository}">
+                                <MenuItem.Icon>
+                                    <ctrl:BootstrapIcon Kind="Trash" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <!--
+                            <MenuItem Header="{Binding [Prune], Source={x:Static loc:Strings.Instance}}"
+                                      Command="{Binding PruneRepoCommand}">
+                                <MenuItem.Icon><ctrl:BootstrapIcon Kind="Scissors" Width="14" Height="14"/></MenuItem.Icon>
+                            </MenuItem>
+                            -->
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <StackPanel Spacing="3" HorizontalAlignment="Center">
+                        <ctrl:BootstrapIcon Kind="ThreeDotsVertical" Width="16" Height="16"
+                                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding [More], Source={x:Static loc:Strings.Instance}}" FontSize="10"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Repository detail panel (bottom) -->
+        <Border DockPanel.Dock="Bottom"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
+                Height="92">
+            <Panel>
+                <TextBlock Text="{Binding [SelectRepoDetail], Source={x:Static loc:Strings.Instance}}"
+                           Classes="placeholder"
+                           IsVisible="{Binding SelectedRepository, Converter={x:Static ObjectConverters.IsNull}}" />
+                <ScrollViewer Margin="12,8" VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding SelectedRepository, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Spacing="2">
+                        <StackPanel Spacing="2" Margin="0,0,0,2">
+                            <DockPanel>
+                                <ctrl:SpinnerControl DockPanel.Dock="Right" Width="16" Height="16"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="{DynamicResource SecondaryTextBrush}"
+                                                     IsVisible="{Binding Stats.IsLoading}" />
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <ctrl:BootstrapIcon Kind="Database" Width="14" Height="14"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="{Binding SelectedRepository.Name}" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </DockPanel>
+                            <TextBlock Classes="secondary" Text="{Binding SelectedRepository.Path}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+
+                        <!-- Operation progress (shown when repo is busy) -->
+                        <DockPanel IsVisible="{Binding Progress.HasActiveJob}">
+                            <Button DockPanel.Dock="Right" Command="{Binding Progress.CancelActiveJobCommand}"
+                                    Margin="8,0,0,0"
+                                    Background="Transparent" Foreground="#FF3B30"
+                                    CornerRadius="10" Width="20" Height="20"
+                                    MinWidth="0" MinHeight="0" Padding="0" BorderThickness="0"
+                                    VerticalAlignment="Center">
+                                <ctrl:BootstrapIcon Kind="StopFill" Width="10" Height="10" />
+                            </Button>
+                            <StackPanel Spacing="2">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Classes="secondary"
+                                               Text="{Binding Progress.ActiveElapsed}" Margin="8,0,0,0"/>
+                                    <TextBlock Classes="secondary"
+                                               Text="{Binding Progress.ActiveStatusMessage}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </DockPanel>
+
+                                <Panel Height="5" VerticalAlignment="Center">
+                                    <ProgressBar Minimum="0" Maximum="100"
+                                                 Value="{Binding Progress.ActiveProgress, FallbackValue=0}"
+                                                 IsIndeterminate="{Binding Progress.ActiveProgress, Converter={x:Static ObjectConverters.IsNull}}"
+                                                 MinHeight="5" Height="5" CornerRadius="2.5" Padding="0" />
+                                </Panel>
+                                <TextBlock Classes="secondary" Text="{Binding Progress.ActiveProgressDisplay}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Stats grid (hidden when busy) -->
+                        <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">
+                            <Grid.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="Stats.HasStats" />
+                                    <Binding Path="Progress.HasActiveJob" Converter="{x:Static BoolConverters.Not}" />
+                                </MultiBinding>
+                            </Grid.IsVisible>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Classes="secondary"
+                                       Text="{Binding [TotalSize], Source={x:Static loc:Strings.Instance}}" />
+                            <TextBlock Grid.Row="0" Grid.Column="2" Classes="secondary" Text="{Binding Stats.TotalSize}" />
+                            <TextBlock Grid.Row="2" Grid.Column="0" Classes="secondary"
+                                       Text="{Binding [TotalChunks], Source={x:Static loc:Strings.Instance}}" />
+                            <TextBlock Grid.Row="2" Grid.Column="2" Classes="secondary"
+                                       Text="{Binding Stats.TotalChunks}" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Panel>
+        </Border>
+
+        <!-- Repository list header -->
+        <Border DockPanel.Dock="Top" Padding="8,6" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1" MinHeight="32">
+            <TextBlock Text="{Binding [Repositories], Source={x:Static loc:Strings.Instance}}" FontWeight="SemiBold"
+                       FontSize="{StaticResource SecondaryFontSize}" Foreground="{DynamicResource SecondaryTextBrush}"
+                       VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Repository list -->
+        <ListBox ItemsSource="{Binding Repositories}"
+                 SelectedItem="{Binding SelectedRepository}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem:selected ctrl|SpinnerControl">
+                    <Setter Property="Foreground" Value="White"/>
+                </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="models:BorgRepository">
+                    <DockPanel Margin="8,4" MinHeight="30">
+                        <Grid Width="18" Height="18" VerticalAlignment="Center" Margin="4,0,14,0">
+                            <ctrl:BootstrapIcon Kind="Database" Width="18" Height="18">
+                                <ctrl:BootstrapIcon.IsVisible>
+                                    <Binding Path="IsBusy" Converter="{x:Static BoolConverters.Not}" />
+                                </ctrl:BootstrapIcon.IsVisible>
+                            </ctrl:BootstrapIcon>
+                            <ctrl:SpinnerControl Width="16" Height="16"
+                                                 Foreground="{DynamicResource SecondaryTextBrush}"
+                                                 IsVisible="{Binding IsBusy}" />
+                        </Grid>
+                        <StackPanel VerticalAlignment="Center" ToolTip.Tip="{Binding Path}">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <ctrl:BootstrapIcon Kind="Clock" Width="10" Height="10"
+                                    VerticalAlignment="Center"
+                                    Foreground="{DynamicResource SecondaryTextBrush}"
+                                    IsVisible="{Binding IsScheduled}"/>
+                                <TextBlock Text="{Binding ScheduleDisplay}"
+                                           Classes="secondary"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </StackPanel>
+                    </DockPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

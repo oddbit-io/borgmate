@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:BorgMate.ViewModels"
+             xmlns:models="using:BorgMate.Models"
+             xmlns:loc="using:BorgMate.Localization"
+             xmlns:ctrl="using:BorgMate.Views.Controls"
+             xmlns:conv="using:BorgMate.Views.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="500"
+             x:Class="BorgMate.Views.NotificationsView"
+             x:DataType="vm:NotificationsViewModel">
+
+    <DockPanel>
+        <!-- List header -->
+        <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="8,6"
+                MinHeight="32">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Command="{Binding ClearCompletedCommand}"
+                        Background="Transparent" BorderThickness="0" Padding="4,2"
+                        MinWidth="0" MinHeight="0" Cursor="Hand"
+                        IsVisible="{Binding Items.Count}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ctrl:BootstrapIcon Kind="Trash" Width="12" Height="12"
+                            Foreground="{DynamicResource SecondaryTextBrush}"/>
+                        <TextBlock Text="{Binding [ClearAll], Source={x:Static loc:Strings.Instance}}"
+                                   FontSize="{StaticResource SecondaryFontSize}"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Text="{Binding [Notifications], Source={x:Static loc:Strings.Instance}}" FontWeight="SemiBold"
+                           FontSize="{StaticResource SecondaryFontSize}" Foreground="{DynamicResource SecondaryTextBrush}"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <Panel>
+            <!-- Empty state -->
+            <TextBlock Text="{Binding [NoNotifications], Source={x:Static loc:Strings.Instance}}"
+                       Classes="placeholder" IsVisible="{Binding !Items.Count}"/>
+
+            <!-- Notifications list -->
+            <ListBox ItemsSource="{Binding Items}"
+                     IsVisible="{Binding Items.Count}"
+                     SelectedItem="{Binding SelectedItem}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:NotificationItem">
+                        <DockPanel Margin="8,4" MinHeight="30">
+                            <!-- Result icon -->
+                            <ctrl:BootstrapIcon Width="18" Height="18"
+                                DockPanel.Dock="Left" VerticalAlignment="Center" Margin="4,0,14,0"
+                                Kind="{Binding DisplayResult, Converter={x:Static conv:JournalEntryTypeToIconConverter.Instance}}"
+                                Foreground="{Binding DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}"/>
+
+                            <!-- Relative time + result -->
+                            <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0,0,0">
+                                <TextBlock Text="{Binding RelativeTime}" Classes="secondary" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding ResultDisplay}" Classes="secondary" HorizontalAlignment="Right"
+                                           Foreground="{Binding DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}"/>
+                            </StackPanel>
+
+                            <!-- Title + detail -->
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding Detail}" Classes="secondary"
+                                           TextTrimming="CharacterEllipsis"
+                                           IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Panel>
+    </DockPanel>
+</UserControl>

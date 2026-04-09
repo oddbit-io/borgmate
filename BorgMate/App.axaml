@@ -1,0 +1,23 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="BorgMate.App"
+             xmlns:local="using:BorgMate"
+             RequestedThemeVariant="Default"
+             Name="BorgMate">
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <SimpleTheme/>
+        <StyleInclude Source="avares://BorgMate/Themes/BorgTheme.axaml"/>
+    </Application.Styles>
+
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="About BorgMate" Click="OnAboutClicked"/>
+            <NativeMenuItemSeparator/>
+        </NativeMenu>
+    </NativeMenu.Menu>
+</Application>
