@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using BorgMate.ViewModels;
+using static BorgMate.Services.ObjCRuntime;
 
 namespace BorgMate.Views;
 
@@ -93,7 +94,7 @@ public abstract class ModalWindow : Window
             // NSWindowMiniaturizeButton = 1, NSWindowZoomButton = 2
             for (ulong i = 1; i <= 2; i++)
             {
-                var button = objc_msgSend_retPtr(nsWindow, sel_standardWindowButton, i);
+                var button = objc_msgSend(nsWindow, sel_standardWindowButton, i);
                 if (button != IntPtr.Zero)
                     objc_msgSend_void(button, sel_setHidden, true);
             }
@@ -136,7 +137,7 @@ public abstract class ModalWindow : Window
             // [parentNSWindow addChildWindow:dialogNSWindow ordered:NSWindowAbove]
             // NSWindowAbove = 1
             var sel = sel_registerName("addChildWindow:ordered:");
-            objc_msgSend_addChild(_parentNsWindow, sel, _childNsWindow, 1);
+            objc_msgSend_void(_parentNsWindow, sel, _childNsWindow, 1);
         }
         catch { /* best-effort */ }
     }
@@ -149,29 +150,13 @@ public abstract class ModalWindow : Window
 
             // [parentNSWindow removeChildWindow:dialogNSWindow]
             var sel = sel_registerName("removeChildWindow:");
-            objc_msgSend_ptr(_parentNsWindow, sel, _childNsWindow);
+            objc_msgSend_void(_parentNsWindow, sel, _childNsWindow);
 
             _parentNsWindow = IntPtr.Zero;
             _childNsWindow = IntPtr.Zero;
         }
         catch { /* best-effort */ }
     }
-
-    // macOS ObjC interop
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName")]
-    private static extern IntPtr sel_registerName(string name);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_retPtr(IntPtr receiver, IntPtr selector, ulong arg);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void objc_msgSend_void(IntPtr receiver, IntPtr selector, bool arg);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void objc_msgSend_addChild(IntPtr receiver, IntPtr selector, IntPtr window, long ordered);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void objc_msgSend_ptr(IntPtr receiver, IntPtr selector, IntPtr arg);
 
     // Windows interop
     [DllImport("user32.dll")]

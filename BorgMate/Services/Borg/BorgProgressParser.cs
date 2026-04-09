@@ -24,26 +24,25 @@ public static partial class BorgProgressParser
     /// <summary>
     /// Parses a borg stderr line and updates job progress.
     /// Handles percentage lines (extract/check) and byte counter lines (create).
-    /// Optional progressLabel overrides the default status message for check/compact.
+    /// For percentage-based operations (check, compact), set BorgJob.ProgressLabel before starting.
     /// </summary>
-    public static void Update(BorgJob job, string line, string? progressLabel = null)
+    public static void Update(BorgJob job, string line)
     {
         var pctMatch = PercentPattern().Match(line);
         if (pctMatch.Success && double.TryParse(pctMatch.Groups[1].Value, CultureInfo.InvariantCulture, out var pct))
         {
-            var msg = progressLabel ?? Strings.Get("Status.CheckingProgress");
-
             // Borg check has two phases: "Checking segments" (~95% of time) then "Checking archives" (~5%)
             if (line.Contains("checking archives", StringComparison.OrdinalIgnoreCase))
                 pct = 95 + pct * 0.05;
             else if (line.Contains("checking segments", StringComparison.OrdinalIgnoreCase))
                 pct *= 0.95;
 
+            var label = job.ProgressLabel ?? "";
             job.RecordProgress(pct);
             Dispatcher.UIThread.Post(() =>
             {
                 job.Progress = pct;
-                job.StatusMessage = msg;
+                job.StatusMessage = label;
             });
             return;
         }

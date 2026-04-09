@@ -297,37 +297,39 @@ public partial class ArchiveListViewModel : ViewModelBase
         var service = _borgServiceFactory.GetService(repo.BorgVersion);
 
         IsLoadingArchives = true;
-
-        var job = _jobQueue.Enqueue(
-            $"{Strings.Get("Job.ListArchives")}: {repo.Name}",
-            async (j, ct, progress) =>
-            {
-                progress.Report(string.Format(Strings.Get("Status.LoadingArchives")));
-                return await _runner.RunWithPassphraseRetry(
-                    repo, () => _runner.RunWithTransientRetry(j,
-                        () => service.ListArchivesAsync(repo, ct)));
-            },
-            BorgJobKind.Query, $"list:{repo.Path}", repo.Path);
-        var result = await job.Completion.Task;
-
-        IsLoadingArchives = false;
-
-
-        // Parse and cache results for the repo that initiated the request
-        if (result.Success)
+        try
         {
-            var archives = ArchiveJsonParser.ParseArchiveList(result.StandardOutput);
-            _cache.SetArchiveList(repo.Path, archives);
+            var job = _jobQueue.Enqueue(
+                $"{Strings.Get("Job.ListArchives")}: {repo.Name}",
+                async (j, ct, progress) =>
+                {
+                    progress.Report(string.Format(Strings.Get("Status.LoadingArchives")));
+                    return await _runner.RunWithPassphraseRetry(
+                        repo, () => _runner.RunWithTransientRetry(j,
+                            () => service.ListArchivesAsync(repo, ct)));
+                },
+                BorgJobKind.Query, $"list:{repo.Path}", repo.Path);
+            var result = await job.Completion.Task;
 
-            // Display only if this repo is still selected
-            if (Repository == repo)
+            // Parse and cache results for the repo that initiated the request
+            if (result.Success)
             {
-                Archives.ReplaceWith(archives);
+                var archives = ArchiveJsonParser.ParseArchiveList(result.StandardOutput);
+                _cache.SetArchiveList(repo.Path, archives);
+
+                // Display only if this repo is still selected
+                if (Repository == repo)
+                    Archives.ReplaceWith(archives);
+            }
+            else if (Repository == repo && !result.WasCancelled)
+            {
+                _logger.LogWarning("Failed to list archives for {Repo}: {Error}", repo.Name, result.ErrorMessage);
             }
         }
-        else if (Repository == repo && !result.WasCancelled)
+        catch (Exception ex) { _logger.LogWarning(ex, "Failed to list archives for {Repo}", repo.Name); }
+        finally
         {
-            _logger.LogWarning("Failed to list archives for {Repo}: {Error}", repo.Name, result.ErrorMessage);
+            IsLoadingArchives = false;
         }
     }
 
@@ -416,7 +418,7 @@ public partial class ArchiveListViewModel : ViewModelBase
                 progress.Report(string.Format(Strings.Get("Status.Restoring"), archiveName));
                 return await _runner.RunWithTransientRetry(j,
                     () => service.ExtractAsync(repo, archiveName, restorePath, paths, ct,
-                        onStderrLine: line => BorgProgressParser.Update(j, line, string.Format(Strings.Get("Status.Restoring"), archiveName))));
+                        onStderrLine: line => BorgProgressParser.Update(j, line)));
             },
             job => { job.TotalSize = totalSize; _jobQueue.ClearQueryInvalidated(); SetActiveJob(job); });
         SetActiveJob(null);

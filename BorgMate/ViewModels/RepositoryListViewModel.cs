@@ -89,14 +89,19 @@ public partial class RepositoryListViewModel : ViewModelBase
         };
     }
 
-    [RelayCommand]
-    private async Task AddNew()
+    private async Task ShowEditorAsync(RepositoryEditorViewModel vm)
     {
-        var vm = RepositoryEditorViewModel.ForNew(_borgServiceFactory, _statusService, _filePicker);
         var window = new RepositoryEditorWindow { DataContext = vm };
         var parent = DialogHelper.GetMainWindow();
         if (parent is not null)
             await window.ShowDialog(parent);
+    }
+
+    [RelayCommand]
+    private async Task AddNew()
+    {
+        var vm = RepositoryEditorViewModel.ForNew(_borgServiceFactory, _statusService, _filePicker);
+        await ShowEditorAsync(vm);
 
         if (vm.IsSaved)
             await InitializeNewRepository(vm.Repository);
@@ -159,10 +164,7 @@ public partial class RepositoryListViewModel : ViewModelBase
     private async Task OpenExisting()
     {
         var vm = RepositoryEditorViewModel.ForOpen(_borgServiceFactory, _statusService, _filePicker);
-        var window = new RepositoryEditorWindow { DataContext = vm };
-        var parent = DialogHelper.GetMainWindow();
-        if (parent is not null)
-            await window.ShowDialog(parent);
+        await ShowEditorAsync(vm);
 
         if (vm.IsSaved)
         {
@@ -182,10 +184,7 @@ public partial class RepositoryListViewModel : ViewModelBase
 
         var oldPath = repo.Path;
         var vm = RepositoryEditorViewModel.ForEdit(_borgServiceFactory, _statusService, _filePicker, repo);
-        var window = new RepositoryEditorWindow { DataContext = vm };
-        var parent = DialogHelper.GetMainWindow();
-        if (parent is not null)
-            await window.ShowDialog(parent);
+        await ShowEditorAsync(vm);
 
         if (vm.IsSaved)
         {
@@ -378,7 +377,8 @@ public partial class RepositoryListViewModel : ViewModelBase
         null, JournalEventKind.Check, "Job.Check",
         (svc, repo, j, ct) =>
         {
-            j.StatusMessage = Strings.Get("Status.CheckingProgress");
+            j.ProgressLabel = Strings.Get("Status.CheckingProgress");
+            j.StatusMessage = j.ProgressLabel;
             return svc.CheckAsync(repo, ct, onStderrLine: line => BorgProgressParser.Update(j, line));
         });
 
@@ -387,9 +387,9 @@ public partial class RepositoryListViewModel : ViewModelBase
         "ConfirmCompact", JournalEventKind.Compact, "Job.Compact",
         (svc, repo, j, ct) =>
         {
-            var label = Strings.Get("Status.CompactingProgress");
-            j.StatusMessage = label;
-            return svc.CompactAsync(repo, ct, onStderrLine: line => BorgProgressParser.Update(j, line, label));
+            j.ProgressLabel = Strings.Get("Status.CompactingProgress");
+            j.StatusMessage = j.ProgressLabel;
+            return svc.CompactAsync(repo, ct, onStderrLine: line => BorgProgressParser.Update(j, line));
         }, refreshOnSuccess: true);
 
     // --- Active Job for Detail Panel ---

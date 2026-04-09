@@ -1,11 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.Versioning;
 using System.Text;
-using Avalonia;
-using Avalonia.Platform.Storage;
 using Microsoft.Win32;
 
 namespace BorgMate.Services.Notifications;
@@ -13,7 +10,6 @@ namespace BorgMate.Services.Notifications;
 [SupportedOSPlatform("windows")]
 public class WindowsNotificationService : INotificationService
 {
-    private const string AppId = "BorgMate";
     private static bool _registered;
     private static string? _iconPath;
 
@@ -26,8 +22,8 @@ public class WindowsNotificationService : INotificationService
             : "";
         var xml = "<toast><visual><binding template=\"ToastGeneric\">" +
                   $"<image placement=\"appLogoOverride\"{iconAttr}/>" +
-                  $"<text>BorgMate \u2014 {EscapeXml(title)}</text>" +
-                  $"<text>{EscapeXml(body)}</text>" +
+                  $"<text>{StringHelpers.AppName} \u2014 {StringHelpers.EscapeXml(title)}</text>" +
+                  $"<text>{StringHelpers.EscapeXml(body)}</text>" +
                   "</binding></visual></toast>";
 
         var psXml = xml.Replace("'", "''");
@@ -36,7 +32,7 @@ public class WindowsNotificationService : INotificationService
                  "$xd = [Windows.Data.Xml.Dom.XmlDocument]::new()\n" +
                  $"$xd.LoadXml('{psXml}')\n" +
                  "$t = [Windows.UI.Notifications.ToastNotification]::new($xd)\n" +
-                 $"[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('{AppId}').Show($t)";
+                 $"[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('{StringHelpers.AppName}').Show($t)";
 
         var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(ps));
 
@@ -57,8 +53,8 @@ public class WindowsNotificationService : INotificationService
             // Extract icon to AppData for toast notification use
             _iconPath = ExtractIcon();
 
-            using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\AppUserModelId\{AppId}");
-            key?.SetValue("DisplayName", AppId);
+            using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\AppUserModelId\{StringHelpers.AppName}");
+            key?.SetValue("DisplayName", StringHelpers.AppName);
             if (_iconPath is not null)
                 key?.SetValue("IconUri", _iconPath);
         }
@@ -72,12 +68,12 @@ public class WindowsNotificationService : INotificationService
     {
         try
         {
-            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BorgMate");
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), StringHelpers.AppName);
             var iconPath = Path.Combine(dir, "notification-icon.png");
             if (File.Exists(iconPath)) return iconPath;
 
             Directory.CreateDirectory(dir);
-            var uri = new Uri("avares://BorgMate/Assets/borgmate-256.png");
+            var uri = new Uri($"avares://{StringHelpers.AppName}/Assets/borgmate-256.png");
             using var stream = Avalonia.Platform.AssetLoader.Open(uri);
             using var fs = File.Create(iconPath);
             stream.CopyTo(fs);
@@ -89,7 +85,4 @@ public class WindowsNotificationService : INotificationService
         }
     }
 
-    private static string EscapeXml(string s) =>
-        s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
-         .Replace("\"", "&quot;").Replace("'", "&apos;").Replace("\n", "&#10;");
 }

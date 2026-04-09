@@ -31,7 +31,7 @@ internal class MacOsAutoStartService : IAutoStartService
             : "BorgMate.Resources.Platform.launchagent-binary.plist";
 
         var template = ReadEmbeddedResource(templateName);
-        var plist = template.Replace("{{APP_PATH}}", EscapeXml(appPath));
+        var plist = template.Replace("{{APP_PATH}}", StringHelpers.EscapeXml(appPath));
 
         var dir = Path.GetDirectoryName(LaunchAgentPath)!;
         Directory.CreateDirectory(dir);
@@ -60,9 +60,6 @@ internal class MacOsAutoStartService : IAutoStartService
                 dir = Path.GetDirectoryName(dir);
             }
         }
-        return mainModule ?? "BorgMate";
+        return mainModule ?? StringHelpers.AppName;
     }
-
-    private static string EscapeXml(string value) =>
-        value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 }

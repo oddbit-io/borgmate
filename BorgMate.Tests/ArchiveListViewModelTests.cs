@@ -79,8 +79,9 @@ public class ArchiveListViewModelTests
 
         vm.Repository = repo1; // switch back, should restore from cache
 
-        Assert.Single(vm.Archives);
-        Assert.Equal("archive1", vm.Archives[0].Name);
+        var archives = vm.Archives.ToList();
+        Assert.Single(archives);
+        Assert.Equal("archive1", archives[0].Name);
     }
 
     [Fact]

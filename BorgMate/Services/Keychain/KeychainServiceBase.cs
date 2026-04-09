@@ -6,14 +6,14 @@ namespace BorgMate.Services.Keychain;
 
 public abstract class KeychainServiceBase(ILogger logger)
 {
-    protected const string ServiceName = "BorgMate";
+    protected const string ServiceName = StringHelpers.AppName;
     protected ILogger Logger => logger;
 
     protected static string SanitizeAccount(string repoPath) =>
         repoPath.Replace("\"", "").Replace("'", "").Replace("\\", "/");
 
     protected static string EscapeShell(string value) =>
-        value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        StringHelpers.EscapeShell(value);
 
     private static string RedactArguments(string arguments)
     {

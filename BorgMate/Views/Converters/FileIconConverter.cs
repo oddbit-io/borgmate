@@ -140,7 +140,7 @@ public class FileChangeFontWeightConverter : IValueConverter
 public class FileChangeForegroundConverter : IValueConverter
 {
     public static readonly FileChangeForegroundConverter Instance = new();
-    private static readonly IBrush AccentBrush = new SolidColorBrush(Color.Parse("#3C81F7"));
+    private static readonly IBrush AccentBrush = ConverterColors.AccentBrush;
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -156,7 +156,7 @@ public class FileChangeForegroundConverter : IValueConverter
 public class ToggleActiveForegroundConverter : IValueConverter
 {
     public static readonly ToggleActiveForegroundConverter Instance = new();
-    private static readonly IBrush AccentBrush = new SolidColorBrush(Color.Parse("#3C81F7"));
+    private static readonly IBrush AccentBrush = ConverterColors.AccentBrush;
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {

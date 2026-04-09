@@ -12,13 +12,10 @@ public class LinuxNotificationService : INotificationService
         if (!_hasNotifySend) return;
 
         Process.Start(new ProcessStartInfo("notify-send",
-            $"\"{Escape("BorgMate — " + title)}\" \"{Escape(body)}\"")
+            $"\"{StringHelpers.EscapeShell(StringHelpers.AppName + " \u2014 " + title)}\" \"{StringHelpers.EscapeShell(body)}\"")
         {
             UseShellExecute = false,
             CreateNoWindow = true
         })?.Dispose();
     }
-
-    private static string Escape(string s) =>
-        s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", " ");
 }

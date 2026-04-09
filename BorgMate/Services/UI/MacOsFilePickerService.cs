@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using static BorgMate.Services.ObjCRuntime;
 
 namespace BorgMate.Services.UI;
 
@@ -17,7 +18,7 @@ public class MacOsFilePickerService : IFilePickerService
 {
     private const nint NSModalResponseOK = 1;
 
-    public Task<string?> PickFolderAsync(string title = "Select Folder")
+    public Task<string?> PickFolderAsync(string title)
     {
         var panel = CreatePanel(canChooseFiles: false, canChooseDirectories: true,
             allowsMultiple: false, message: title);
@@ -25,7 +26,7 @@ public class MacOsFilePickerService : IFilePickerService
         return Task.FromResult(result);
     }
 
-    public Task<IReadOnlyList<string>> PickFoldersAsync(string title = "Select Folders")
+    public Task<IReadOnlyList<string>> PickFoldersAsync(string title)
     {
         var panel = CreatePanel(canChooseFiles: false, canChooseDirectories: true,
             allowsMultiple: true, message: title);
@@ -33,7 +34,7 @@ public class MacOsFilePickerService : IFilePickerService
         return Task.FromResult(result);
     }
 
-    public Task<string?> PickFileAsync(string title = "Select File")
+    public Task<string?> PickFileAsync(string title)
     {
         var panel = CreatePanel(canChooseFiles: true, canChooseDirectories: false,
             allowsMultiple: false, message: title);
@@ -44,37 +45,37 @@ public class MacOsFilePickerService : IFilePickerService
     private static IntPtr CreatePanel(bool canChooseFiles, bool canChooseDirectories,
         bool allowsMultiple, string message)
     {
-        var panel = objc_msgSend_ret(objc_getClass("NSOpenPanel"), sel_registerName("openPanel"));
-        objc_msgSend_bool(panel, sel_registerName("setCanChooseFiles:"), canChooseFiles);
-        objc_msgSend_bool(panel, sel_registerName("setCanChooseDirectories:"), canChooseDirectories);
-        objc_msgSend_bool(panel, sel_registerName("setAllowsMultipleSelection:"), allowsMultiple);
+        var panel = objc_msgSend(objc_getClass("NSOpenPanel"), sel_registerName("openPanel"));
+        objc_msgSend_void(panel, sel_registerName("setCanChooseFiles:"), canChooseFiles);
+        objc_msgSend_void(panel, sel_registerName("setCanChooseDirectories:"), canChooseDirectories);
+        objc_msgSend_void(panel, sel_registerName("setAllowsMultipleSelection:"), allowsMultiple);
 
         var nsMessage = CreateNSString(message);
-        objc_msgSend_ptr(panel, sel_registerName("setMessage:"), nsMessage);
+        objc_msgSend_void(panel, sel_registerName("setMessage:"), nsMessage);
         return panel;
     }
 
     private static nint RunModal(IntPtr panel) =>
-        objc_msgSend_nint(panel, sel_registerName("runModal"));
+        (nint)objc_msgSend(panel, sel_registerName("runModal"));
 
     private static string? GetUrl(IntPtr panel)
     {
-        var url = objc_msgSend_ret(panel, sel_registerName("URL"));
+        var url = objc_msgSend(panel, sel_registerName("URL"));
         return url == IntPtr.Zero ? null : NsUrlToPath(url);
     }
 
     private static IReadOnlyList<string> GetUrls(IntPtr panel)
     {
-        var urls = objc_msgSend_ret(panel, sel_registerName("URLs"));
+        var urls = objc_msgSend(panel, sel_registerName("URLs"));
         if (urls == IntPtr.Zero) return [];
 
-        var count = (int)objc_msgSend_nint(urls, sel_registerName("count"));
+        var count = (nint)objc_msgSend(urls, sel_registerName("count"));
         var selObjectAtIndex = sel_registerName("objectAtIndex:");
-        var paths = new List<string>(count);
+        var paths = new List<string>((int)count);
 
-        for (var i = 0; i < count; i++)
+        for (nint i = 0; i < count; i++)
         {
-            var url = objc_msgSend_nint_ret(urls, selObjectAtIndex, (nint)i);
+            var url = objc_msgSend(urls, selObjectAtIndex, i);
             if (url == IntPtr.Zero) continue;
             var path = NsUrlToPath(url);
             if (path is not null) paths.Add(path);
@@ -85,9 +86,9 @@ public class MacOsFilePickerService : IFilePickerService
 
     private static string? NsUrlToPath(IntPtr nsUrl)
     {
-        var nsPath = objc_msgSend_ret(nsUrl, sel_registerName("path"));
+        var nsPath = objc_msgSend(nsUrl, sel_registerName("path"));
         if (nsPath == IntPtr.Zero) return null;
-        var utf8 = objc_msgSend_ret(nsPath, sel_registerName("UTF8String"));
+        var utf8 = objc_msgSend(nsPath, sel_registerName("UTF8String"));
         return Marshal.PtrToStringUTF8(utf8);
     }
 
@@ -96,7 +97,7 @@ public class MacOsFilePickerService : IFilePickerService
         var utf8 = Marshal.StringToCoTaskMemUTF8(str);
         try
         {
-            return objc_msgSend_ptr_ret(
+            return objc_msgSend(
                 objc_getClass("NSString"),
                 sel_registerName("stringWithUTF8String:"),
                 utf8);
@@ -106,28 +107,4 @@ public class MacOsFilePickerService : IFilePickerService
             Marshal.FreeCoTaskMem(utf8);
         }
     }
-
-    [DllImport("/usr/lib/libobjc.dylib")]
-    private static extern IntPtr objc_getClass(string name);
-
-    [DllImport("/usr/lib/libobjc.dylib")]
-    private static extern IntPtr sel_registerName(string name);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_ret(IntPtr receiver, IntPtr selector);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void objc_msgSend_bool(IntPtr receiver, IntPtr selector, [MarshalAs(UnmanagedType.I1)] bool value);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern void objc_msgSend_ptr(IntPtr receiver, IntPtr selector, IntPtr value);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_ptr_ret(IntPtr receiver, IntPtr selector, IntPtr arg);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern nint objc_msgSend_nint(IntPtr receiver, IntPtr selector);
-
-    [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-    private static extern IntPtr objc_msgSend_nint_ret(IntPtr receiver, IntPtr selector, nint arg);
 }

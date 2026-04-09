@@ -76,6 +76,12 @@ public partial class BorgJob : ObservableObject
     /// </summary>
     public long TotalFileCount { get; set; }
 
+    /// <summary>
+    /// Status label shown during percentage-based progress (check, compact).
+    /// Set before job starts; read by BorgProgressParser.
+    /// </summary>
+    public string? ProgressLabel { get; set; }
+
     // ETA via exponential moving average of progress rate
     private const double EmaAlpha = 0.15;
     private DateTime _lastProgressTime;
