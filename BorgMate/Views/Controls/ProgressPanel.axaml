@@ -16,7 +16,7 @@
                 CornerRadius="10" Width="20" Height="20"
                 MinWidth="0" MinHeight="0" Padding="0" BorderThickness="0"
                 VerticalAlignment="Center">
-            <ctrl:BootstrapIcon Kind="StopFill" Width="10" Height="10"/>
+            <ctrl:BootstrapIcon Kind="StopFill" Width="16" Height="16"/>
         </Button>
         <StackPanel Spacing="2">
             <DockPanel>
