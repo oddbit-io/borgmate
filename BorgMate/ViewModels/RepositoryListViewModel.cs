@@ -177,15 +177,39 @@ public partial class RepositoryListViewModel : ViewModelBase
     [RelayCommand]
     private async Task EditRepository(BorgRepository repo)
     {
+        // Cancel all in-flight queries for this repo while editing
+        _jobQueue?.CancelQueryByRepoPath(repo.Path);
+
+        var oldPath = repo.Path;
         var vm = RepositoryEditorViewModel.ForEdit(_borgServiceFactory, _statusService, _filePicker, repo);
         var window = new RepositoryEditorWindow { DataContext = vm };
         var parent = DialogHelper.GetMainWindow();
         if (parent is not null)
             await window.ShowDialog(parent);
 
-        await CopySshKeyIfNeeded(repo);
-        _configService.RequestSave();
-        OnPropertyChanged(nameof(CanRunBackup));
+        if (vm.IsSaved)
+        {
+            await CopySshKeyIfNeeded(repo);
+            _configService.RequestSave();
+            OnPropertyChanged(nameof(CanRunBackup));
+
+            // Re-fetch: config may have changed (path, SSH, etc.)
+            if (SelectedRepository == repo)
+            {
+                ArchivesChanged?.Invoke();
+                _ = FetchStatsCommand.ExecuteAsync(null);
+            }
+        }
+        else
+        {
+            // Cancel: re-fetch only if the cancelled queries left gaps
+            if (SelectedRepository == repo)
+            {
+                if (!Stats.HasStats)
+                    _ = FetchStatsCommand.ExecuteAsync(null);
+                ArchivesFetchIfEmpty?.Invoke();
+            }
+        }
     }
 
     [RelayCommand]
@@ -201,6 +225,7 @@ public partial class RepositoryListViewModel : ViewModelBase
     }
 
     public event Action? ArchivesChanged;
+    public event Action? ArchivesFetchIfEmpty;
     public event Action<string>? BackupCompleted;
 
     // --- Repo Operation Helper ---

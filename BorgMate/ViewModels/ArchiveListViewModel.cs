@@ -212,6 +212,15 @@ public partial class ArchiveListViewModel : ViewModelBase
             ListArchivesCommand.ExecuteAsync(null);
     }
 
+    /// <summary>
+    /// Fetches archives only if the list is empty (e.g. a cancelled query left no data).
+    /// </summary>
+    public void FetchArchivesIfEmpty()
+    {
+        if (Archives.Count == 0 && IsActive && Repository is not null && !Repository.IsBusy)
+            ListArchivesCommand.ExecuteAsync(null);
+    }
+
     [ObservableProperty]
     private string _restorePath = string.Empty;
 
@@ -318,7 +327,7 @@ public partial class ArchiveListViewModel : ViewModelBase
         }
         else if (Repository == repo && !result.WasCancelled)
         {
-            _statusService.SetError(string.Format(Strings.Get("Status.ArchiveListError"), result.ErrorMessage), repo.Name, repo.Path);
+            _logger.LogWarning("Failed to list archives for {Repo}: {Error}", repo.Name, result.ErrorMessage);
         }
     }
 

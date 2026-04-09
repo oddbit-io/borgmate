@@ -85,6 +85,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _configService.SaveRequested += SaveConfig;
         RepositoryList.ArchivesChanged += () => ArchiveList.InvalidateArchives();
+        RepositoryList.ArchivesFetchIfEmpty += () => ArchiveList.FetchArchivesIfEmpty();
         RepositoryList.BackupCompleted += repoPath =>
         {
             if (RepositoryList.SelectedRepository?.Path == repoPath)
