@@ -20,7 +20,7 @@ public partial class ArchiveListViewModel : ViewModelBase
 {
     private readonly BorgServiceFactory _borgServiceFactory = null!;
     private readonly IStatusService _statusService = null!;
-    private readonly FilePickerService _filePicker = null!;
+    private readonly IFilePickerService _filePicker = null!;
     private readonly BorgCacheService _cache = null!;
     private readonly IJournalService _journalService = null!;
     private readonly BorgOperationRunner _runner = null!;
@@ -30,7 +30,7 @@ public partial class ArchiveListViewModel : ViewModelBase
 
     public ArchiveListViewModel() { }
 
-    public ArchiveListViewModel(BorgServiceFactory borgServiceFactory, IStatusService statusService, FilePickerService filePicker, BorgCacheService cache, IJournalService journalService, BorgOperationRunner runner, PassphrasePrompt passphrase, JobQueueService jobQueue, ILogger<ArchiveListViewModel> logger)
+    public ArchiveListViewModel(BorgServiceFactory borgServiceFactory, IStatusService statusService, IFilePickerService filePicker, BorgCacheService cache, IJournalService journalService, BorgOperationRunner runner, PassphrasePrompt passphrase, JobQueueService jobQueue, ILogger<ArchiveListViewModel> logger)
     {
         _borgServiceFactory = borgServiceFactory;
         _statusService = statusService;

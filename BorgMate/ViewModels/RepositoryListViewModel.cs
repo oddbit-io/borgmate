@@ -57,7 +57,7 @@ public partial class RepositoryListViewModel : ViewModelBase
     private readonly BorgServiceFactory _borgServiceFactory = null!;
     private readonly IConfigService _configService = null!;
     private readonly IStatusService _statusService = null!;
-    private readonly FilePickerService _filePicker = null!;
+    private readonly IFilePickerService _filePicker = null!;
     private readonly IJournalService _journalService = null!;
     private readonly BorgOperationRunner _runner = null!;
     private readonly PassphrasePrompt _passphrase = null!;
@@ -68,7 +68,7 @@ public partial class RepositoryListViewModel : ViewModelBase
 
     public RepositoryListViewModel() { }
 
-    public RepositoryListViewModel(BorgServiceFactory borgServiceFactory, IConfigService configService, IStatusService statusService, FilePickerService filePicker, IJournalService journalService, BorgOperationRunner runner, PassphrasePrompt passphrase, WslHelper wsl, DirectorySizeCalculator sizeCalculator, JobQueueService jobQueue, ILogger<RepositoryListViewModel> logger)
+    public RepositoryListViewModel(BorgServiceFactory borgServiceFactory, IConfigService configService, IStatusService statusService, IFilePickerService filePicker, IJournalService journalService, BorgOperationRunner runner, PassphrasePrompt passphrase, WslHelper wsl, DirectorySizeCalculator sizeCalculator, JobQueueService jobQueue, ILogger<RepositoryListViewModel> logger)
     {
         _borgServiceFactory = borgServiceFactory;
         _configService = configService;

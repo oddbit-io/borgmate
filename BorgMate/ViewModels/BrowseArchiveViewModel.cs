@@ -18,7 +18,7 @@ public partial class BrowseArchiveViewModel : ViewModelBase
     private readonly BorgServiceFactory? _borgServiceFactory;
     private readonly JobQueueService? _jobQueue;
     private readonly BorgCacheService? _cache;
-    private readonly FilePickerService? _filePicker;
+    private readonly IFilePickerService? _filePicker;
     private readonly BorgOperationRunner? _runner;
     private readonly BorgRepository? _repository;
     private readonly string? _archiveName;
@@ -30,7 +30,7 @@ public partial class BrowseArchiveViewModel : ViewModelBase
     public BrowseArchiveViewModel() { }
 
     public BrowseArchiveViewModel(BorgServiceFactory borgServiceFactory, JobQueueService jobQueue,
-        BorgCacheService cache, FilePickerService filePicker, BorgOperationRunner runner,
+        BorgCacheService cache, IFilePickerService filePicker, BorgOperationRunner runner,
         BorgRepository repository, string archiveName, string? previousArchiveName = null)
     {
         _borgServiceFactory = borgServiceFactory;

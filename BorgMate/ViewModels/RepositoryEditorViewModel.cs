@@ -12,11 +12,11 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 {
     private readonly BorgServiceFactory? _borgServiceFactory;
     private readonly IStatusService? _statusService;
-    private readonly FilePickerService? _filePicker;
+    private readonly IFilePickerService? _filePicker;
 
     public RepositoryEditorViewModel() { }
 
-    public RepositoryEditorViewModel(BorgServiceFactory borgServiceFactory, IStatusService statusService, FilePickerService filePicker)
+    public RepositoryEditorViewModel(BorgServiceFactory borgServiceFactory, IStatusService statusService, IFilePickerService filePicker)
     {
         _borgServiceFactory = borgServiceFactory;
         _statusService = statusService;
@@ -129,7 +129,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private bool _runMissed = true;
 
     /// <summary>Creates a VM for adding a new repository (shows init tab, Create button).</summary>
-    public static RepositoryEditorViewModel ForNew(BorgServiceFactory factory, IStatusService status, FilePickerService filePicker)
+    public static RepositoryEditorViewModel ForNew(BorgServiceFactory factory, IStatusService status, IFilePickerService filePicker)
     {
         return new RepositoryEditorViewModel(factory, status, filePicker)
         {
@@ -144,7 +144,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     }
 
     /// <summary>Creates a VM for opening an existing borg repo (no init, Open button).</summary>
-    public static RepositoryEditorViewModel ForOpen(BorgServiceFactory factory, IStatusService status, FilePickerService filePicker)
+    public static RepositoryEditorViewModel ForOpen(BorgServiceFactory factory, IStatusService status, IFilePickerService filePicker)
     {
         return new RepositoryEditorViewModel(factory, status, filePicker)
         {
@@ -160,7 +160,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     }
 
     /// <summary>Creates a VM for editing an existing repository (pre-populates all fields, Save button).</summary>
-    public static RepositoryEditorViewModel ForEdit(BorgServiceFactory factory, IStatusService status, FilePickerService filePicker, BorgRepository repo)
+    public static RepositoryEditorViewModel ForEdit(BorgServiceFactory factory, IStatusService status, IFilePickerService filePicker, BorgRepository repo)
     {
         var vm = new RepositoryEditorViewModel(factory, status, filePicker)
         {

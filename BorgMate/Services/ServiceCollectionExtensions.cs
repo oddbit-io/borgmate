@@ -62,7 +62,10 @@ public static class ServiceCollectionExtensions
         }
         services.AddSingleton<StatusService>();
         services.AddSingleton<IStatusService>(sp => sp.GetRequiredService<StatusService>());
-        services.AddSingleton<FilePickerService>();
+        if (OperatingSystem.IsMacOS())
+            services.AddSingleton<IFilePickerService, MacOsFilePickerService>();
+        else
+            services.AddSingleton<IFilePickerService, FilePickerService>();
         services.AddSingleton<BorgCacheService>();
         services.AddSingleton<JobQueueService>(sp =>
             new JobQueueService(sp.GetRequiredService<ILogger<JobQueueService>>()));

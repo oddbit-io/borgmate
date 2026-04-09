@@ -8,7 +8,10 @@ using Avalonia.Platform.Storage;
 
 namespace BorgMate.Services.UI;
 
-public class FilePickerService
+/// <summary>
+/// File picker using Avalonia's StorageProvider. Used on Windows and Linux.
+/// </summary>
+public class FilePickerService : IFilePickerService
 {
     public async Task<string?> PickFolderAsync(string title = "Select Folder")
     {
