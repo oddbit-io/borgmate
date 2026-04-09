@@ -18,43 +18,26 @@
         <!-- Action buttons -->
         <Border DockPanel.Dock="Top" Classes="toolbar">
             <StackPanel Orientation="Horizontal" Spacing="4">
-                <Button Command="{Binding AddNewCommand}" Classes="toolbar-btn">
-                    <StackPanel Spacing="3" HorizontalAlignment="Center">
-                        <ctrl:BootstrapIcon Kind="PlusLg" Width="16" Height="16" HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding [CreateNew], Source={x:Static loc:Strings.Instance}}" FontSize="10"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-                <Button Command="{Binding OpenExistingCommand}" Classes="toolbar-btn">
-                    <StackPanel Spacing="3" HorizontalAlignment="Center">
-                        <ctrl:BootstrapIcon Kind="Folder2Open" Width="16" Height="16"
-                                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding [OpenExisting], Source={x:Static loc:Strings.Instance}}" FontSize="10"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-                <Button Command="{Binding EditRepositoryCommand}" CommandParameter="{Binding SelectedRepository}"
-                        IsEnabled="{Binding CanEditOrRemove}"
-                        Classes="toolbar-btn">
-                    <StackPanel Spacing="3" HorizontalAlignment="Center">
-                        <ctrl:BootstrapIcon Kind="PencilSquare" Width="16" Height="16"
-                                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding [Edit], Source={x:Static loc:Strings.Instance}}" FontSize="10"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-                <Button Command="{Binding RunBackupCommand}"
-                        IsEnabled="{Binding CanRunBackup}"
-                        Classes="toolbar-btn">
-                    <StackPanel Spacing="3" HorizontalAlignment="Center">
-                        <ctrl:BootstrapIcon Kind="PlayFill" Width="18" Height="18" HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding [Backup], Source={x:Static loc:Strings.Instance}}" FontSize="10"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-                <Button IsEnabled="{Binding CanEditOrRemove}" Classes="toolbar-btn"
-                        Name="MoreButton">
-                    <Button.Flyout>
+                <ctrl:ToolbarButton Icon="PlusLg"
+                                    Label="{Binding [CreateNew], Source={x:Static loc:Strings.Instance}}"
+                                    Command="{Binding AddNewCommand}"/>
+                <ctrl:ToolbarButton Icon="Folder2Open"
+                                    Label="{Binding [OpenExisting], Source={x:Static loc:Strings.Instance}}"
+                                    Command="{Binding OpenExistingCommand}"/>
+                <ctrl:ToolbarButton Icon="PencilSquare"
+                                    Label="{Binding [Edit], Source={x:Static loc:Strings.Instance}}"
+                                    Command="{Binding EditRepositoryCommand}"
+                                    CommandParameter="{Binding SelectedRepository}"
+                                    IsEnabled="{Binding CanEditOrRemove}"/>
+                <ctrl:ToolbarButton Icon="PlayFill"
+                                    Label="{Binding [Backup], Source={x:Static loc:Strings.Instance}}"
+                                    Command="{Binding RunBackupCommand}"
+                                    IsEnabled="{Binding CanRunBackup}"/>
+                <ctrl:ToolbarButton IsEnabled="{Binding CanEditOrRemove}"
+                                    Icon="ThreeDotsVertical"
+                                    Label="{Binding [More], Source={x:Static loc:Strings.Instance}}"
+                                    Name="MoreButton">
+                    <ctrl:ToolbarButton.Flyout>
                         <MenuFlyout Placement="BottomEdgeAlignedLeft">
                             <MenuItem Header="{Binding [Compact], Source={x:Static loc:Strings.Instance}}"
                                       Command="{Binding CompactRepoCommand}">
@@ -83,14 +66,8 @@
                             </MenuItem>
                             -->
                         </MenuFlyout>
-                    </Button.Flyout>
-                    <StackPanel Spacing="3" HorizontalAlignment="Center">
-                        <ctrl:BootstrapIcon Kind="ThreeDotsVertical" Width="16" Height="16"
-                                                   HorizontalAlignment="Center" />
-                        <TextBlock Text="{Binding [More], Source={x:Static loc:Strings.Instance}}" FontSize="10"
-                                   HorizontalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                    </ctrl:ToolbarButton.Flyout>
+                </ctrl:ToolbarButton>
             </StackPanel>
         </Border>
 
@@ -123,33 +100,7 @@
                         </StackPanel>
 
                         <!-- Operation progress (shown when repo is busy) -->
-                        <DockPanel IsVisible="{Binding Progress.HasActiveJob}">
-                            <Button DockPanel.Dock="Right" Command="{Binding Progress.CancelActiveJobCommand}"
-                                    Margin="8,0,0,0"
-                                    Background="Transparent" Foreground="#FF3B30"
-                                    CornerRadius="10" Width="20" Height="20"
-                                    MinWidth="0" MinHeight="0" Padding="0" BorderThickness="0"
-                                    VerticalAlignment="Center">
-                                <ctrl:BootstrapIcon Kind="StopFill" Width="10" Height="10" />
-                            </Button>
-                            <StackPanel Spacing="2">
-                                <DockPanel>
-                                    <TextBlock DockPanel.Dock="Right" Classes="secondary"
-                                               Text="{Binding Progress.ActiveElapsed}" Margin="8,0,0,0"/>
-                                    <TextBlock Classes="secondary"
-                                               Text="{Binding Progress.ActiveStatusMessage}"
-                                               TextTrimming="CharacterEllipsis" />
-                                </DockPanel>
-
-                                <Panel Height="5" VerticalAlignment="Center">
-                                    <ProgressBar Minimum="0" Maximum="100"
-                                                 Value="{Binding Progress.ActiveProgress, FallbackValue=0}"
-                                                 IsIndeterminate="{Binding Progress.ActiveProgress, Converter={x:Static ObjectConverters.IsNull}}"
-                                                 MinHeight="5" Height="5" CornerRadius="2.5" Padding="0" />
-                                </Panel>
-                                <TextBlock Classes="secondary" Text="{Binding Progress.ActiveProgressDisplay}" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </DockPanel>
+                        <ctrl:ProgressPanel DataContext="{Binding Progress}"/>
 
                         <!-- Stats grid (hidden when busy) -->
                         <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">

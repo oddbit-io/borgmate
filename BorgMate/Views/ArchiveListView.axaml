@@ -18,37 +18,24 @@
         <!-- Action buttons -->
         <Border DockPanel.Dock="Top" Classes="toolbar">
             <DockPanel>
-                <Button DockPanel.Dock="Right" Command="{Binding DeleteArchiveCommand}"
-                        IsEnabled="{Binding CanModifyArchive}"
-                        Classes="toolbar-btn">
-                    <StackPanel Spacing="3" HorizontalAlignment="Center">
-                        <ctrl:BootstrapIcon Kind="Trash" Width="16" Height="16" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding [Delete], Source={x:Static loc:Strings.Instance}}" FontSize="10" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+                <ctrl:ToolbarButton DockPanel.Dock="Right"
+                                    Icon="Trash"
+                                    Label="{Binding [Delete], Source={x:Static loc:Strings.Instance}}"
+                                    Command="{Binding DeleteArchiveCommand}"
+                                    IsEnabled="{Binding CanModifyArchive}"/>
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Button Command="{Binding PickAndRestoreCommand}"
-                            IsEnabled="{Binding CanModifyArchive}"
-                            Classes="toolbar-btn">
-                        <StackPanel Spacing="3" HorizontalAlignment="Center">
-                            <ctrl:BootstrapIcon Kind="BoxArrowDown" Width="16" Height="16" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding [RestoreTo], Source={x:Static loc:Strings.Instance}}" FontSize="10" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding BrowseAndRestoreCommand}"
-                            IsEnabled="{Binding CanModifyArchive}"
-                            Classes="toolbar-btn">
-                        <StackPanel Spacing="3" HorizontalAlignment="Center">
-                            <ctrl:BootstrapIcon Kind="ListNested" Width="16" Height="16" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding [BrowseRestore], Source={x:Static loc:Strings.Instance}}" FontSize="10" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding ListArchivesCommand}" IsEnabled="{Binding IsRepoIdle}" Classes="toolbar-btn">
-                        <StackPanel Spacing="3" HorizontalAlignment="Center">
-                            <ctrl:BootstrapIcon Kind="ArrowClockwise" Width="16" Height="16" HorizontalAlignment="Center"/>
-                            <TextBlock Text="{Binding [Refresh], Source={x:Static loc:Strings.Instance}}" FontSize="10" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                    <ctrl:ToolbarButton Icon="BoxArrowDown"
+                                        Label="{Binding [RestoreTo], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding PickAndRestoreCommand}"
+                                        IsEnabled="{Binding CanModifyArchive}"/>
+                    <ctrl:ToolbarButton Icon="ListNested"
+                                        Label="{Binding [BrowseRestore], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding BrowseAndRestoreCommand}"
+                                        IsEnabled="{Binding CanModifyArchive}"/>
+                    <ctrl:ToolbarButton Icon="ArrowClockwise"
+                                        Label="{Binding [Refresh], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding ListArchivesCommand}"
+                                        IsEnabled="{Binding IsRepoIdle}"/>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -118,32 +105,7 @@
                     </DockPanel>
 
                     <!-- Restore progress -->
-                    <DockPanel IsVisible="{Binding Progress.HasActiveJob}">
-                        <Button DockPanel.Dock="Right" Command="{Binding Progress.CancelActiveJobCommand}"
-                                Margin="8,0,0,0"
-                                Background="Transparent" Foreground="#FF3B30"
-                                CornerRadius="10" Width="20" Height="20"
-                                MinWidth="0" MinHeight="0" Padding="0" BorderThickness="0"
-                                VerticalAlignment="Center">
-                            <ctrl:BootstrapIcon Kind="StopFill" Width="10" Height="10" />
-                        </Button>
-                        <StackPanel Spacing="2">
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Classes="secondary"
-                                           Text="{Binding Progress.ActiveElapsed}" Margin="8,0,0,0"/>
-                                <TextBlock Classes="secondary"
-                                           Text="{Binding Progress.ActiveStatusMessage}"
-                                           TextTrimming="CharacterEllipsis" />
-                            </DockPanel>
-                            <Panel Height="5" VerticalAlignment="Center">
-                                <ProgressBar Minimum="0" Maximum="100"
-                                             Value="{Binding Progress.ActiveProgress, FallbackValue=0}"
-                                             IsIndeterminate="{Binding Progress.ActiveProgress, Converter={x:Static ObjectConverters.IsNull}}"
-                                             MinHeight="5" Height="5" CornerRadius="2.5" Padding="0" />
-                            </Panel>
-                            <TextBlock Classes="secondary" Text="{Binding Progress.ActiveProgressDisplay}" Margin="0,2,0,0"/>
-                        </StackPanel>
-                    </DockPanel>
+                    <ctrl:ProgressPanel DataContext="{Binding Progress}"/>
 
                     <!-- Archive stats (hidden during restore) -->
                     <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">

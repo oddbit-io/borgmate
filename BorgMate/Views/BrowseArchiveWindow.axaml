@@ -62,16 +62,10 @@
         <Border DockPanel.Dock="Top" Classes="toolbar"
                 IsVisible="{Binding !IsLoading}">
             <StackPanel Orientation="Horizontal" Spacing="4">
-                <Button Name="RestoreButton"
-                        IsEnabled="{Binding HasSelection}"
-                        Classes="toolbar-btn">
-                    <StackPanel Spacing="3" HorizontalAlignment="Center">
-                        <ctrl:BootstrapIcon Kind="BoxArrowDown" Width="16" Height="16"
-                                                    HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding [RestoreSelected], Source={x:Static loc:Strings.Instance}}"
-                                   FontSize="10" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+                <ctrl:ToolbarButton Name="RestoreButton"
+                                    Icon="BoxArrowDown"
+                                    Label="{Binding [RestoreSelected], Source={x:Static loc:Strings.Instance}}"
+                                    IsEnabled="{Binding HasSelection}"/>
                 <Button Command="{Binding ToggleShowChangesCommand}"
                         IsEnabled="{Binding HasPreviousArchive}"
                         Classes="toolbar-btn">

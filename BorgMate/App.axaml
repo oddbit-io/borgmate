@@ -12,6 +12,8 @@
     <Application.Styles>
         <SimpleTheme/>
         <StyleInclude Source="avares://BorgMate/Themes/BorgTheme.axaml"/>
+        <StyleInclude Source="avares://BorgMate/Views/Controls/SidebarButton.axaml"/>
+        <StyleInclude Source="avares://BorgMate/Views/Controls/ToolbarButton.axaml"/>
     </Application.Styles>
 
     <NativeMenu.Menu>

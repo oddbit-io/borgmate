@@ -107,20 +107,14 @@
             <TabItem Header="{Binding [SourceDirectories], Source={x:Static loc:Strings.Instance}}">
                 <DockPanel Margin="0,8,0,0">
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
-                        <Button Command="{Binding BrowseSourceDirectoriesCommand}" Classes="toolbar-btn">
-                            <StackPanel Spacing="3" HorizontalAlignment="Center">
-                                <ctrl:BootstrapIcon Kind="FolderPlus" Width="16" Height="16" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding [Add], Source={x:Static loc:Strings.Instance}}" FontSize="10" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Command="{Binding RemoveSourceDirectoryCommand}" CommandParameter="{Binding SelectedDirectory}"
-                                IsEnabled="{Binding SelectedDirectory, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                Classes="toolbar-btn">
-                            <StackPanel Spacing="3" HorizontalAlignment="Center">
-                                <ctrl:BootstrapIcon Kind="Trash" Width="16" Height="16" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding [Remove], Source={x:Static loc:Strings.Instance}}" FontSize="10" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                        <ctrl:ToolbarButton Icon="FolderPlus"
+                                            Label="{Binding [Add], Source={x:Static loc:Strings.Instance}}"
+                                            Command="{Binding BrowseSourceDirectoriesCommand}"/>
+                        <ctrl:ToolbarButton Icon="Trash"
+                                            Label="{Binding [Remove], Source={x:Static loc:Strings.Instance}}"
+                                            Command="{Binding RemoveSourceDirectoryCommand}"
+                                            CommandParameter="{Binding SelectedDirectory}"
+                                            IsEnabled="{Binding SelectedDirectory, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                     </StackPanel>
                     <ListBox ItemsSource="{Binding SourceDirectories}"
                              SelectedItem="{Binding SelectedDirectory}"

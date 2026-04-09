@@ -1,0 +1,42 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctrl="using:BorgMate.Views.Controls">
+
+    <Styles.Resources>
+        <ControlTheme x:Key="{x:Type ctrl:ToolbarButton}" TargetType="ctrl:ToolbarButton"
+                       BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="MinWidth" Value="60"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Background" Value="{DynamicResource ToolbarBgColor}"/>
+            <Setter Property="Template">
+                <ControlTemplate TargetType="ctrl:ToolbarButton">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <StackPanel Spacing="3" HorizontalAlignment="Center">
+                            <ctrl:BootstrapIcon Kind="{TemplateBinding Icon}"
+                                                Width="16" Height="16"
+                                                HorizontalAlignment="Center"/>
+                            <TextBlock Text="{TemplateBinding Label}"
+                                       FontSize="10" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border">
+                <Setter Property="Background" Value="{DynamicResource HoverOverlayColor}"/>
+            </Style>
+            <Style Selector="^:pressed /template/ Border">
+                <Setter Property="Background" Value="{DynamicResource PressedOverlayColor}"/>
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.35"/>
+            </Style>
+        </ControlTheme>
+    </Styles.Resources>
+
+</Styles>
