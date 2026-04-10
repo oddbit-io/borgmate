@@ -10,6 +10,7 @@ using Avalonia.Markup.Xaml;
 using BorgMate.Localization;
 using BorgMate.Models;
 using BorgMate.Services.Journal;
+using BorgMate.Services.Power;
 using BorgMate.Services.Queue;
 using BorgMate.ViewModels;
 using BorgMate.Views;
@@ -31,8 +32,10 @@ public partial class App : Application
     private BorgCacheService _cache = null!;
     private StatusService _status = null!;
     private UpdateService _updateService = null!;
+    private ISleepInhibitor _sleepInhibitor = null!;
     private ILogger<App> _logger = null!;
     private bool _hadRunningJobs;
+    private bool _sleepInhibited;
 
     public override void Initialize()
     {
@@ -57,6 +60,7 @@ public partial class App : Application
             _cache = Services.GetRequiredService<BorgCacheService>();
             _status = Services.GetRequiredService<StatusService>();
             _updateService = Services.GetRequiredService<UpdateService>();
+            _sleepInhibitor = Services.GetRequiredService<ISleepInhibitor>();
             _mainVm = Services.GetRequiredService<MainWindowViewModel>();
             _logger = Services.GetRequiredService<ILogger<App>>();
 
@@ -72,6 +76,7 @@ public partial class App : Application
                 CaptureWindowState();
                 _mainVm.SaveConfig();
                 _jobQueue.Dispose();
+                _sleepInhibitor.Release();
                 _logger.LogInformation("BorgMate v{Version} shutting down", AppVersion);
             };
 
@@ -262,12 +267,27 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Updates tray icon tooltip, dock progress bar, and taskbar based on running job state.
-    /// Called from MainWindowViewModel's timer.
+    /// Updates tray icon tooltip, dock progress bar, taskbar, and sleep inhibit state
+    /// based on running job state. Called from MainWindowViewModel's timer on the UI thread.
+    /// Sleep inhibit keys off HasPendingCommand so quick query jobs (archive lists, stats)
+    /// don't keep the machine awake — only backup/restore/prune/check/compact do.
     /// </summary>
     public static void UpdateRunningIndicator(bool hasRunningJobs, int count, double? progress)
     {
         if (_instance is not { } app) return;
+
+        // Toggle sleep inhibit based on command-job state. Idempotent via _sleepInhibited flag.
+        var hasCommand = app._jobQueue.HasPendingCommand;
+        if (hasCommand && !app._sleepInhibited)
+        {
+            app._sleepInhibitor.Inhibit("BorgMate running a borg command");
+            app._sleepInhibited = true;
+        }
+        else if (!hasCommand && app._sleepInhibited)
+        {
+            app._sleepInhibitor.Release();
+            app._sleepInhibited = false;
+        }
 
         // Skip redundant "idle" updates
         if (!hasRunningJobs && !app._hadRunningJobs) return;

@@ -6,6 +6,7 @@ using BorgMate.Services.Borg;
 using BorgMate.Services.Journal;
 using BorgMate.Services.Keychain;
 using BorgMate.Services.Mocks;
+using BorgMate.Services.Power;
 using BorgMate.Services.Queue;
 using BorgMate.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
@@ -74,12 +75,14 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IKeychainService, MacOsKeychainService>();
             services.AddSingleton<IAutoStartService, MacOsAutoStartService>();
             services.AddSingleton<INotificationService, MacOsNotificationService>();
+            services.AddSingleton<ISleepInhibitor, MacOsSleepInhibitor>();
         }
         else if (OperatingSystem.IsLinux())
         {
             services.AddSingleton<IKeychainService, LinuxKeychainService>();
             services.AddSingleton<IAutoStartService, LinuxAutoStartService>();
             services.AddSingleton<INotificationService, LinuxNotificationService>();
+            services.AddSingleton<ISleepInhibitor, LinuxSleepInhibitor>();
         }
         else if (OperatingSystem.IsWindows())
         {
@@ -87,6 +90,7 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IKeychainService, WindowsKeychainService>();
             services.AddSingleton<IAutoStartService, WindowsAutoStartService>();
             services.AddSingleton<INotificationService, WindowsNotificationService>();
+            services.AddSingleton<ISleepInhibitor, WindowsSleepInhibitor>();
 #pragma warning restore CA1416
         }
         services.AddSingleton<WslHelper>();
