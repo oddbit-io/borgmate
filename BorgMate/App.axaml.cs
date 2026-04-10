@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -36,6 +37,10 @@ public partial class App : Application
     private ILogger<App> _logger = null!;
     private bool _hadRunningJobs;
     private bool _sleepInhibited;
+    private PosixSignalRegistration? _sigTermRegistration;
+    private PosixSignalRegistration? _sigHupRegistration;
+    private PosixSignalRegistration? _sigIntRegistration;
+    private volatile bool _isShuttingDown;
 
     public override void Initialize()
     {
@@ -73,12 +78,24 @@ public partial class App : Application
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             desktop.ShutdownRequested += (_, _) =>
             {
+                _isShuttingDown = true;
                 CaptureWindowState();
                 _mainVm.SaveConfig();
                 _jobQueue.Dispose();
                 _sleepInhibitor.Release();
+                _sigTermRegistration?.Dispose();
+                _sigHupRegistration?.Dispose();
+                _sigIntRegistration?.Dispose();
                 _logger.LogInformation("BorgMate v{Version} shutting down", AppVersion);
             };
+
+            // Handle POSIX shutdown signals so session managers (KDE ksmserver,
+            // GNOME Shell, systemd-logind) can cleanly stop BorgMate. Without
+            // this, the tray icon keeps the process alive after WM_DELETE_WINDOW
+            // and the DE flags BorgMate as "preventing logout".
+            _sigTermRegistration = PosixSignalRegistration.Create(PosixSignal.SIGTERM, HandlePosixShutdown);
+            _sigHupRegistration = PosixSignalRegistration.Create(PosixSignal.SIGHUP, HandlePosixShutdown);
+            _sigIntRegistration = PosixSignalRegistration.Create(PosixSignal.SIGINT, HandlePosixShutdown);
 
             // Load icon for macOS dock
             MacOsDockHelper.LoadIcon(Avalonia.Platform.AssetLoader.Open(
@@ -166,6 +183,14 @@ public partial class App : Application
 
         _mainWindow.Closing += (_, e) =>
         {
+            // Let the close proceed when the OS session is shutting down, when the
+            // Avalonia app lifetime is shutting down, or when our SIGTERM handler
+            // has initiated quit. Otherwise treat close as "hide to tray".
+            if (_isShuttingDown
+                || e.CloseReason == WindowCloseReason.OSShutdown
+                || e.CloseReason == WindowCloseReason.ApplicationShutdown)
+                return;
+
             e.Cancel = true;
             CaptureWindowState();
             _mainVm?.SaveConfig();
@@ -243,27 +268,55 @@ public partial class App : Application
         GC.Collect();
     }
 
-    private async Task TryQuitAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    private async Task TryQuitAsync(IClassicDesktopStyleApplicationLifetime desktop, bool forceQuit = false)
     {
         if (_jobQueue.HasRunningJobs)
         {
-            if (_jobQueue.HasPendingCommand)
+            if (!forceQuit && _jobQueue.HasPendingCommand)
             {
                 ShowMainWindow();
                 if (!await DialogHelper.ConfirmAsync(Strings.Get("ConfirmQuitWithRunningTasks")))
                     return;
             }
 
-            // Cancel running jobs and wait for completion handlers (journal writes)
+            // Mark shutdown early so any concurrent Closing events (from SIGTERM
+            // races or desktop.Shutdown closing the window) don't re-hide to tray.
+            _isShuttingDown = true;
+
+            // Cancel running jobs and wait for their completion handlers
+            // (journal writes). Cap the wait so a hung borg process — e.g.
+            // stuck on SSH I/O — can't stall system shutdown indefinitely.
             var runningJobs = _jobQueue.Jobs
                 .Where(j => j.Status is BorgJobStatus.Pending or BorgJobStatus.Running)
                 .ToList();
             foreach (var job in runningJobs)
                 job.Cts.Cancel();
-            await Task.WhenAll(runningJobs.Select(j => j.Completion.Task));
+            var waitAll = Task.WhenAll(runningJobs.Select(j => j.Completion.Task));
+            await Task.WhenAny(waitAll, Task.Delay(TimeSpan.FromSeconds(5)));
         }
 
+        _isShuttingDown = true;
         desktop.Shutdown();
+    }
+
+    /// <summary>
+    /// Handles POSIX shutdown signals (SIGTERM/SIGHUP/SIGINT). Cancels the
+    /// default termination, marks shutdown state synchronously (so any racing
+    /// Closing events let the window close), and dispatches to the UI thread
+    /// to run the normal quit path with forceQuit=true (skips confirm dialog).
+    /// </summary>
+    private void HandlePosixShutdown(PosixSignalContext context)
+    {
+        if (_isShuttingDown) return;
+        context.Cancel = true;
+        _isShuttingDown = true;
+        _logger.LogInformation("Received {Signal}, initiating graceful shutdown", context.Signal);
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        {
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                await TryQuitAsync(desktop, forceQuit: true);
+        });
     }
 
     /// <summary>
