@@ -121,6 +121,9 @@ public abstract class BorgServiceBase(ILogger logger, AppSettings settings, SshA
         var env = new Dictionary<string, string>();
         List<string>? wslPreCommands = null;
 
+        // Auto-accept relocated repository warnings
+        env["BORG_RELOCATED_REPO_ACCESS_IS_OK"] = "yes";
+
         if (!string.IsNullOrWhiteSpace(repo.Passphrase))
             env["BORG_PASSPHRASE"] = repo.Passphrase;
 
