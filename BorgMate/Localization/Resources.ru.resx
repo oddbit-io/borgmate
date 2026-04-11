@@ -217,6 +217,9 @@
   <data name="SelectArchiveDetail" xml:space="preserve">
     <value>Выберите архив</value>
   </data>
+  <data name="SelectNotificationDetail" xml:space="preserve">
+    <value>Выберите уведомление</value>
+  </data>
   <data name="General" xml:space="preserve">
     <value>Основное</value>
   </data>

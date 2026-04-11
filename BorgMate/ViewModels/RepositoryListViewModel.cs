@@ -56,7 +56,6 @@ public partial class RepositoryListViewModel : ViewModelBase
 
     private readonly BorgServiceFactory _borgServiceFactory = null!;
     private readonly IConfigService _configService = null!;
-    private readonly IStatusService _statusService = null!;
     private readonly IFilePickerService _filePicker = null!;
     private readonly IJournalService _journalService = null!;
     private readonly BorgOperationRunner _runner = null!;
@@ -68,11 +67,10 @@ public partial class RepositoryListViewModel : ViewModelBase
 
     public RepositoryListViewModel() { }
 
-    public RepositoryListViewModel(BorgServiceFactory borgServiceFactory, IConfigService configService, IStatusService statusService, IFilePickerService filePicker, IJournalService journalService, BorgOperationRunner runner, PassphrasePrompt passphrase, WslHelper wsl, DirectorySizeCalculator sizeCalculator, JobQueueService jobQueue, ILogger<RepositoryListViewModel> logger)
+    public RepositoryListViewModel(BorgServiceFactory borgServiceFactory, IConfigService configService, IFilePickerService filePicker, IJournalService journalService, BorgOperationRunner runner, PassphrasePrompt passphrase, WslHelper wsl, DirectorySizeCalculator sizeCalculator, JobQueueService jobQueue, ILogger<RepositoryListViewModel> logger)
     {
         _borgServiceFactory = borgServiceFactory;
         _configService = configService;
-        _statusService = statusService;
         _filePicker = filePicker;
         _journalService = journalService;
         _runner = runner;
@@ -100,7 +98,7 @@ public partial class RepositoryListViewModel : ViewModelBase
     [RelayCommand]
     private async Task AddNew()
     {
-        var vm = RepositoryEditorViewModel.ForNew(_borgServiceFactory, _statusService, _filePicker);
+        var vm = RepositoryEditorViewModel.ForNew(_borgServiceFactory, _filePicker);
         await ShowEditorAsync(vm);
 
         if (vm.IsSaved)
@@ -156,14 +154,14 @@ public partial class RepositoryListViewModel : ViewModelBase
         }
         else
         {
-            _journalService.Complete(journalEntry, JournalResult.Failed);
+            _journalService.Complete(journalEntry, JournalResult.Failed, result.ErrorMessage);
         }
     }
 
     [RelayCommand]
     private async Task OpenExisting()
     {
-        var vm = RepositoryEditorViewModel.ForOpen(_borgServiceFactory, _statusService, _filePicker);
+        var vm = RepositoryEditorViewModel.ForOpen(_borgServiceFactory, _filePicker);
         await ShowEditorAsync(vm);
 
         if (vm.IsSaved)
@@ -183,7 +181,7 @@ public partial class RepositoryListViewModel : ViewModelBase
         _jobQueue?.CancelQueryByRepoPath(repo.Path);
 
         var oldPath = repo.Path;
-        var vm = RepositoryEditorViewModel.ForEdit(_borgServiceFactory, _statusService, _filePicker, repo);
+        var vm = RepositoryEditorViewModel.ForEdit(_borgServiceFactory, _filePicker, repo);
         await ShowEditorAsync(vm);
 
         if (vm.IsSaved)
@@ -232,15 +230,14 @@ public partial class RepositoryListViewModel : ViewModelBase
     /// <summary>
     /// Runs a borg command operation on a repository with standard lifecycle:
     /// sets repo.IsBusy, creates a journal entry, enqueues the job, awaits completion,
-    /// clears IsBusy, records result in journal, and optionally shows error dialog.
+    /// clears IsBusy, and records result (with error detail on failure) in the journal.
     /// </summary>
     private async Task RunRepoOperation(
         BorgRepository repo,
         JournalEventKind eventKind,
         string jobNameKey,
         Func<BorgJob, CancellationToken, Task<BorgResult>> execute,
-        Action<BorgResult>? onSuccess = null,
-        bool showErrorDialog = true)
+        Action<BorgResult>? onSuccess = null)
     {
         if (_jobQueue is null) return;
         repo.IsBusy = true;
@@ -267,9 +264,7 @@ public partial class RepositoryListViewModel : ViewModelBase
         }
         else
         {
-            _journalService.Complete(journalEntry, JournalResult.Failed);
-            if (showErrorDialog)
-                _statusService.SetError(result.ErrorMessage ?? "", repo.Name, repo.Path);
+            _journalService.Complete(journalEntry, JournalResult.Failed, result.ErrorMessage);
         }
     }
 

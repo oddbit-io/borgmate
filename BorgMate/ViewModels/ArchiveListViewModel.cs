@@ -19,7 +19,6 @@ namespace BorgMate.ViewModels;
 public partial class ArchiveListViewModel : ViewModelBase
 {
     private readonly BorgServiceFactory _borgServiceFactory = null!;
-    private readonly IStatusService _statusService = null!;
     private readonly IFilePickerService _filePicker = null!;
     private readonly BorgCacheService _cache = null!;
     private readonly IJournalService _journalService = null!;
@@ -30,10 +29,9 @@ public partial class ArchiveListViewModel : ViewModelBase
 
     public ArchiveListViewModel() { }
 
-    public ArchiveListViewModel(BorgServiceFactory borgServiceFactory, IStatusService statusService, IFilePickerService filePicker, BorgCacheService cache, IJournalService journalService, BorgOperationRunner runner, PassphrasePrompt passphrase, JobQueueService jobQueue, ILogger<ArchiveListViewModel> logger)
+    public ArchiveListViewModel(BorgServiceFactory borgServiceFactory, IFilePickerService filePicker, BorgCacheService cache, IJournalService journalService, BorgOperationRunner runner, PassphrasePrompt passphrase, JobQueueService jobQueue, ILogger<ArchiveListViewModel> logger)
     {
         _borgServiceFactory = borgServiceFactory;
-        _statusService = statusService;
         _filePicker = filePicker;
         _cache = cache;
         _journalService = journalService;
@@ -286,11 +284,7 @@ public partial class ArchiveListViewModel : ViewModelBase
     [RelayCommand]
     private async Task ListArchives()
     {
-        if (Repository is null || _jobQueue is null)
-        {
-            if (Repository is null) _statusService.SetError(Strings.Get("Status.NoRepoSelected"));
-            return;
-        }
+        if (Repository is null || _jobQueue is null) return;
 
         Archives.Clear();
         var repo = Repository;
@@ -377,23 +371,8 @@ public partial class ArchiveListViewModel : ViewModelBase
     [RelayCommand]
     private async Task Restore()
     {
-        if (Repository is null)
-        {
-            _statusService.SetError(Strings.Get("Status.NoRepoSelected"));
+        if (Repository is null || SelectedArchive is null || string.IsNullOrWhiteSpace(RestorePath))
             return;
-        }
-
-        if (SelectedArchive is null)
-        {
-            _statusService.SetError(Strings.Get("Status.NoArchiveSelected"));
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(RestorePath))
-        {
-            _statusService.SetError(Strings.Get("Status.NoRestorePath"));
-            return;
-        }
 
         var totalSize = _cache.GetArchiveDetail(Repository.Path, SelectedArchive.Name)?.OriginalSize ?? 0L;
         await ExecuteRestore(RestorePath, null, totalSize);
@@ -458,7 +437,7 @@ public partial class ArchiveListViewModel : ViewModelBase
         else if (result.WasCancelled)
             _journalService.Complete(journalEntry, JournalResult.Cancelled);
         else
-            _journalService.Complete(journalEntry, JournalResult.Failed);
+            _journalService.Complete(journalEntry, JournalResult.Failed, result.ErrorMessage);
 
         return result;
     }
@@ -484,13 +463,10 @@ public partial class ArchiveListViewModel : ViewModelBase
         _cache.InvalidateRepo(repo.Path);
 
         IsDeletingArchive = true;
-        var result = await EnqueueWithJournal(repo, JournalEventKind.Delete, [archive.Name],
+        await EnqueueWithJournal(repo, JournalEventKind.Delete, [archive.Name],
             $"{Strings.Get("Job.DeleteArchive")}: {archive.Name}",
             async (j, ct, progress) => await service.DeleteArchiveAsync(repo, archive.Name, ct));
         IsDeletingArchive = false;
-
-        if (!result.Success && !result.WasCancelled)
-            _statusService.SetError(string.Format(Strings.Get("Status.ArchiveDeleteError"), result.ErrorMessage), repo.Name, repo.Path);
 
         await ListArchives();
     }

@@ -17,7 +17,6 @@ public class RepositoryListViewModelTests : IDisposable
     private static readonly SshAgentHelper SshAgent = new(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl);
 
     private readonly IConfigService _configService = Substitute.For<IConfigService>();
-    private readonly IStatusService _statusService = Substitute.For<IStatusService>();
     private readonly IJournalService _journalService = Substitute.For<IJournalService>();
     private readonly JobQueueService _jobQueue = new();
 
@@ -30,7 +29,7 @@ public class RepositoryListViewModelTests : IDisposable
             Substitute.For<ILogger<BorgOperationRunner>>(), _jobQueue, _journalService, passphrase);
         var logger = Substitute.For<ILogger<RepositoryListViewModel>>();
         var sizeCalculator = new DirectorySizeCalculator(Substitute.For<ILogger<DirectorySizeCalculator>>());
-        return new RepositoryListViewModel(borgFactory, _configService, _statusService, filePicker,
+        return new RepositoryListViewModel(borgFactory, _configService, filePicker,
             _journalService, runner, passphrase, Wsl, sizeCalculator, _jobQueue, logger);
     }
 

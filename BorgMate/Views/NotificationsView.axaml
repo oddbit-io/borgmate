@@ -34,6 +34,46 @@
             </DockPanel>
         </Border>
 
+        <!-- Notification detail panel (bottom) -->
+        <Border DockPanel.Dock="Bottom"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
+                Height="140">
+            <Panel>
+                <TextBlock Text="{Binding [SelectNotificationDetail], Source={x:Static loc:Strings.Instance}}"
+                           Classes="placeholder"
+                           IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNull}}" />
+                <ScrollViewer Margin="12,8" VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Spacing="4">
+                        <DockPanel>
+                            <ctrl:BootstrapIcon DockPanel.Dock="Left" Width="16" Height="16"
+                                Margin="0,2,8,0" VerticalAlignment="Top"
+                                Kind="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToIconConverter.Instance}}"
+                                Foreground="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}"/>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{Binding SelectedItem.Title}" FontWeight="SemiBold"
+                                           TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding SelectedItem.RepositoryName}" Classes="secondary"
+                                               IsVisible="{Binding SelectedItem.RepositoryName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Text="·" Classes="secondary"
+                                               IsVisible="{Binding SelectedItem.RepositoryName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Text="{Binding SelectedItem.ResultDisplay}" Classes="secondary"
+                                               Foreground="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}"/>
+                                    <TextBlock Text="·" Classes="secondary"/>
+                                    <TextBlock Text="{Binding SelectedItem.RelativeTime}" Classes="secondary"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+                        <TextBlock Text="{Binding SelectedItem.Detail}"
+                                   TextWrapping="Wrap"
+                                   FontSize="{StaticResource SecondaryFontSize}"
+                                   IsVisible="{Binding SelectedItem.Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Panel>
+        </Border>
+
         <Panel>
             <!-- Empty state -->
             <TextBlock Text="{Binding [NoNotifications], Source={x:Static loc:Strings.Instance}}"
@@ -65,6 +105,7 @@
                                 <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
                                 <TextBlock Text="{Binding Detail}" Classes="secondary"
                                            TextTrimming="CharacterEllipsis"
+                                           MaxLines="1"
                                            IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                             </StackPanel>
                         </DockPanel>

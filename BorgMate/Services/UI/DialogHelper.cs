@@ -29,24 +29,6 @@ public static class DialogHelper
         return dialog.Confirmed;
     }
 
-    public static async Task ErrorAsync(string message)
-    {
-        var window = GetMainWindow();
-        if (window is null) return;
-
-        var dialog = new ErrorDialogWindow(message);
-        await dialog.ShowDialog(window);
-    }
-
-    public static async Task ErrorAsync(string message, string repoName, string repoPath)
-    {
-        var window = GetMainWindow();
-        if (window is null) return;
-
-        var dialog = new ErrorDialogWindow(message, repoName, repoPath);
-        await dialog.ShowDialog(window);
-    }
-
     /// <summary>
     /// Shows a password prompt dialog with optional "Save to Keychain" checkbox.
     /// Used by both PassphrasePrompt and SshAgentHelper.

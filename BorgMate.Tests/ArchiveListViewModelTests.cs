@@ -26,12 +26,11 @@ public class ArchiveListViewModelTests
     private static ArchiveListViewModel CreateVm()
     {
         var borgFactory = new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), SshAgent, Wsl);
-        var status = Substitute.For<IStatusService>();
         var filePicker = new FilePickerService();
         var cache = new BorgCacheService();
         var journal = Substitute.For<IJournalService>();
         var logger = Substitute.For<ILogger<ArchiveListViewModel>>();
-        return new ArchiveListViewModel(borgFactory, status, filePicker, cache, journal, CreateRunner(journal), Prompt, null!, logger);
+        return new ArchiveListViewModel(borgFactory, filePicker, cache, journal, CreateRunner(journal), Prompt, null!, logger);
     }
 
     [Fact]
@@ -133,37 +132,6 @@ public class ArchiveListViewModelTests
         vm.SortByDateCommand.Execute(null);
         Assert.Equal("new", vm.Archives[0].Name);
         Assert.Contains("▼", vm.DateSortIndicator);
-    }
-
-    [Fact]
-    public void Restore_NoRepo_ShowsError()
-    {
-        var status = Substitute.For<IStatusService>();
-        var vm = new ArchiveListViewModel(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), SshAgent, Wsl), status,
-            new FilePickerService(), new BorgCacheService(),
-            Substitute.For<IJournalService>(), CreateRunner(), Prompt,
-            null!, Substitute.For<ILogger<ArchiveListViewModel>>());
-
-        vm.RestoreCommand.Execute(null);
-
-        status.Received().SetError(Arg.Any<string>());
-    }
-
-    [Fact]
-    public void Restore_NoArchive_ShowsError()
-    {
-        var status = Substitute.For<IStatusService>();
-        var vm = new ArchiveListViewModel(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), SshAgent, Wsl), status,
-            new FilePickerService(), new BorgCacheService(),
-            Substitute.For<IJournalService>(), CreateRunner(), Prompt,
-            null!, Substitute.For<ILogger<ArchiveListViewModel>>());
-
-        vm.Repository = new BorgRepository { Name = "test", Path = "/test" };
-        vm.RestoreCommand.Execute(null);
-
-        status.Received().SetError(Arg.Any<string>());
     }
 
     [Fact]

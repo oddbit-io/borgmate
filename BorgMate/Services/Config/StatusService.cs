@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BorgMate.Services.Config;
 
-public partial class StatusService : ObservableObject, IStatusService
+public partial class StatusService : ObservableObject
 {
     [ObservableProperty]
     private string? _updateMessage;
@@ -17,18 +17,6 @@ public partial class StatusService : ObservableObject, IStatusService
     private bool _isDownloading;
 
     private Func<Task>? _updateAction;
-
-    public async void SetError(string message)
-    {
-        try { await DialogHelper.ErrorAsync(message); }
-        catch (Exception ex) { Console.Error.WriteLine($"Failed to show error dialog: {ex.Message}"); }
-    }
-
-    public async void SetError(string message, string repoName, string repoPath)
-    {
-        try { await DialogHelper.ErrorAsync(message, repoName, repoPath); }
-        catch (Exception ex) { Console.Error.WriteLine($"Failed to show error dialog: {ex.Message}"); }
-    }
 
     public void SetUpdateAvailable(string message, Func<Task> action)
     {

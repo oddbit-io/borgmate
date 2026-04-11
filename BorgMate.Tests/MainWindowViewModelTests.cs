@@ -38,7 +38,7 @@ public class MainWindowViewModelTests : IDisposable
         var runner = new BorgOperationRunner(
             Substitute.For<ILogger<BorgOperationRunner>>(), _jobQueue, _journalService, passphrase);
         var sizeCalculator = new DirectorySizeCalculator(Substitute.For<ILogger<DirectorySizeCalculator>>());
-        return new RepositoryListViewModel(borgFactory, _configService, Substitute.For<IStatusService>(),
+        return new RepositoryListViewModel(borgFactory, _configService,
             new FilePickerService(), _journalService, runner, passphrase, Wsl, sizeCalculator, _jobQueue,
             Substitute.For<ILogger<RepositoryListViewModel>>());
     }
@@ -49,7 +49,7 @@ public class MainWindowViewModelTests : IDisposable
         var passphrase = new PassphrasePrompt(null);
         var runner = new BorgOperationRunner(
             Substitute.For<ILogger<BorgOperationRunner>>(), _jobQueue, _journalService, passphrase);
-        return new ArchiveListViewModel(borgFactory, Substitute.For<IStatusService>(),
+        return new ArchiveListViewModel(borgFactory,
             new FilePickerService(), new BorgCacheService(), _journalService, runner, passphrase,
             null!, Substitute.For<ILogger<ArchiveListViewModel>>());
     }

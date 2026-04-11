@@ -11,20 +11,22 @@ namespace BorgMate.Tests;
 
 public class RepositoryEditorViewModelTests
 {
+    private static BorgServiceFactory CreateFactory()
+    {
+        var wsl = new WslHelper(Substitute.For<ILogger<WslHelper>>());
+        var sshAgent = new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, wsl);
+        return new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), sshAgent, wsl);
+    }
+
     private static RepositoryEditorViewModel CreateVm() =>
-        new(new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, new WslHelper(Substitute.For<ILogger<WslHelper>>())), new WslHelper(Substitute.For<ILogger<WslHelper>>())),
-            Substitute.For<IStatusService>(),
-            new FilePickerService());
+        new(CreateFactory(), new FilePickerService());
 
     // --- Factory methods ---
 
     [Fact]
     public void ForNew_SetsDefaults()
     {
-        var vm = RepositoryEditorViewModel.ForNew(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, new WslHelper(Substitute.For<ILogger<WslHelper>>())), new WslHelper(Substitute.For<ILogger<WslHelper>>())),
-            Substitute.For<IStatusService>(),
-            new FilePickerService());
+        var vm = RepositoryEditorViewModel.ForNew(CreateFactory(), new FilePickerService());
 
         Assert.True(vm.IsNew);
         Assert.False(vm.IsOpen);
@@ -35,10 +37,7 @@ public class RepositoryEditorViewModelTests
     [Fact]
     public void ForOpen_SetsDefaults()
     {
-        var vm = RepositoryEditorViewModel.ForOpen(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, new WslHelper(Substitute.For<ILogger<WslHelper>>())), new WslHelper(Substitute.For<ILogger<WslHelper>>())),
-            Substitute.For<IStatusService>(),
-            new FilePickerService());
+        var vm = RepositoryEditorViewModel.ForOpen(CreateFactory(), new FilePickerService());
 
         Assert.True(vm.IsOpen);
         Assert.False(vm.IsNew);
@@ -60,10 +59,7 @@ public class RepositoryEditorViewModelTests
         repo.Schedule.Hour = 3;
         repo.SourceDirectories.Add("/home/user/docs");
 
-        var vm = RepositoryEditorViewModel.ForEdit(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, new WslHelper(Substitute.For<ILogger<WslHelper>>())), new WslHelper(Substitute.For<ILogger<WslHelper>>())),
-            Substitute.For<IStatusService>(),
-            new FilePickerService(), repo);
+        var vm = RepositoryEditorViewModel.ForEdit(CreateFactory(), new FilePickerService(), repo);
 
         Assert.False(vm.IsNew);
         Assert.False(vm.IsOpen);
@@ -118,9 +114,7 @@ public class RepositoryEditorViewModelTests
     [Fact]
     public void Save_ValidLocal_SetsSaved()
     {
-        var vm = RepositoryEditorViewModel.ForNew(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, new WslHelper(Substitute.For<ILogger<WslHelper>>())), new WslHelper(Substitute.For<ILogger<WslHelper>>())),
-            Substitute.For<IStatusService>(), new FilePickerService());
+        var vm = RepositoryEditorViewModel.ForNew(CreateFactory(), new FilePickerService());
         vm.Repository.IsLocal = true;
         vm.Repository.Name = "Test";
         vm.RepoPath = "/data/borg";
@@ -134,9 +128,7 @@ public class RepositoryEditorViewModelTests
     [Fact]
     public void Save_AppliesSourceDirectories()
     {
-        var vm = RepositoryEditorViewModel.ForNew(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, new WslHelper(Substitute.For<ILogger<WslHelper>>())), new WslHelper(Substitute.For<ILogger<WslHelper>>())),
-            Substitute.For<IStatusService>(), new FilePickerService());
+        var vm = RepositoryEditorViewModel.ForNew(CreateFactory(), new FilePickerService());
         vm.Repository.IsLocal = true;
         vm.Repository.Name = "Test";
         vm.RepoPath = "/data/borg";
@@ -151,9 +143,7 @@ public class RepositoryEditorViewModelTests
     [Fact]
     public void Save_AppliesSchedule()
     {
-        var vm = RepositoryEditorViewModel.ForNew(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, new WslHelper(Substitute.For<ILogger<WslHelper>>())), new WslHelper(Substitute.For<ILogger<WslHelper>>())),
-            Substitute.For<IStatusService>(), new FilePickerService());
+        var vm = RepositoryEditorViewModel.ForNew(CreateFactory(), new FilePickerService());
         vm.Repository.IsLocal = true;
         vm.Repository.Name = "Test";
         vm.RepoPath = "/data/borg";
@@ -172,10 +162,7 @@ public class RepositoryEditorViewModelTests
     [Fact]
     public void Save_WithNoName_SetsNameError()
     {
-        var vm = RepositoryEditorViewModel.ForNew(
-            new BorgServiceFactory(Substitute.For<ILoggerFactory>(), new AppSettings(), new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, new WslHelper(Substitute.For<ILogger<WslHelper>>())), new WslHelper(Substitute.For<ILogger<WslHelper>>())),
-            Substitute.For<IStatusService>(),
-            new FilePickerService());
+        var vm = RepositoryEditorViewModel.ForNew(CreateFactory(), new FilePickerService());
         vm.Repository.IsLocal = true;
         vm.RepoPath = "/data/my-backups";
 

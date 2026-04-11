@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using BorgMate.Models;
 using BorgMate.Services;
-using BorgMate.Services.Config;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -11,15 +10,13 @@ namespace BorgMate.ViewModels;
 public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 {
     private readonly BorgServiceFactory? _borgServiceFactory;
-    private readonly IStatusService? _statusService;
     private readonly IFilePickerService? _filePicker;
 
     public RepositoryEditorViewModel() { }
 
-    public RepositoryEditorViewModel(BorgServiceFactory borgServiceFactory, IStatusService statusService, IFilePickerService filePicker)
+    public RepositoryEditorViewModel(BorgServiceFactory borgServiceFactory, IFilePickerService filePicker)
     {
         _borgServiceFactory = borgServiceFactory;
-        _statusService = statusService;
         _filePicker = filePicker;
     }
 
@@ -129,9 +126,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private bool _runMissed = true;
 
     /// <summary>Creates a VM for adding a new repository (shows init tab, Create button).</summary>
-    public static RepositoryEditorViewModel ForNew(BorgServiceFactory factory, IStatusService status, IFilePickerService filePicker)
+    public static RepositoryEditorViewModel ForNew(BorgServiceFactory factory, IFilePickerService filePicker)
     {
-        return new RepositoryEditorViewModel(factory, status, filePicker)
+        return new RepositoryEditorViewModel(factory, filePicker)
         {
             IsNew = true,
             Repository = new BorgRepository
@@ -144,9 +141,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     }
 
     /// <summary>Creates a VM for opening an existing borg repo (no init, Open button).</summary>
-    public static RepositoryEditorViewModel ForOpen(BorgServiceFactory factory, IStatusService status, IFilePickerService filePicker)
+    public static RepositoryEditorViewModel ForOpen(BorgServiceFactory factory, IFilePickerService filePicker)
     {
-        return new RepositoryEditorViewModel(factory, status, filePicker)
+        return new RepositoryEditorViewModel(factory, filePicker)
         {
             IsNew = false,
             IsOpen = true,
@@ -160,9 +157,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     }
 
     /// <summary>Creates a VM for editing an existing repository (pre-populates all fields, Save button).</summary>
-    public static RepositoryEditorViewModel ForEdit(BorgServiceFactory factory, IStatusService status, IFilePickerService filePicker, BorgRepository repo)
+    public static RepositoryEditorViewModel ForEdit(BorgServiceFactory factory, IFilePickerService filePicker, BorgRepository repo)
     {
-        var vm = new RepositoryEditorViewModel(factory, status, filePicker)
+        var vm = new RepositoryEditorViewModel(factory, filePicker)
         {
             IsNew = false,
             Repository = repo,
@@ -247,9 +244,8 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private async Task CheckVersion()
     {
         var service = _borgServiceFactory!.GetService(Repository.BorgVersion);
-        var result = await service.GetVersionAsync();
-        if (!result.Success)
-            _statusService?.SetError(string.Format(Strings.Get("Status.Error"), result.ErrorMessage));
+        await service.GetVersionAsync();
+        // TODO: surface result inline in the editor (commit 3).
     }
 
     [RelayCommand]
@@ -260,10 +256,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         var userPart = string.IsNullOrWhiteSpace(SshUser) ? "" : $"{SshUser.Trim()}@";
         var host = $"{userPart}{SshHost.Trim()}";
         var service = _borgServiceFactory!.GetService(Repository.BorgVersion);
-        var result = await service.CheckRemotePathAsync(
+        await service.CheckRemotePathAsync(
             host, Repository.BorgRemotePath, Repository.SshKeyPath);
-        if (!result.Success)
-            _statusService?.SetError(string.Format(Strings.Get("Status.Error"), result.ErrorMessage));
+        // TODO: surface result inline in the editor (commit 3).
     }
 
     [RelayCommand]

@@ -117,7 +117,7 @@ public class BorgOperationRunner(
             jobQueue.CancelPendingByRepoPath(repo.Path);
             var entry = journalService.Add(
                 JournalEventKind.PassphraseFailed, [repo.Name], repo.Name);
-            journalService.Complete(entry, JournalResult.Failed);
+            journalService.Complete(entry, JournalResult.Failed, Strings.Get("Error.WrongPassphrase"));
         });
     }
 }

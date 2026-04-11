@@ -62,7 +62,6 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<ISchedulerService, SchedulerService>();
         }
         services.AddSingleton<StatusService>();
-        services.AddSingleton<IStatusService>(sp => sp.GetRequiredService<StatusService>());
         if (OperatingSystem.IsMacOS())
             services.AddSingleton<IFilePickerService, MacOsFilePickerService>();
         else

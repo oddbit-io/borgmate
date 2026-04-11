@@ -217,6 +217,9 @@
   <data name="SelectArchiveDetail" xml:space="preserve">
     <value>Select an archive</value>
   </data>
+  <data name="SelectNotificationDetail" xml:space="preserve">
+    <value>Select a notification</value>
+  </data>
   <data name="General" xml:space="preserve">
     <value>General</value>
   </data>
