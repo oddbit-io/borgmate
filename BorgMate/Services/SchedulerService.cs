@@ -16,7 +16,7 @@ public class SchedulerService : ISchedulerService
     private readonly DispatcherTimer _timer;
     private readonly ILogger<SchedulerService> _logger;
     private readonly PassphrasePrompt _passphrase;
-    private RepositoryListViewModel? _repoList;
+    private RepositoriesPageViewModel? _page;
     private bool _isChecking;
 
     public SchedulerService(ILogger<SchedulerService> logger, PassphrasePrompt passphrase)
@@ -27,9 +27,9 @@ public class SchedulerService : ISchedulerService
         _timer.Tick += (_, _) => _ = CheckSchedulesGuardedAsync();
     }
 
-    public void Start(RepositoryListViewModel repoList)
+    public void Start(RepositoriesPageViewModel page)
     {
-        _repoList = repoList;
+        _page = page;
         _timer.Start();
         // Check immediately for missed backups on startup
         _ = CheckSchedulesGuardedAsync();
@@ -48,11 +48,11 @@ public class SchedulerService : ISchedulerService
 
     private async Task CheckSchedulesAsync()
     {
-        if (_repoList is null) return;
+        if (_page is null) return;
 
         var now = DateTime.Now;
 
-        foreach (var repo in _repoList.Repositories.Where(r => r.IsScheduled && !r.IsBusy))
+        foreach (var repo in _page.Repositories.Where(r => r.IsScheduled && !r.IsBusy))
         {
             var nextRun = ComputeNextRun(repo);
             if (nextRun is null || nextRun > now) continue;
@@ -68,7 +68,7 @@ public class SchedulerService : ISchedulerService
                     continue;
                 }
 
-                await _repoList.RunBackupForRepo(repo);
+                await _page.RunBackupForRepo(repo);
             }
             catch (Exception ex)
             {

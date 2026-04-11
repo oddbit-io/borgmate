@@ -4,14 +4,15 @@
              xmlns:models="using:BorgMate.Models"
              xmlns:loc="using:BorgMate.Localization"
              xmlns:ctrl="using:BorgMate.Views.Controls"
+             xmlns:conv="clr-namespace:BorgMate.Views.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="750" d:DesignHeight="450"
              x:Class="BorgMate.Views.ArchiveListView"
-             x:DataType="vm:ArchiveListViewModel">
+             x:DataType="vm:RepositoriesPageViewModel">
 
     <Design.DataContext>
-        <x:Static Member="vm:DesignData.ArchiveList"/>
+        <x:Static Member="vm:DesignData.RepositoriesPage"/>
     </Design.DataContext>
 
     <DockPanel>
@@ -21,17 +22,14 @@
                 <ctrl:ToolbarButton DockPanel.Dock="Right"
                                     Icon="Trash"
                                     Label="{Binding [Delete], Source={x:Static loc:Strings.Instance}}"
-                                    Command="{Binding DeleteArchiveCommand}"
-                                    IsEnabled="{Binding CanModifyArchive}"/>
+                                    Command="{Binding DeleteArchiveCommand}"/>
                 <StackPanel Orientation="Horizontal" Spacing="4">
                     <ctrl:ToolbarButton Icon="BoxArrowDown"
                                         Label="{Binding [RestoreTo], Source={x:Static loc:Strings.Instance}}"
-                                        Command="{Binding PickAndRestoreCommand}"
-                                        IsEnabled="{Binding CanModifyArchive}"/>
+                                        Command="{Binding PickAndRestoreCommand}"/>
                     <ctrl:ToolbarButton Icon="ListNested"
                                         Label="{Binding [BrowseRestore], Source={x:Static loc:Strings.Instance}}"
-                                        Command="{Binding BrowseAndRestoreCommand}"
-                                        IsEnabled="{Binding CanModifyArchive}"/>
+                                        Command="{Binding BrowseAndRestoreCommand}"/>
                     <ctrl:ToolbarButton Icon="ArrowClockwise"
                                         Label="{Binding [Refresh], Source={x:Static loc:Strings.Instance}}"
                                         Command="{Binding ListArchivesCommand}"
@@ -74,11 +72,13 @@
             </DockPanel>
         </Border>
 
-        <!-- Detail panel (bottom) -->
+        <!-- Detail panel (bottom). Hidden while the archive list is still loading —
+             there's nothing to show and the "Select an archive" placeholder would just
+             flash through as a visual distraction. -->
         <Border DockPanel.Dock="Bottom"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
                 Height="92"
->
+                IsVisible="{Binding !IsLoadingArchives}">
             <Panel>
                 <TextBlock Text="{Binding [SelectArchiveDetail], Source={x:Static loc:Strings.Instance}}"
                            Classes="placeholder"
@@ -91,7 +91,7 @@
                                IsVisible="{Binding HasSelectedArchive}">
                             <ctrl:SpinnerControl Width="16" Height="16"
                                                  Foreground="{DynamicResource SecondaryTextBrush}"
-                                                 IsVisible="{Binding IsLoadingDetail}" />
+                                                 IsVisible="{Binding SelectedArchive.IsLoadingDetail}" />
                         </Panel>
                         <StackPanel Spacing="2">
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -100,12 +100,13 @@
                                     Foreground="{DynamicResource SecondaryTextBrush}"/>
                                 <TextBlock Text="{Binding SelectedArchive.Name}" FontWeight="SemiBold"/>
                             </StackPanel>
-                            <TextBlock Classes="secondary" Text="{Binding SelectedArchive.DateDisplay}"/>
+                            <TextBlock Classes="secondary"
+                                       Text="{Binding SelectedArchive.Date, Converter={x:Static conv:DateTimeFormatConverter.Instance}, ConverterParameter='d MMMM yyyy, HH:mm'}"/>
                         </StackPanel>
                     </DockPanel>
 
                     <!-- Restore progress -->
-                    <ctrl:ProgressPanel DataContext="{Binding Progress}"/>
+                    <ctrl:ProgressPanel DataContext="{Binding RestoreProgress}"/>
 
                     <!-- Archive stats (hidden during restore) -->
                     <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">
@@ -161,7 +162,7 @@
                             <ctrl:BootstrapIcon Kind="Box" Width="18" Height="18" VerticalAlignment="Center" Margin="4,0,14,0"/>
                             <TextBlock DockPanel.Dock="Right" Classes="secondary" VerticalAlignment="Center"
                                        Margin="8,0,0,0"
-                                       Text="{Binding DateDisplay}"/>
+                                       Text="{Binding Date, Converter={x:Static conv:DateTimeFormatConverter.Instance}, ConverterParameter='d MMMM yyyy, HH:mm'}"/>
                             <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis"/>
                         </DockPanel>

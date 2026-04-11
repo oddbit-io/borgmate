@@ -107,4 +107,26 @@ public class Strings : INotifyPropertyChanged
         while (value >= @base && i < ByteSuffixKeysBin.Length - 1) { value /= @base; i++; }
         return (value, i);
     }
+
+    // --- Journal entry formatting (used by NotificationService + AXAML converters) ---
+
+    private static readonly string[] EventKindKeys =
+    [
+        "Notif.Backup", "Notif.Prune", "Notif.Check", "Notif.Compact",
+        "Notif.Delete", "Notif.Create", "Notif.PassphraseFailed", "Notif.Restore"
+    ];
+
+    public static string FormatJournalTitle(Models.JournalEventKind kind, object[]? titleArgs) =>
+        titleArgs is { Length: > 0 }
+            ? string.Format(Get(EventKindKeys[(int)kind]), titleArgs)
+            : Get(EventKindKeys[(int)kind]);
+
+    public static string FormatJournalResult(Models.JournalResult result) => result switch
+    {
+        Models.JournalResult.Running => Get("Job.Running"),
+        Models.JournalResult.Completed => Get("Job.Completed"),
+        Models.JournalResult.Failed => Get("Job.Failed"),
+        Models.JournalResult.Cancelled => Get("Job.Cancelled"),
+        _ => ""
+    };
 }

@@ -21,6 +21,7 @@ public class MainWindowViewModelTests : IDisposable
     private readonly AppSettings _settings = new();
     private readonly IJournalService _journalService;
     private readonly JobQueueService _jobQueue = new();
+    private readonly RepositoryStore _store;
     private readonly ISchedulerService _scheduler = Substitute.For<ISchedulerService>();
     private readonly IAutoStartService _autoStart = Substitute.For<IAutoStartService>();
 
@@ -29,32 +30,26 @@ public class MainWindowViewModelTests : IDisposable
         _journalService = Substitute.For<IJournalService>();
         _journalService.Entries.Returns(new System.Collections.ObjectModel.ObservableCollection<JournalEntry>());
         _configService.Load().Returns(new ConfigData());
+        _store = new RepositoryStore(_jobQueue);
     }
 
-    private RepositoryListViewModel CreateRepoListVm()
+    private RepositoriesPageViewModel CreatePageVm()
     {
         var borgFactory = new BorgServiceFactory(Substitute.For<ILoggerFactory>(), _settings, SshAgent, Wsl);
         var passphrase = new PassphrasePrompt(null);
         var runner = new BorgOperationRunner(
             Substitute.For<ILogger<BorgOperationRunner>>(), _jobQueue, _journalService, passphrase);
         var sizeCalculator = new DirectorySizeCalculator(Substitute.For<ILogger<DirectorySizeCalculator>>());
-        return new RepositoryListViewModel(borgFactory, _configService,
-            new FilePickerService(), _journalService, runner, passphrase, Wsl, sizeCalculator, _jobQueue,
-            Substitute.For<ILogger<RepositoryListViewModel>>());
+        return new RepositoriesPageViewModel(borgFactory, _configService, new FilePickerService(),
+            new BorgCacheService(), _journalService, runner, passphrase, Wsl, sizeCalculator,
+            null!, _store, Substitute.For<ILogger<RepositoriesPageViewModel>>());
     }
 
-    private ArchiveListViewModel CreateArchiveListVm()
+    public void Dispose()
     {
-        var borgFactory = new BorgServiceFactory(Substitute.For<ILoggerFactory>(), _settings, SshAgent, Wsl);
-        var passphrase = new PassphrasePrompt(null);
-        var runner = new BorgOperationRunner(
-            Substitute.For<ILogger<BorgOperationRunner>>(), _jobQueue, _journalService, passphrase);
-        return new ArchiveListViewModel(borgFactory,
-            new FilePickerService(), new BorgCacheService(), _journalService, runner, passphrase,
-            null!, Substitute.For<ILogger<ArchiveListViewModel>>());
+        _store.Dispose();
+        _jobQueue.Dispose();
     }
-
-    public void Dispose() => _jobQueue.Dispose();
 
     // --- Parameterless Constructor ---
 
@@ -85,11 +80,10 @@ public class MainWindowViewModelTests : IDisposable
     [Fact]
     public void NavigateTo_ChangesActivePage()
     {
-        var repoList = CreateRepoListVm();
-        var archiveList = CreateArchiveListVm();
+        var page = CreatePageVm();
         var notifications = new NotificationsViewModel(_journalService);
-        var vm = new MainWindowViewModel(_configService, _settings, repoList, archiveList,
-            notifications, _journalService, new StatusService(), _jobQueue, _autoStart, _scheduler);
+        var vm = new MainWindowViewModel(_configService, _settings, page,
+            notifications, _journalService, new StatusService(), _jobQueue, _store, _autoStart, _scheduler);
 
         vm.NavigateToCommand.Execute(AppPage.Notifications);
 
@@ -152,12 +146,11 @@ public class MainWindowViewModelTests : IDisposable
     public void SaveConfig_PersistsSidebarState()
     {
         _configService.Load().Returns(new ConfigData());
-        var repoList = CreateRepoListVm();
-        var archiveList = CreateArchiveListVm();
+        var page = CreatePageVm();
         var notifications = new NotificationsViewModel(_journalService);
 
-        var vm = new MainWindowViewModel(_configService, _settings, repoList, archiveList,
-            notifications, _journalService, new StatusService(), _jobQueue, _autoStart, _scheduler);
+        var vm = new MainWindowViewModel(_configService, _settings, page,
+            notifications, _journalService, new StatusService(), _jobQueue, _store, _autoStart, _scheduler);
 
         vm.IsSidebarExpanded = true;
         vm.SaveConfig();
@@ -165,8 +158,6 @@ public class MainWindowViewModelTests : IDisposable
         Assert.True(_settings.SidebarExpanded);
         _configService.Received().Save(Arg.Is<ConfigData>(c => c.Settings.SidebarExpanded));
     }
-
-    // --- LoadConfig Populates Repositories ---
 
     [Fact]
     public void Constructor_LoadsRepositoriesFromConfig()
@@ -180,15 +171,14 @@ public class MainWindowViewModelTests : IDisposable
             ]
         };
         _configService.Load().Returns(configData);
-        var repoList = CreateRepoListVm();
-        var archiveList = CreateArchiveListVm();
+        var page = CreatePageVm();
         var notifications = new NotificationsViewModel(_journalService);
 
-        var vm = new MainWindowViewModel(_configService, _settings, repoList, archiveList,
-            notifications, _journalService, new StatusService(), _jobQueue, _autoStart, _scheduler);
+        var vm = new MainWindowViewModel(_configService, _settings, page,
+            notifications, _journalService, new StatusService(), _jobQueue, _store, _autoStart, _scheduler);
 
-        Assert.Equal(2, repoList.Repositories.Count);
-        Assert.Equal("repo1", repoList.Repositories[0].Name);
-        Assert.Equal("repo2", repoList.Repositories[1].Name);
+        Assert.Equal(2, _store.Repositories.Count);
+        Assert.Equal("repo1", _store.Repositories[0].Name);
+        Assert.Equal("repo2", _store.Repositories[1].Name);
     }
 }

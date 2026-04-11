@@ -1,4 +1,5 @@
 using BorgMate.Models;
+using BorgMate.Services.Borg;
 
 namespace BorgMate.Tests;
 

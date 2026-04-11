@@ -32,10 +32,10 @@ public static class DemoDataLoader
             new() { Name = "NAS Archive", Path = "/volume1/backups/borg", IsLocal = true, EncryptionMode = BorgEncryptionMode.None }
         };
 
-        mainVm.RepositoryList.Repositories.ReplaceWith(repos);
-        mainVm.RepositoryList.SelectedRepository = repos[0];
-        mainVm.RepositoryList.Stats.TotalSize = Localization.Strings.FormatBytes(48_372_015_104);
-        mainVm.RepositoryList.Stats.TotalChunks = (285_413).ToString("N0", Localization.Strings.Culture);
+        mainVm.RepositoriesPage.Repositories.ReplaceWith(repos);
+        mainVm.RepositoriesPage.SelectedRepository = repos[0];
+        repos[0].StatsTotalSize = 48_372_015_104;
+        repos[0].StatsTotalChunks = 285_413;
 
         repos[0].SourceDirectories.Add("/Users/user/Documents");
         repos[0].SourceDirectories.Add("/Users/user/Photos");
@@ -53,10 +53,10 @@ public static class DemoDataLoader
             new("daily-2026-03-22T14-00-00", DateTime.Now.AddDays(-5)),
             new("monthly-2026-03-01T03-00-00", DateTime.Now.AddDays(-26))
         };
-        mainVm.ArchiveList.Archives.ReplaceWith(archives);
-        mainVm.ArchiveList.SelectedArchive = archives[0];
-        mainVm.ArchiveList.DetailOriginalSize = Localization.Strings.FormatBytes(2_469_606_195);
-        mainVm.ArchiveList.DetailFileCount = (1_247).ToString("N0", Localization.Strings.Culture);
+        mainVm.RepositoriesPage.Archives.ReplaceWith(archives);
+        mainVm.RepositoriesPage.SelectedArchive = archives[0];
+        mainVm.RepositoriesPage.DetailOriginalSize = Localization.Strings.FormatBytes(2_469_606_195);
+        mainVm.RepositoriesPage.DetailFileCount = (1_247).ToString("N0", Localization.Strings.Culture);
 
         journal.ClearFinished();
 

@@ -38,7 +38,6 @@ public class NotificationItemTests
         Assert.Contains(nameof(NotificationItem.IsFailed), changed);
         Assert.Contains(nameof(NotificationItem.IsSuccess), changed);
         Assert.Contains(nameof(NotificationItem.IsCancelled), changed);
-        Assert.Contains(nameof(NotificationItem.ResultDisplay), changed);
         Assert.Contains(nameof(NotificationItem.DisplayResult), changed);
     }
 
@@ -80,8 +79,8 @@ public class NotificationItemTests
 
         item.Refresh();
 
-        Assert.Contains(nameof(NotificationItem.RelativeTime), changed);
-        Assert.Contains(nameof(NotificationItem.Title), changed);
-        Assert.Contains(nameof(NotificationItem.ResultDisplay), changed);
+        Assert.Contains(nameof(NotificationItem.DisplayTime), changed);
+        Assert.Contains(nameof(NotificationItem.Entry), changed);
+        Assert.Contains(nameof(NotificationItem.DisplayResult), changed);
     }
 }

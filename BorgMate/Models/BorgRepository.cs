@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Humanizer;
 
 namespace BorgMate.Models;
 
@@ -47,12 +47,26 @@ public partial class BorgRepository : ObservableObject
     [ObservableProperty]
     private bool _isBusy;
 
+    /// <summary>Progress percentage (0–100) of the active command job, or null for indeterminate.</summary>
+    [ObservableProperty]
+    private double? _commandProgress;
+
     /// <summary>
     /// Set when passphrase retries are exhausted. Forces re-prompt on next interaction.
     /// In-memory only, not persisted.
     /// </summary>
     [ObservableProperty]
     private bool _wrongPassphrase;
+
+    /// <summary>
+    /// True after the last operation (command or query) failed. Cleared after any
+    /// successful operation. In-memory only, not persisted — resets on app restart.
+    /// </summary>
+    [ObservableProperty]
+    private bool _hasError;
+
+    [ObservableProperty]
+    private string? _lastError;
 
     /// <summary>
     /// SSH key passphrase for agent loading. In-memory only, not persisted.
@@ -75,41 +89,35 @@ public partial class BorgRepository : ObservableObject
 
     public bool IsScheduled => Mode == BackupMode.Scheduled && SourceDirectories.Count > 0;
 
-    public string ScheduleDisplay
-    {
-        get
-        {
-            if (!IsScheduled) return Localization.Strings.Get("Mode.Manual");
-            var nextRun = Services.SchedulerService.ComputeNextRun(this);
-            var next = HumanizeNextRun(nextRun);
-            return $"{Schedule.ScheduleDisplay} · {next}";
-        }
-    }
-
-    public string? ScheduleTooltip
-    {
-        get
-        {
-            if (!IsScheduled) return null;
-            var nextRun = Services.SchedulerService.ComputeNextRun(this);
-            var next = nextRun?.ToString("g", Localization.Strings.Culture) ?? "—";
-            return $"{Schedule.ScheduleDisplay}\n{Localization.Strings.Get("Schedule.NextRun")}: {next}";
-        }
-    }
-
-    private static string HumanizeNextRun(DateTime? nextRun)
-    {
-        if (nextRun is null) return "—";
-        var remaining = nextRun.Value - DateTime.Now;
-        if (remaining <= TimeSpan.Zero) return Localization.Strings.Get("Schedule.Now");
-        var text = remaining.Humanize(precision: 2, minUnit: TimeUnit.Minute, culture: Localization.Strings.Culture);
-        return string.Format(Localization.Strings.Get("Schedule.InTime"), text);
-    }
-
+    /// <summary>Fires PropertyChanged to trigger converter re-evaluation for schedule display.</summary>
     public void RefreshScheduleDisplay()
     {
-        OnPropertyChanged(nameof(ScheduleDisplay));
-        OnPropertyChanged(nameof(ScheduleTooltip));
         OnPropertyChanged(nameof(IsScheduled));
+        OnPropertyChanged(nameof(LastBackupAt));
+    }
+
+    // --- Loaded archive list (from last successful borg list, null = never fetched) ---
+
+    public List<BorgArchive>? LoadedArchives { get; set; }
+
+    // --- Repository stats (raw values from borg info --json) ---
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasStats))]
+    private long? _statsTotalSize;
+
+    [ObservableProperty]
+    private long? _statsTotalChunks;
+
+    [ObservableProperty]
+    private bool _isLoadingStats;
+
+    public bool HasStats => StatsTotalSize is not null;
+
+    /// <summary>Forces re-read of stats properties (triggers converter re-evaluation on language change).</summary>
+    public void RefreshStats()
+    {
+        OnPropertyChanged(nameof(StatsTotalSize));
+        OnPropertyChanged(nameof(StatsTotalChunks));
     }
 }

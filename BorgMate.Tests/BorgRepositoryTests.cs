@@ -98,8 +98,7 @@ public class BorgRepositoryTests
 
         repo.RefreshScheduleDisplay();
 
-        Assert.Contains(nameof(BorgRepository.ScheduleDisplay), changed);
-        Assert.Contains(nameof(BorgRepository.ScheduleTooltip), changed);
         Assert.Contains(nameof(BorgRepository.IsScheduled), changed);
+        Assert.Contains(nameof(BorgRepository.LastBackupAt), changed);
     }
 }

@@ -15,8 +15,7 @@ public class ViewLocator : IDataTemplate
         return param switch
         {
             MainWindowViewModel => new MainWindow(),
-            RepositoryListViewModel => new RepositoryListView(),
-            ArchiveListViewModel => new ArchiveListView(),
+            RepositoriesPageViewModel => new RepositoryListView(),
             NotificationsViewModel => new NotificationsView(),
             _ => new TextBlock { Text = "No view for: " + param.GetType().Name }
         };

@@ -138,12 +138,12 @@
                                 <!-- Modified date (right-aligned) -->
                                 <TextBlock DockPanel.Dock="Right" Classes="secondary"
                                            VerticalAlignment="Center" Margin="8,0,4,0"
-                                           Text="{Binding ModifiedDisplay}" Width="120"
+                                           Text="{Binding ModifiedAt, Converter={x:Static conv:DateTimeFormatConverter.Instance}, ConverterParameter='dd MMM yyyy, HH:mm'}" Width="120"
                                            TextAlignment="Right"/>
                                 <!-- Size (right-aligned) -->
                                 <TextBlock DockPanel.Dock="Right" Classes="secondary"
                                            VerticalAlignment="Center" Margin="8,0,0,0"
-                                           Text="{Binding SizeDisplay}" Width="70"
+                                           Text="{Binding Size, Converter={x:Static conv:FormatBytesConverter.Instance}}" Width="70"
                                            TextAlignment="Right"/>
                                 <!-- Expand toggle -->
                                 <Panel Width="16" VerticalAlignment="Center">

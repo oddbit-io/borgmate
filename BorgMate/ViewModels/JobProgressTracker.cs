@@ -7,10 +7,7 @@ using Humanizer;
 
 namespace BorgMate.ViewModels;
 
-/// <summary>
-/// Tracks a running BorgJob and exposes progress properties for AXAML binding.
-/// Shared between RepositoryListViewModel and ArchiveListViewModel.
-/// </summary>
+/// <summary>Tracks a running BorgJob for AXAML progress binding.</summary>
 public partial class JobProgressTracker : ObservableObject
 {
     private readonly bool _confirmCancel;

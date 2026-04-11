@@ -69,6 +69,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<BorgCacheService>();
         services.AddSingleton<JobQueueService>(sp =>
             new JobQueueService(sp.GetRequiredService<ILogger<JobQueueService>>()));
+        services.AddSingleton<RepositoryStore>();
         if (OperatingSystem.IsMacOS())
         {
             services.AddSingleton<IKeychainService, MacOsKeychainService>();
@@ -100,8 +101,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<UpdateService>();
         services.AddSingleton<Notifications.NotificationService>();
         services.AddTransient<MainWindowViewModel>();
-        services.AddTransient<RepositoryListViewModel>();
-        services.AddTransient<ArchiveListViewModel>();
+        services.AddTransient<RepositoriesPageViewModel>();
         services.AddTransient<NotificationsViewModel>();
 
         var provider = services.BuildServiceProvider();

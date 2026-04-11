@@ -27,8 +27,8 @@ public class NotificationService
         if (!_settings.ShowNotifications) return;
         if (entry.Result == JournalResult.Running) return;
 
-        var title = entry.Title;
-        var body = entry.ResultDisplay;
+        var title = Localization.Strings.FormatJournalTitle(entry.EventKind, entry.TitleArgs);
+        var body = Localization.Strings.FormatJournalResult(entry.Result);
 
         try
         {

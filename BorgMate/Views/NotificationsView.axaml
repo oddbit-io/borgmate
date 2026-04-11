@@ -34,10 +34,11 @@
             </DockPanel>
         </Border>
 
-        <!-- Notification detail panel (bottom) -->
+        <!-- Notification detail panel (bottom, hidden when list is empty) -->
         <Border DockPanel.Dock="Bottom"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
-                Height="140">
+                Height="140"
+                IsVisible="{Binding Items.Count}">
             <Panel>
                 <TextBlock Text="{Binding [SelectNotificationDetail], Source={x:Static loc:Strings.Instance}}"
                            Classes="placeholder"
@@ -51,17 +52,17 @@
                                 Kind="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToIconConverter.Instance}}"
                                 Foreground="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}"/>
                             <StackPanel Spacing="2">
-                                <TextBlock Text="{Binding SelectedItem.Title}" FontWeight="SemiBold"
+                                <TextBlock Text="{Binding SelectedItem.Entry, Converter={x:Static conv:JournalTitleConverter.Instance}}" FontWeight="SemiBold"
                                            TextWrapping="Wrap"/>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <TextBlock Text="{Binding SelectedItem.RepositoryName}" Classes="secondary"
                                                IsVisible="{Binding SelectedItem.RepositoryName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                     <TextBlock Text="·" Classes="secondary"
                                                IsVisible="{Binding SelectedItem.RepositoryName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                                    <TextBlock Text="{Binding SelectedItem.ResultDisplay}" Classes="secondary"
+                                    <TextBlock Text="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalResultConverter.Instance}}" Classes="secondary"
                                                Foreground="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}"/>
                                     <TextBlock Text="·" Classes="secondary"/>
-                                    <TextBlock Text="{Binding SelectedItem.RelativeTime}" Classes="secondary"/>
+                                    <TextBlock Text="{Binding SelectedItem.DisplayTime, Converter={x:Static conv:RelativeTimeConverter.Instance}}" Classes="secondary"/>
                                 </StackPanel>
                             </StackPanel>
                         </DockPanel>
@@ -95,14 +96,14 @@
 
                             <!-- Relative time + result -->
                             <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0,0,0">
-                                <TextBlock Text="{Binding RelativeTime}" Classes="secondary" HorizontalAlignment="Right"/>
-                                <TextBlock Text="{Binding ResultDisplay}" Classes="secondary" HorizontalAlignment="Right"
+                                <TextBlock Text="{Binding DisplayTime, Converter={x:Static conv:RelativeTimeConverter.Instance}}" Classes="secondary" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding DisplayResult, Converter={x:Static conv:JournalResultConverter.Instance}}" Classes="secondary" HorizontalAlignment="Right"
                                            Foreground="{Binding DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}"/>
                             </StackPanel>
 
                             <!-- Title + detail -->
                             <StackPanel VerticalAlignment="Center" Spacing="1">
-                                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding Entry, Converter={x:Static conv:JournalTitleConverter.Instance}}" TextTrimming="CharacterEllipsis"/>
                                 <TextBlock Text="{Binding Detail}" Classes="secondary"
                                            TextTrimming="CharacterEllipsis"
                                            MaxLines="1"

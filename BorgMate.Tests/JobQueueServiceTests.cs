@@ -104,8 +104,8 @@ public class JobQueueServiceTests : IDisposable
     [Fact]
     public void CancelPendingByRepoPath_CancelsMatchingJobs()
     {
-        // Blocker keeps subsequent jobs in Pending state
-        _svc.Enqueue("blocker", DelayWork(5000));
+        // Blocker on same repo keeps job1 in Pending state (per-repo sequential)
+        _svc.Enqueue("blocker", DelayWork(5000), repoPath: "/repo1");
         var job1 = _svc.Enqueue("a", DelayWork(), repoPath: "/repo1");
         var job2 = _svc.Enqueue("b", DelayWork(), repoPath: "/repo2");
 
@@ -260,5 +260,39 @@ public class JobQueueServiceTests : IDisposable
         _svc.Enqueue("modify", DelayWork(), BorgJobKind.Command, repoPath: "/repo2");
 
         Assert.False(fetching.Cts.IsCancellationRequested);
+    }
+
+    // --- Cross-repo parallelism ---
+
+    [Fact]
+    public async Task ProcessLoop_DifferentRepos_RunInParallel()
+    {
+        var gate = new TaskCompletionSource();
+        var repo1Started = new TaskCompletionSource();
+        var repo2Started = new TaskCompletionSource();
+
+        var job1 = _svc.Enqueue("repo1", async (_, ct, _) =>
+        {
+            repo1Started.SetResult();
+            await gate.Task;
+            return new BorgResult(0, "", "");
+        }, repoPath: "/repo1");
+
+        var job2 = _svc.Enqueue("repo2", async (_, ct, _) =>
+        {
+            repo2Started.SetResult();
+            await gate.Task;
+            return new BorgResult(0, "", "");
+        }, repoPath: "/repo2");
+
+        // Both jobs should start without either blocking the other
+        await Task.WhenAll(
+            repo1Started.Task.WaitAsync(TimeSpan.FromSeconds(5)),
+            repo2Started.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+
+        gate.SetResult();
+        await Task.WhenAll(
+            job1.Completion.Task.WaitAsync(TimeSpan.FromSeconds(5)),
+            job2.Completion.Task.WaitAsync(TimeSpan.FromSeconds(5)));
     }
 }

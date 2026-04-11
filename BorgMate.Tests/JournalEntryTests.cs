@@ -114,7 +114,7 @@ public class JournalEntryTests
         Assert.Contains(nameof(JournalEntry.Result), changedProps);
         Assert.Contains(nameof(JournalEntry.IsFinished), changedProps);
         Assert.Contains(nameof(JournalEntry.IsSuccess), changedProps);
-        Assert.Contains(nameof(JournalEntry.CompletedAtDisplay), changedProps);
+        Assert.Contains(nameof(JournalEntry.CompletedAt), changedProps);
     }
 
     [Theory]

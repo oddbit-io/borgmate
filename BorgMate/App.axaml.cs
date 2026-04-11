@@ -113,7 +113,11 @@ public partial class App : Application
                 LoadDemoData();
 #endif
 
-            if (!_settings.StartMinimized)
+            var startMinimized = _settings.StartMinimized;
+#if DEBUG
+            startMinimized = false;
+#endif
+            if (!startMinimized)
                 ShowMainWindow();
 
             if (_settings.CheckForUpdates)

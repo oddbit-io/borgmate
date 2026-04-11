@@ -178,6 +178,9 @@
   <data name="Job.Init" xml:space="preserve">
     <value>Init repository</value>
   </data>
+  <data name="Job.VerifyRepo" xml:space="preserve">
+    <value>Verify repository</value>
+  </data>
   <data name="Job.DeleteArchive" xml:space="preserve">
     <value>Delete archive</value>
   </data>
@@ -640,6 +643,12 @@
   <data name="Status.InitializingRepo" xml:space="preserve">
     <value>Initializing repository...</value>
   </data>
+  <data name="Status.VerifyingRepo" xml:space="preserve">
+    <value>Verifying repository...</value>
+  </data>
+  <data name="Status.RemotePathOk" xml:space="preserve">
+    <value>Remote path OK</value>
+  </data>
   <data name="Status.RepoInitialized" xml:space="preserve">
     <value>Repository initialized at {0}</value>
   </data>
@@ -889,5 +898,8 @@ Install WSL and try again.</value>
   </data>
   <data name="TrayJobsRunning" xml:space="preserve">
     <value>{0} running</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Retry</value>
   </data>
 </root>

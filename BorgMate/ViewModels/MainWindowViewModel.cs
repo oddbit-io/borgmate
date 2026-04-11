@@ -19,10 +19,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly AppSettings _settings = null!;
     private readonly IAutoStartService _autoStartService = null!;
     private readonly IJournalService _journalService = null!;
+    private readonly RepositoryStore _store = null!;
     private readonly DispatcherTimer _elapsedTimer = null!;
 
-    public RepositoryListViewModel RepositoryList { get; } = null!;
-    public ArchiveListViewModel ArchiveList { get; } = null!;
+    public RepositoriesPageViewModel RepositoriesPage { get; } = null!;
     public NotificationsViewModel Notifications { get; } = null!;
     public StatusService Status { get; } = null!;
     public JobQueueService JobQueue { get; } = null!;
@@ -36,9 +36,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private BorgJob? _selectedJob;
 
     public bool HasSelectedJob => SelectedJob is not null;
-
-    [ObservableProperty]
-    private bool _isRepositorySelected;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SidebarWidth))]
@@ -59,12 +56,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         IConfigService configService,
         AppSettings settings,
-        RepositoryListViewModel repositoryList,
-        ArchiveListViewModel restore,
-        NotificationsViewModel activity,
+        RepositoriesPageViewModel repositoriesPage,
+        NotificationsViewModel notifications,
         IJournalService journalService,
         StatusService status,
         JobQueueService jobQueue,
+        RepositoryStore store,
         IAutoStartService autoStartService,
         ISchedulerService scheduler)
     {
@@ -72,9 +69,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _settings = settings;
         _autoStartService = autoStartService;
         _journalService = journalService;
-        RepositoryList = repositoryList;
-        ArchiveList = restore;
-        Notifications = activity;
+        _store = store;
+        RepositoriesPage = repositoriesPage;
+        Notifications = notifications;
         Status = status;
         JobQueue = jobQueue;
         _scheduler = scheduler;
@@ -84,37 +81,14 @@ public partial class MainWindowViewModel : ViewModelBase
         _elapsedTimer.Start();
 
         _configService.SaveRequested += SaveConfig;
-        RepositoryList.ArchivesChanged += () => ArchiveList.InvalidateArchives();
-        RepositoryList.ArchivesFetchIfEmpty += () => ArchiveList.FetchArchivesIfEmpty();
-        RepositoryList.BackupCompleted += repoPath =>
-        {
-            if (RepositoryList.SelectedRepository?.Path == repoPath)
-                ArchiveList.InvalidateArchives();
-        };
-
-        RepositoryList.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(RepositoryListViewModel.SelectedRepository))
-            {
-                var repo = RepositoryList.SelectedRepository;
-                IsRepositorySelected = repo is not null;
-                ArchiveList.Repository = repo;
-                ArchiveList.IsActive = repo is not null;
-                if (repo is not null)
-                    RepositoryList.FetchStatsCommand.ExecuteAsync(null);
-            }
-        };
+        RepositoriesPage.IsActive = true;
 
         LoadConfig();
-        _scheduler.Start(RepositoryList);
+        _scheduler.Start(RepositoriesPage);
     }
 
     private int _scheduleRefreshCounter;
 
-    /// <summary>
-    /// Polls every second: updates job counts and elapsed time, checks for query invalidation,
-    /// refreshes tray/dock running indicators, and refreshes schedule display every 30 ticks.
-    /// </summary>
     private void OnTimerTick()
     {
         PendingJobCount = JobQueue.PendingCount;
@@ -122,26 +96,30 @@ public partial class MainWindowViewModel : ViewModelBase
             JobQueue.UpdateRunningElapsed();
         if (JobQueue.ConsumeQueryInvalidated())
         {
-            ArchiveList.InvalidateArchives();
-            if (RepositoryList.SelectedRepository is not null)
-                RepositoryList.FetchStatsCommand.ExecuteAsync(null);
+            RepositoriesPage.InvalidateArchives();
         }
-        var runningProgress = JobQueue.HasRunningJobs
-            ? JobQueue.Jobs.FirstOrDefault(j => j.Status == BorgJobStatus.Running && j.Kind == BorgJobKind.Command)?.Progress
-            : null;
+        double? runningProgress = null;
+        foreach (var repo in _store.Repositories)
+        {
+            if (!repo.IsBusy) { repo.CommandProgress = null; continue; }
+            var job = JobQueue.Jobs.FirstOrDefault(j =>
+                j.RepoPath == repo.Path && j.Kind == BorgJobKind.Command && j.Status == BorgJobStatus.Running);
+            repo.CommandProgress = job?.Progress;
+            runningProgress ??= job?.Progress;
+        }
         App.UpdateRunningIndicator(JobQueue.HasRunningJobs, PendingJobCount, runningProgress);
 
         if (++_scheduleRefreshCounter >= 30)
         {
             _scheduleRefreshCounter = 0;
-            foreach (var repo in RepositoryList.Repositories)
+            foreach (var repo in _store.Repositories)
                 repo.RefreshScheduleDisplay();
         }
     }
 
     partial void OnActivePageChanged(AppPage value)
     {
-        ArchiveList.IsActive = value == AppPage.Repositories && IsRepositorySelected;
+        RepositoriesPage.IsActive = value == AppPage.Repositories;
         _journalService.IsActive = value == AppPage.Notifications;
         if (value == AppPage.Notifications)
             _journalService.MarkAllRead();
@@ -179,10 +157,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearCompletedJobs() => JobQueue.ClearCompleted();
 
 
-    /// <summary>
-    /// Loads config and populates repositories. Migrates legacy BackupTaskData
-    /// entries to BorgRepository source directories on first load.
-    /// </summary>
     private void LoadConfig()
     {
         var config = _configService.Load();
@@ -198,12 +172,12 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         foreach (var repoData in config.Repositories)
-            RepositoryList.Repositories.Add(ConfigService.ToModel(repoData));
+            _store.Add(ConfigService.ToModel(repoData));
 
         // Migrate legacy tasks to repos (copies source dirs and schedule)
         foreach (var taskData in config.Tasks)
         {
-            var repo = RepositoryList.Repositories.FirstOrDefault(r => r.Path == taskData.RepositoryPath);
+            var repo = _store.FindByPath(taskData.RepositoryPath);
             if (repo is not null && repo.SourceDirectories.Count == 0 && taskData.SourceDirectories.Count > 0)
             {
                 foreach (var dir in taskData.SourceDirectories)
@@ -219,7 +193,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var config = new ConfigData
         {
             Settings = _settings,
-            Repositories = RepositoryList.Repositories
+            Repositories = _store.Repositories
                 .Select(ConfigService.FromModel)
                 .ToList()
         };

@@ -154,6 +154,9 @@
   <data name="Job.Init" xml:space="preserve">
     <value>Инициализация репозитория</value>
   </data>
+  <data name="Job.VerifyRepo" xml:space="preserve">
+    <value>Проверка репозитория</value>
+  </data>
   <data name="Job.DeleteArchive" xml:space="preserve">
     <value>Удаление архива</value>
   </data>
@@ -640,6 +643,12 @@
   <data name="Status.InitializingRepo" xml:space="preserve">
     <value>Инициализация репозитория...</value>
   </data>
+  <data name="Status.VerifyingRepo" xml:space="preserve">
+    <value>Проверка репозитория...</value>
+  </data>
+  <data name="Status.RemotePathOk" xml:space="preserve">
+    <value>Удалённый путь доступен</value>
+  </data>
   <data name="Status.RepoInitialized" xml:space="preserve">
     <value>Репозиторий инициализирован: {0}</value>
   </data>
@@ -889,5 +898,8 @@ Borg использует контрольные точки — повторны
   </data>
   <data name="TrayJobsRunning" xml:space="preserve">
     <value>{0} выполняется</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Повторить</value>
   </data>
 </root>

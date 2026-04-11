@@ -3,34 +3,11 @@ using BorgMate.Models;
 
 namespace BorgMate.Services;
 
-/// <summary>
-/// Centralizes all borg data caches. Singleton, injected into ViewModels.
-/// Cleared when main window hides to tray; invalidated per-repo after modifying operations.
-/// </summary>
+/// <summary>Per-archive query result cache (contents, diffs).</summary>
 public class BorgCacheService
 {
-    private readonly Dictionary<string, List<BorgArchive>> _archiveLists = new();
-    private readonly Dictionary<string, ArchiveDetail> _archiveDetails = new();
     private readonly Dictionary<string, string> _archiveContents = new();
     private readonly Dictionary<string, Dictionary<string, FileChangeKind>> _diffs = new();
-
-    public record ArchiveDetail(long OriginalSize, long FileCount);
-
-    // --- Archive list (per repo) ---
-
-    public List<BorgArchive>? GetArchiveList(string repoPath) =>
-        _archiveLists.GetValueOrDefault(repoPath);
-
-    public void SetArchiveList(string repoPath, List<BorgArchive> archives) =>
-        _archiveLists[repoPath] = archives;
-
-    // --- Archive detail (per repo::archive) ---
-
-    public ArchiveDetail? GetArchiveDetail(string repoPath, string archiveName) =>
-        _archiveDetails.GetValueOrDefault($"{repoPath}::{archiveName}");
-
-    public void SetArchiveDetail(string repoPath, string archiveName, ArchiveDetail detail) =>
-        _archiveDetails[$"{repoPath}::{archiveName}"] = detail;
 
     // --- Archive contents / file listing (per repo::archive) ---
 
@@ -50,25 +27,14 @@ public class BorgCacheService
 
     // --- Invalidation ---
 
-    /// <summary>
-    /// Clears all cached data for a specific repository.
-    /// Called after modifying operations (backup, prune, delete, compact).
-    /// </summary>
     public void InvalidateRepo(string repoPath)
     {
-        _archiveLists.Remove(repoPath);
-        RemoveByPrefix(_archiveDetails, $"{repoPath}::");
         RemoveByPrefix(_archiveContents, $"{repoPath}::");
         RemoveByPrefix(_diffs, $"{repoPath}::");
     }
 
-    /// <summary>
-    /// Clears all caches. Called when main window hides to tray.
-    /// </summary>
     public void ClearAll()
     {
-        _archiveLists.Clear();
-        _archiveDetails.Clear();
         _archiveContents.Clear();
         _diffs.Clear();
     }

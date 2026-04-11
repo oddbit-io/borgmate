@@ -48,25 +48,16 @@ public static class DesignData
         new("monthly-2026-03-01T03-00-00", DateTime.Now.AddDays(-26))
     ];
 
-    public static RepositoryListViewModel RepositoryList
+    public static RepositoriesPageViewModel RepositoriesPage
     {
         get
         {
-            var vm = new RepositoryListViewModel();
+            var vm = new RepositoriesPageViewModel();
             SampleRepos[0].SourceDirectories.Add("/home/user/Documents");
             SampleRepos[0].SourceDirectories.Add("/home/user/Photos");
             foreach (var repo in SampleRepos)
                 vm.Repositories.Add(repo);
             vm.SelectedRepository = SampleRepos[0];
-            return vm;
-        }
-    }
-
-    public static ArchiveListViewModel ArchiveList
-    {
-        get
-        {
-            var vm = new ArchiveListViewModel();
             foreach (var archive in SampleArchives)
                 vm.Archives.Add(archive);
             vm.SelectedArchive = SampleArchives[0];

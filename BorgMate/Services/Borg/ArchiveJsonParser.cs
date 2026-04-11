@@ -46,11 +46,8 @@ internal static class ArchiveJsonParser
         return archives;
     }
 
-    /// <summary>
-    /// Parses "borg info --json" output. Extracts original_size and nfiles from archive stats.
-    /// Returns null if parsing fails or no stats are present.
-    /// </summary>
-    public static BorgCacheService.ArchiveDetail? ParseArchiveDetail(string json)
+    /// <summary>Parses "borg info --json" for a single archive. Returns (originalSize, fileCount).</summary>
+    public static (long OriginalSize, long FileCount)? ParseArchiveDetail(string json)
     {
         try
         {
@@ -60,17 +57,32 @@ internal static class ArchiveJsonParser
             foreach (var archive in archives.EnumerateArray())
             {
                 if (!archive.TryGetProperty("stats", out var stats)) continue;
-
                 var origSize = stats.TryGetProperty("original_size", out var orig) ? orig.GetInt64() : 0;
                 var fileCount = stats.TryGetProperty("nfiles", out var nfiles) ? nfiles.GetInt64() : 0;
-
-                return new BorgCacheService.ArchiveDetail(origSize, fileCount);
+                return (origSize, fileCount);
             }
         }
-        catch
-        {
-            // Parsing failure — return null to indicate no detail available
-        }
+        catch { }
         return null;
+    }
+
+    /// <summary>Parses "borg info --json" output. Returns (unique_csize, total_chunks).</summary>
+    public static (long? Size, long? Chunks)? ParseRepoStats(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            long? size = null, chunks = null;
+
+            if (doc.RootElement.TryGetProperty("cache", out var cache) &&
+                cache.TryGetProperty("stats", out var stats))
+            {
+                if (stats.TryGetProperty("unique_csize", out var cs)) size = cs.GetInt64();
+                if (stats.TryGetProperty("total_chunks", out var tc)) chunks = tc.GetInt64();
+            }
+
+            return (size, chunks);
+        }
+        catch { return null; }
     }
 }

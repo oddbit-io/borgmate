@@ -20,19 +20,54 @@
     </Design.DataContext>
 
     <DockPanel Margin="{StaticResource ModalPadding}">
-        <StackPanel Classes="dialog-buttons">
-            <Button Content="{Binding [Cancel], Source={x:Static loc:Strings.Instance}}" Name="CancelButton"/>
-            <Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}" Classes="accent"/>
-        </StackPanel>
+        <!-- Bottom bar: verify status/error on the left, action buttons on the right.
+             Single Grid row so height stays constant whether or not HasVerifyMessage is
+             set — the verify content appears/disappears without shifting the dialog. -->
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+            <!-- Left: single-line verify row (spinner + status while in flight,
+                 first line of error after failure, full text via tooltip). -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
+                        VerticalAlignment="Center" Margin="0,0,16,0"
+                        IsVisible="{Binding HasVerifyMessage}"
+                        ToolTip.Tip="{Binding VerifyError}">
+                <ctrl:SpinnerControl Width="14" Height="14" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource SecondaryTextBrush}"
+                                     IsVisible="{Binding IsVerifying}"/>
+                <TextBlock Text="{Binding VerifyMessage}"
+                           FontSize="{StaticResource SecondaryFontSize}"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           MaxLines="1"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding !VerifyMessageIsError}"/>
+                <TextBlock Text="{Binding VerifyMessage}"
+                           FontSize="{StaticResource SecondaryFontSize}"
+                           Foreground="{StaticResource ValidationErrorBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           MaxLines="1"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding VerifyMessageIsError}"/>
+            </StackPanel>
+            <!-- Right: dialog buttons. Inline Margin="0" overrides the class's top
+                 margin since the outer Grid supplies the spacing. Disabled while
+                 verifying so Cancel + Save both lock out — the verify row is the
+                 only interactive element until borg completes. -->
+            <StackPanel Grid.Column="1" Classes="dialog-buttons"
+                        Margin="0" VerticalAlignment="Center"
+                        IsEnabled="{Binding !IsVerifying}">
+                <Button Content="{Binding [Cancel], Source={x:Static loc:Strings.Instance}}" Name="CancelButton"/>
+                <Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}" Classes="accent"/>
+            </StackPanel>
+        </Grid>
 
-        <TabControl>
+        <TabControl IsEnabled="{Binding !IsVerifying}">
             <!-- General tab -->
             <TabItem Header="{Binding [General], Source={x:Static loc:Strings.Instance}}">
                 <ScrollViewer Margin="0,8,0,0">
                     <StackPanel Spacing="{StaticResource FormSpacing}">
                         <StackPanel Spacing="{StaticResource FieldSpacing}">
                             <TextBlock Text="{Binding [DisplayName], Source={x:Static loc:Strings.Instance}}"/>
-                            <TextBox Name="NameInput" Text="{Binding Repository.Name}" PlaceholderText="{Binding [WatermarkRepoName], Source={x:Static loc:Strings.Instance}}"/>
+                            <TextBox Name="NameInput" Text="{Binding Name}" PlaceholderText="{Binding [WatermarkRepoName], Source={x:Static loc:Strings.Instance}}"/>
                             <TextBlock Text="{Binding NameError}" FontSize="{StaticResource ValidationFontSize}"
                                        Foreground="{StaticResource ValidationErrorBrush}"
                                        IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
@@ -41,14 +76,14 @@
                         <StackPanel Spacing="{StaticResource FieldSpacing}">
                             <TextBlock Text="{Binding [Location], Source={x:Static loc:Strings.Instance}}"/>
                             <StackPanel Orientation="Horizontal" Spacing="16">
-                                <RadioButton Content="{Binding [Local], Source={x:Static loc:Strings.Instance}}" IsChecked="{Binding Repository.IsLocal}" GroupName="RepoType"/>
-                                <RadioButton Content="{Binding [SSH], Source={x:Static loc:Strings.Instance}}" IsChecked="{Binding Repository.IsSsh}" GroupName="RepoType"/>
+                                <RadioButton Content="{Binding [Local], Source={x:Static loc:Strings.Instance}}" IsChecked="{Binding IsLocal}" GroupName="RepoType"/>
+                                <RadioButton Content="{Binding [SSH], Source={x:Static loc:Strings.Instance}}" IsChecked="{Binding IsSsh}" GroupName="RepoType"/>
                             </StackPanel>
                         </StackPanel>
 
                         <!-- SSH connection fields (grayed out when local) -->
                         <StackPanel Spacing="{StaticResource FormSpacing}"
-                                    IsHitTestVisible="{Binding Repository.IsSsh}">
+                                    IsHitTestVisible="{Binding IsSsh}">
                             <StackPanel.Styles>
                                 <Style Selector="StackPanel[IsHitTestVisible=true]">
                                     <Setter Property="Opacity" Value="1"/>
@@ -65,7 +100,7 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="{StaticResource FieldSpacing}" Margin="8,0,0,0" Width="80">
                                     <TextBlock Text="{Binding [SshPort], Source={x:Static loc:Strings.Instance}}"/>
-                                    <NumericUpDown Value="{Binding Repository.SshPort}" Minimum="1" Maximum="65535"
+                                    <NumericUpDown Value="{Binding SshPort}" Minimum="1" Maximum="65535"
                                                    Increment="1" FormatString="0"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Spacing="{StaticResource FieldSpacing}" Margin="8,0,0,0" Width="100">
@@ -78,7 +113,7 @@
                                 <TextBlock Text="{Binding [SshKeyPath], Source={x:Static loc:Strings.Instance}}"/>
                                 <DockPanel>
                                     <Button Content="{Binding [Browse], Source={x:Static loc:Strings.Instance}}" Command="{Binding BrowseSshKeyCommand}" DockPanel.Dock="Right" Margin="8,0,0,0"/>
-                                    <TextBox Text="{Binding Repository.SshKeyPath}" PlaceholderText="{Binding [WatermarkSshKey], Source={x:Static loc:Strings.Instance}}"/>
+                                    <TextBox Text="{Binding SshKeyPath}" PlaceholderText="{Binding [WatermarkSshKey], Source={x:Static loc:Strings.Instance}}"/>
                                 </DockPanel>
                                 <TextBlock Text="{Binding SshKeyError}" FontSize="{StaticResource ValidationFontSize}"
                                            Foreground="{StaticResource ValidationErrorBrush}"
@@ -91,7 +126,7 @@
                             <TextBlock Text="{Binding [RepositoryPath], Source={x:Static loc:Strings.Instance}}"/>
                             <DockPanel>
                                 <Button Content="{Binding [Browse], Source={x:Static loc:Strings.Instance}}" Command="{Binding BrowseRepoPathCommand}" DockPanel.Dock="Right" Margin="8,0,0,0"
-                                        IsVisible="{Binding Repository.IsLocal}"/>
+                                        IsVisible="{Binding IsLocal}"/>
                                 <TextBox Text="{Binding RepoPath}" PlaceholderText="{Binding [WatermarkRepoPath], Source={x:Static loc:Strings.Instance}}"/>
                             </DockPanel>
                             <TextBlock Text="{Binding PathError}" FontSize="{StaticResource ValidationFontSize}"
@@ -231,7 +266,7 @@
                     <StackPanel Spacing="{StaticResource FormSpacing}">
                         <!-- Borg Remote Path (SSH only) -->
                         <StackPanel Spacing="{StaticResource FieldSpacing}"
-                                    IsHitTestVisible="{Binding Repository.IsSsh}">
+                                    IsHitTestVisible="{Binding IsSsh}">
                             <StackPanel.Styles>
                                 <Style Selector="StackPanel[IsHitTestVisible=true]">
                                     <Setter Property="Opacity" Value="1"/>
@@ -241,13 +276,13 @@
                                 </Style>
                             </StackPanel.Styles>
                             <TextBlock Text="{Binding [BorgRemotePath], Source={x:Static loc:Strings.Instance}}"/>
-                            <TextBox Text="{Binding Repository.BorgRemotePath}" PlaceholderText="{Binding [WatermarkBorgRemotePath], Source={x:Static loc:Strings.Instance}}"/>
+                            <TextBox Text="{Binding BorgRemotePath}" PlaceholderText="{Binding [WatermarkBorgRemotePath], Source={x:Static loc:Strings.Instance}}"/>
                         </StackPanel>
 
                         <StackPanel Spacing="{StaticResource FieldSpacing}">
                             <TextBlock Text="{Binding [BorgEncryptionMode], Source={x:Static loc:Strings.Instance}}"/>
                             <ComboBox ItemsSource="{Binding BorgEncryptionModes}"
-                                      SelectedItem="{Binding Repository.EncryptionMode}"
+                                      SelectedItem="{Binding EncryptionMode}"
                                       HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
@@ -259,7 +294,7 @@
 
                         <StackPanel Spacing="{StaticResource FieldSpacing}">
                             <TextBlock Text="{Binding [RateLimit], Source={x:Static loc:Strings.Instance}}"/>
-                            <NumericUpDown Value="{Binding Repository.RateLimit}" Minimum="0" Increment="100"
+                            <NumericUpDown Value="{Binding RateLimit}" Minimum="0" Increment="100"
                                            FormatString="0" Width="150" HorizontalAlignment="Left"/>
                         </StackPanel>
                     </StackPanel>
