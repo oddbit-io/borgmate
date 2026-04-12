@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using BorgMate.Models;
@@ -357,6 +358,12 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         repo.Schedule.DayOfWeek = SelectedDayOfWeek;
         repo.Schedule.DayOfMonth = ScheduleDayOfMonth;
         repo.Schedule.IntervalHours = IntervalHours;
+
+        if (!repo.Schedule.RunMissed && RunMissed)
+        {
+            repo.LastBackupAt = DateTime.Now;
+        }
+        
         repo.Schedule.RunMissed = RunMissed;
 
         repo.SourceDirectories.Clear();
