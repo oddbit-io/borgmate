@@ -91,9 +91,19 @@ public class ConfigService(ILogger<ConfigService>? logger = null) : IConfigServi
             repo.Schedule.DayOfMonth = data.Schedule.DayOfMonth;
             repo.Schedule.IntervalHours = data.Schedule.IntervalHours;
             repo.Schedule.RunMissed = data.Schedule.RunMissed;
+            repo.Schedule.RunPruneAfterBackup = data.Schedule.RunPruneAfterBackup;
         }
         if (data.LastBackupAt is not null && DateTime.TryParse(data.LastBackupAt, out var lastBackup))
             repo.LastBackupAt = lastBackup;
+        if (data.PruneOptions is not null)
+        {
+            repo.PruneOptions.KeepLast = data.PruneOptions.KeepLast;
+            repo.PruneOptions.KeepHourly = data.PruneOptions.KeepHourly;
+            repo.PruneOptions.KeepDaily = data.PruneOptions.KeepDaily;
+            repo.PruneOptions.KeepWeekly = data.PruneOptions.KeepWeekly;
+            repo.PruneOptions.KeepMonthly = data.PruneOptions.KeepMonthly;
+            repo.PruneOptions.KeepYearly = data.PruneOptions.KeepYearly;
+        }
         return repo;
     }
 
@@ -120,9 +130,19 @@ public class ConfigService(ILogger<ConfigService>? logger = null) : IConfigServi
                 DayOfWeek = repo.Schedule.DayOfWeek.ToString(),
                 DayOfMonth = repo.Schedule.DayOfMonth,
                 IntervalHours = repo.Schedule.IntervalHours,
-                RunMissed = repo.Schedule.RunMissed
+                RunMissed = repo.Schedule.RunMissed,
+                RunPruneAfterBackup = repo.Schedule.RunPruneAfterBackup
             } : null,
-            LastBackupAt = repo.LastBackupAt?.ToString("o")
+            LastBackupAt = repo.LastBackupAt?.ToString("o"),
+            PruneOptions = repo.PruneOptions.HasAnyRetention ? new PruneOptionsData
+            {
+                KeepLast = repo.PruneOptions.KeepLast,
+                KeepHourly = repo.PruneOptions.KeepHourly,
+                KeepDaily = repo.PruneOptions.KeepDaily,
+                KeepWeekly = repo.PruneOptions.KeepWeekly,
+                KeepMonthly = repo.PruneOptions.KeepMonthly,
+                KeepYearly = repo.PruneOptions.KeepYearly
+            } : null
         };
     }
 

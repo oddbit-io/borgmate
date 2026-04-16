@@ -52,6 +52,13 @@
                                     <ctrl:BootstrapIcon Kind="ShieldCheck" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem Header="{Binding [Prune], Source={x:Static loc:Strings.Instance}}"
+                                      Command="{Binding PruneRepoCommand}"
+                                      IsEnabled="{Binding SelectedRepository.PruneOptions.HasAnyRetention, FallbackValue=False}">
+                                <MenuItem.Icon>
+                                    <ctrl:BootstrapIcon Kind="Scissors" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <Separator />
                             <MenuItem Header="{Binding [Remove], Source={x:Static loc:Strings.Instance}}"
                                       Command="{Binding RemoveRepositoryCommand}"
@@ -60,12 +67,6 @@
                                     <ctrl:BootstrapIcon Kind="Trash" Width="14" Height="14" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <!--
-                            <MenuItem Header="{Binding [Prune], Source={x:Static loc:Strings.Instance}}"
-                                      Command="{Binding PruneRepoCommand}">
-                                <MenuItem.Icon><ctrl:BootstrapIcon Kind="Scissors" Width="14" Height="14"/></MenuItem.Icon>
-                            </MenuItem>
-                            -->
                         </MenuFlyout>
                     </ctrl:ToolbarButton.Flyout>
                 </ctrl:ToolbarButton>

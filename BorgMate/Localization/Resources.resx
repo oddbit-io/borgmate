@@ -58,6 +58,30 @@
   <data name="Prune" xml:space="preserve">
     <value>Prune</value>
   </data>
+  <data name="Schedule.RunPruneAfterBackup" xml:space="preserve">
+    <value>Prune after each backup</value>
+  </data>
+  <data name="Prune.Help" xml:space="preserve">
+    <value>Prune removes archives that no longer fit these retention rules. Enable a rule and set a count to keep that many of the most recent archives in the given interval. At least one rule must be enabled for prune to run.</value>
+  </data>
+  <data name="Prune.KeepLast" xml:space="preserve">
+    <value>Keep last (archives)</value>
+  </data>
+  <data name="Prune.KeepHourly" xml:space="preserve">
+    <value>Keep hourly</value>
+  </data>
+  <data name="Prune.KeepDaily" xml:space="preserve">
+    <value>Keep daily</value>
+  </data>
+  <data name="Prune.KeepWeekly" xml:space="preserve">
+    <value>Keep weekly</value>
+  </data>
+  <data name="Prune.KeepMonthly" xml:space="preserve">
+    <value>Keep monthly</value>
+  </data>
+  <data name="Prune.KeepYearly" xml:space="preserve">
+    <value>Keep yearly</value>
+  </data>
   <data name="Compact" xml:space="preserve">
     <value>Compact</value>
   </data>
@@ -683,7 +707,7 @@
     <value>Tasks are still running. Cancel them and quit?</value>
   </data>
   <data name="ConfirmPrune" xml:space="preserve">
-    <value>Prune repository &#x27;{0}&#x27;? This will remove old archives based on default retention rules.</value>
+    <value>Prune repository &#x27;{0}&#x27;? This will remove old archives based on retention rules.</value>
   </data>
   <data name="ConfirmCompact" xml:space="preserve">
     <value>Compact repository &#x27;{0}&#x27;? This will reclaim unused space.</value>

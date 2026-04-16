@@ -235,6 +235,23 @@ public abstract class BorgServiceBase(ILogger logger, AppSettings settings, SshA
     protected static string P(string path) =>
         WslHelper.IsRequired ? WslHelper.ToWslPath(path) : path;
 
+    /// <summary>
+    /// Builds `--keep-*` retention flags from a repo's prune options. Returns an
+    /// empty string when no retention rule is set; callers must validate that
+    /// at least one rule is set before invoking prune (borg errors otherwise).
+    /// </summary>
+    protected static string BuildPruneRetentionArgs(PruneOptions p)
+    {
+        var parts = new List<string>();
+        if (p.KeepLast > 0) parts.Add($"--keep-last {p.KeepLast}");
+        if (p.KeepHourly > 0) parts.Add($"--keep-hourly {p.KeepHourly}");
+        if (p.KeepDaily > 0) parts.Add($"--keep-daily {p.KeepDaily}");
+        if (p.KeepWeekly > 0) parts.Add($"--keep-weekly {p.KeepWeekly}");
+        if (p.KeepMonthly > 0) parts.Add($"--keep-monthly {p.KeepMonthly}");
+        if (p.KeepYearly > 0) parts.Add($"--keep-yearly {p.KeepYearly}");
+        return parts.Count == 0 ? "" : " " + string.Join(" ", parts);
+    }
+
     // Version-specific operations implemented by subclasses
     public abstract Task<BorgResult> InitAsync(
         BorgRepository repo,

@@ -160,6 +160,50 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     [ObservableProperty]
     private bool _runMissed = true;
 
+    [ObservableProperty]
+    private bool _runPruneAfterBackup;
+
+    // --- Edit model: prune retention (enabled flag + count per rule) ---
+    // The count keeps its defaulted value while the checkbox is off so re-enabling
+    // restores the user's previous number instead of snapping to zero. On ApplyTo,
+    // a disabled rule is written as 0 — PruneOptions.HasAnyRetention gates persistence.
+
+    [ObservableProperty]
+    private bool _keepLastEnabled;
+
+    [ObservableProperty]
+    private int _keepLast = 3;
+
+    [ObservableProperty]
+    private bool _keepHourlyEnabled;
+
+    [ObservableProperty]
+    private int _keepHourly = 24;
+
+    [ObservableProperty]
+    private bool _keepDailyEnabled;
+
+    [ObservableProperty]
+    private int _keepDaily = 7;
+
+    [ObservableProperty]
+    private bool _keepWeeklyEnabled;
+
+    [ObservableProperty]
+    private int _keepWeekly = 4;
+
+    [ObservableProperty]
+    private bool _keepMonthlyEnabled;
+
+    [ObservableProperty]
+    private int _keepMonthly = 6;
+
+    [ObservableProperty]
+    private bool _keepYearlyEnabled;
+
+    [ObservableProperty]
+    private int _keepYearly = 2;
+
     // --- Mode flags and dialog state ---
 
     [ObservableProperty]
@@ -330,10 +374,24 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         ScheduleDayOfMonth = repo.Schedule.DayOfMonth;
         IntervalHours = repo.Schedule.IntervalHours;
         RunMissed = repo.Schedule.RunMissed;
+        RunPruneAfterBackup = repo.Schedule.RunPruneAfterBackup;
 
         SourceDirectories.Clear();
         foreach (var dir in repo.SourceDirectories)
             SourceDirectories.Add(dir);
+
+        KeepLastEnabled = repo.PruneOptions.KeepLast > 0;
+        if (repo.PruneOptions.KeepLast > 0) KeepLast = repo.PruneOptions.KeepLast;
+        KeepHourlyEnabled = repo.PruneOptions.KeepHourly > 0;
+        if (repo.PruneOptions.KeepHourly > 0) KeepHourly = repo.PruneOptions.KeepHourly;
+        KeepDailyEnabled = repo.PruneOptions.KeepDaily > 0;
+        if (repo.PruneOptions.KeepDaily > 0) KeepDaily = repo.PruneOptions.KeepDaily;
+        KeepWeeklyEnabled = repo.PruneOptions.KeepWeekly > 0;
+        if (repo.PruneOptions.KeepWeekly > 0) KeepWeekly = repo.PruneOptions.KeepWeekly;
+        KeepMonthlyEnabled = repo.PruneOptions.KeepMonthly > 0;
+        if (repo.PruneOptions.KeepMonthly > 0) KeepMonthly = repo.PruneOptions.KeepMonthly;
+        KeepYearlyEnabled = repo.PruneOptions.KeepYearly > 0;
+        if (repo.PruneOptions.KeepYearly > 0) KeepYearly = repo.PruneOptions.KeepYearly;
 
         DecomposePath(repo.Path);
     }
@@ -365,10 +423,18 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         }
         
         repo.Schedule.RunMissed = RunMissed;
+        repo.Schedule.RunPruneAfterBackup = RunPruneAfterBackup;
 
         repo.SourceDirectories.Clear();
         foreach (var dir in SourceDirectories)
             repo.SourceDirectories.Add(dir);
+
+        repo.PruneOptions.KeepLast = KeepLastEnabled ? KeepLast : 0;
+        repo.PruneOptions.KeepHourly = KeepHourlyEnabled ? KeepHourly : 0;
+        repo.PruneOptions.KeepDaily = KeepDailyEnabled ? KeepDaily : 0;
+        repo.PruneOptions.KeepWeekly = KeepWeeklyEnabled ? KeepWeekly : 0;
+        repo.PruneOptions.KeepMonthly = KeepMonthlyEnabled ? KeepMonthly : 0;
+        repo.PruneOptions.KeepYearly = KeepYearlyEnabled ? KeepYearly : 0;
 
         repo.RefreshScheduleDisplay();
     }

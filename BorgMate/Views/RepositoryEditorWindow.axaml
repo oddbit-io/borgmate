@@ -6,11 +6,11 @@
         xmlns:ctrl="using:BorgMate.Views.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="580" d:DesignHeight="450"
         x:Class="BorgMate.Views.RepositoryEditorWindow"
         x:DataType="vm:RepositoryEditorViewModel"
         Title="{Binding Title}"
-        Width="520"
+        Width="580"
         Height="450"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
@@ -256,10 +256,76 @@
                         <CheckBox Content="{Binding [Schedule.RunMissed], Source={x:Static loc:Strings.Instance}}"
                                   IsChecked="{Binding RunMissed}"
                                   IsVisible="{Binding IsScheduled}"/>
+
+                        <CheckBox Content="{Binding [Schedule.RunPruneAfterBackup], Source={x:Static loc:Strings.Instance}}"
+                                  IsChecked="{Binding RunPruneAfterBackup}"
+                                  IsVisible="{Binding IsScheduled}"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
             
+            <!-- Prune tab -->
+            <TabItem Header="{Binding [Prune], Source={x:Static loc:Strings.Instance}}">
+                <ScrollViewer Margin="0,8,0,0">
+                    <StackPanel Spacing="{StaticResource FormSpacing}">
+                        <TextBlock Text="{Binding [Prune.Help], Source={x:Static loc:Strings.Instance}}"
+                                   TextWrapping="Wrap"
+                                   FontSize="{StaticResource SecondaryFontSize}"
+                                   Foreground="{DynamicResource SecondaryTextBrush}"/>
+
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                            <CheckBox Grid.Row="0" Grid.Column="0"
+                                      IsChecked="{Binding KeepLastEnabled}"
+                                      Content="{Binding [Prune.KeepLast], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center"/>
+                            <NumericUpDown Grid.Row="0" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepLast}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepLastEnabled}"/>
+
+                            <CheckBox Grid.Row="1" Grid.Column="0"
+                                      IsChecked="{Binding KeepHourlyEnabled}"
+                                      Content="{Binding [Prune.KeepHourly], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center"/>
+                            <NumericUpDown Grid.Row="1" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepHourly}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepHourlyEnabled}"/>
+
+                            <CheckBox Grid.Row="2" Grid.Column="0"
+                                      IsChecked="{Binding KeepDailyEnabled}"
+                                      Content="{Binding [Prune.KeepDaily], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center"/>
+                            <NumericUpDown Grid.Row="2" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepDaily}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepDailyEnabled}"/>
+
+                            <CheckBox Grid.Row="3" Grid.Column="0"
+                                      IsChecked="{Binding KeepWeeklyEnabled}"
+                                      Content="{Binding [Prune.KeepWeekly], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center"/>
+                            <NumericUpDown Grid.Row="3" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepWeekly}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepWeeklyEnabled}"/>
+
+                            <CheckBox Grid.Row="4" Grid.Column="0"
+                                      IsChecked="{Binding KeepMonthlyEnabled}"
+                                      Content="{Binding [Prune.KeepMonthly], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center"/>
+                            <NumericUpDown Grid.Row="4" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepMonthly}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepMonthlyEnabled}"/>
+
+                            <CheckBox Grid.Row="5" Grid.Column="0"
+                                      IsChecked="{Binding KeepYearlyEnabled}"
+                                      Content="{Binding [Prune.KeepYearly], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center"/>
+                            <NumericUpDown Grid.Row="5" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepYearly}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepYearlyEnabled}"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
              <!-- Advanced tab -->
             <TabItem Header="{Binding [Advanced], Source={x:Static loc:Strings.Instance}}">
                 <ScrollViewer Margin="0,8,0,0">

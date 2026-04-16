@@ -30,4 +30,11 @@ public partial class BackupSchedule : ObservableObject
     /// </summary>
     [ObservableProperty]
     private bool _runMissed = true;
+
+    /// <summary>
+    /// When true, a successful backup automatically enqueues prune afterwards. Only honored
+    /// when the repo has at least one retention rule configured (PruneOptions.HasAnyRetention).
+    /// </summary>
+    [ObservableProperty]
+    private bool _runPruneAfterBackup;
 }

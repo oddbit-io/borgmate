@@ -426,6 +426,9 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             _configService.RequestSave();
             if (SelectedRepository == repo)
                 _ = FetchStatsCommand.ExecuteAsync(null);
+
+            if (repo.Schedule.RunPruneAfterBackup && repo.PruneOptions.HasAnyRetention)
+                await RunPruneForRepo(repo);
         }
     }
 
@@ -434,20 +437,24 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     [RelayCommand(AllowConcurrentExecutions = true)]
     private async Task PruneRepo()
     {
-        if (SelectedRepository is not { } repo) return;
+        if (SelectedRepository is { } repo)
+            await RunPruneForRepo(repo, confirm: true);
+    }
+
+    private async Task RunPruneForRepo(BorgRepository repo, bool confirm = false)
+    {
         var service = _borgServiceFactory.GetService(repo.BorgVersion);
 
-        var result = await RunCommandAsync(repo, JournalEventKind.Prune,
+        await RunCommandAsync(repo, JournalEventKind.Prune,
             jobName: $"{Strings.Get("Job.Prune")}: {repo.Name}",
             execute: (j, ct) =>
             {
                 j.StatusMessage = string.Format(Strings.Get("Status.Pruning"), repo.Name);
                 return _runner.RunWithTransientRetry(j, () => service.PruneAsync(repo, ct));
             },
-            confirmMessage: string.Format(Strings.Get("ConfirmPrune"), repo.Name),
+            confirmMessage: confirm ? string.Format(Strings.Get("ConfirmPrune"), repo.Name) : null,
             onJobCreated: job => { if (SelectedRepository == repo) Progress.SetActiveJob(job); },
             invalidateArchivesOnSuccess: true);
-
     }
 
     [RelayCommand(AllowConcurrentExecutions = true)]

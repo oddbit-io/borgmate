@@ -386,6 +386,13 @@
     <!-- ===== TabControl (macOS segmented style) ===== -->
     <Style Selector="TabControl">
         <Setter Property="Background" Value="Transparent"/>
+        <!-- Single row; never wrap. Longer translations just shrink the tab strip
+             contents via TabItem padding, not by breaking onto a second line. -->
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+        </Setter>
     </Style>
     <Style Selector="TabControl /template/ ItemsPresenter#PART_ItemsPresenter">
         <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -393,7 +400,7 @@
     <Style Selector="TabControl > TabItem">
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="Medium"/>
-        <Setter Property="Padding" Value="14,4"/>
+        <Setter Property="Padding" Value="10,4"/>
         <Setter Property="Margin" Value="0"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>

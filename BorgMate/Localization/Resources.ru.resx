@@ -58,6 +58,30 @@
   <data name="Prune" xml:space="preserve">
     <value>Очистка</value>
   </data>
+  <data name="Schedule.RunPruneAfterBackup" xml:space="preserve">
+    <value>Очищать репозиторий после каждой резервной копии</value>
+  </data>
+  <data name="Prune.Help" xml:space="preserve">
+    <value>Очистка удаляет архивы, не попадающие под эти правила хранения. Включите правило и укажите число, чтобы сохранить указанное количество последних архивов за выбранный интервал. Для запуска очистки необходимо включить хотя бы одно правило.</value>
+  </data>
+  <data name="Prune.KeepLast" xml:space="preserve">
+    <value>Последних архивов</value>
+  </data>
+  <data name="Prune.KeepHourly" xml:space="preserve">
+    <value>По часам</value>
+  </data>
+  <data name="Prune.KeepDaily" xml:space="preserve">
+    <value>По дням</value>
+  </data>
+  <data name="Prune.KeepWeekly" xml:space="preserve">
+    <value>По неделям</value>
+  </data>
+  <data name="Prune.KeepMonthly" xml:space="preserve">
+    <value>По месяцам</value>
+  </data>
+  <data name="Prune.KeepYearly" xml:space="preserve">
+    <value>По годам</value>
+  </data>
   <data name="Compact" xml:space="preserve">
     <value>Уплотнение</value>
   </data>

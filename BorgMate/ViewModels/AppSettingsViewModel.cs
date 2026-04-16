@@ -118,7 +118,8 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
         _settings.CheckForUpdates = CheckForUpdates;
         _settings.ShowNotifications = ShowNotifications;
         _settings.StartAtLogin = StartAtLogin;
-        _autoStartService?.SetEnabled(StartAtLogin);
+        if (_autoStartService is not null && _autoStartService.IsEnabled() != StartAtLogin)
+            _autoStartService.SetEnabled(StartAtLogin);
         _settings.StartMinimized = StartMinimized;
         _settings.LoggingEnabled = LoggingEnabled;
         var langCode = SelectedLanguage == "Auto" ? "auto" : Strings.DisplayToCode(SelectedLanguage);

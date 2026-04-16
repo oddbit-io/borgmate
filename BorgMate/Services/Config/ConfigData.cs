@@ -25,6 +25,17 @@ public class RepositoryData
     public BackupScheduleData? Schedule { get; set; }
     public BackupMode? Mode { get; set; }
     public string? LastBackupAt { get; set; }
+    public PruneOptionsData? PruneOptions { get; set; }
+}
+
+public class PruneOptionsData
+{
+    public int KeepLast { get; set; }
+    public int KeepHourly { get; set; }
+    public int KeepDaily { get; set; }
+    public int KeepWeekly { get; set; }
+    public int KeepMonthly { get; set; }
+    public int KeepYearly { get; set; }
 }
 
 /// <summary>Legacy format. Migrated to BorgRepository source directories on first load.</summary>
@@ -46,4 +57,5 @@ public class BackupScheduleData
     public int DayOfMonth { get; set; } = 1;
     public int IntervalHours { get; set; } = 6;
     public bool RunMissed { get; set; } = true;
+    public bool RunPruneAfterBackup { get; set; }
 }

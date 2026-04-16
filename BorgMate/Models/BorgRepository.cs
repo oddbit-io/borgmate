@@ -83,6 +83,9 @@ public partial class BorgRepository : ObservableObject
     [ObservableProperty]
     private BackupSchedule _schedule = new();
 
+    [ObservableProperty]
+    private PruneOptions _pruneOptions = new();
+
     /// <summary>Last successful backup timestamp. Persisted to config.</summary>
     [ObservableProperty]
     private DateTime? _lastBackupAt;

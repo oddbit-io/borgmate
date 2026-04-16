@@ -116,6 +116,33 @@ public class Borg1ServiceTests
     }
 
     [Fact]
+    public async Task PruneAsync_EmitsKeepFlagsFromPruneOptions()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+        repo.PruneOptions.KeepDaily = 7;
+        repo.PruneOptions.KeepWeekly = 4;
+        repo.PruneOptions.KeepMonthly = 6;
+
+        await svc.PruneAsync(repo);
+
+        Assert.Contains("--keep-daily 7", svc.LastArgs!);
+        Assert.Contains("--keep-weekly 4", svc.LastArgs!);
+        Assert.Contains("--keep-monthly 6", svc.LastArgs!);
+    }
+
+    [Fact]
+    public async Task PruneAsync_OmitsKeepFlagsWhenNoRetention()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+
+        await svc.PruneAsync(repo);
+
+        Assert.DoesNotContain("--keep-", svc.LastArgs!);
+    }
+
+    [Fact]
     public async Task CheckAsync_ProducesProgressFlag()
     {
         var svc = CreateService();

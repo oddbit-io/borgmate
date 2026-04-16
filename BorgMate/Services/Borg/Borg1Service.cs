@@ -83,7 +83,8 @@ public class Borg1Service(ILogger<Borg1Service> logger, AppSettings settings, Ss
         CancellationToken ct = default)
     {
         var env = await BuildEnvironmentAsync(repo);
-        var args = $"prune --stats --list \"{P(repo.Path)}\"";
+        var retention = BuildPruneRetentionArgs(repo.PruneOptions);
+        var args = $"prune --stats --list{retention} \"{P(repo.Path)}\"";
         return await RunCommandAsync(BorgBinary, args, env, ct: ct);
     }
 

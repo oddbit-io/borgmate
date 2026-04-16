@@ -76,6 +76,20 @@ public class Borg2ServiceTests
     }
 
     [Fact]
+    public async Task PruneAsync_EmitsKeepFlagsFromPruneOptions()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+        repo.PruneOptions.KeepLast = 10;
+        repo.PruneOptions.KeepYearly = 2;
+
+        await svc.PruneAsync(repo);
+
+        Assert.Contains("--keep-last 10", svc.LastArgs!);
+        Assert.Contains("--keep-yearly 2", svc.LastArgs!);
+    }
+
+    [Fact]
     public async Task CheckAsync_UsesRepoFlag()
     {
         var svc = CreateService();

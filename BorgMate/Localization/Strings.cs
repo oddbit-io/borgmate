@@ -30,8 +30,22 @@ public class Strings : INotifyPropertyChanged
     /// <summary>Indexer for AXAML compiled bindings: {Binding [Key]}</summary>
     public string this[string key] => Get(key);
 
-    public void NotifyAll() =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
+    /// <summary>
+    /// Notifies every subscriber that every bound string may have changed.
+    /// Fires the indexer-changed convention ("Item[]") first and then the INPC
+    /// all-properties convention (null) — Avalonia's compiled bindings only
+    /// subscribe for the exact property path they bind to, so the null-name
+    /// raise is what makes `[key]` bindings across the already-instantiated
+    /// UI re-read from the new culture. Without it, bindings that evaluated
+    /// before the language switch keep the old translations.
+    /// </summary>
+    public void NotifyAll()
+    {
+        var handler = PropertyChanged;
+        if (handler is null) return;
+        handler(this, new PropertyChangedEventArgs("Item[]"));
+        handler(this, new PropertyChangedEventArgs(null));
+    }
 
     public static void SetLanguage(string twoLetterCode)
     {
