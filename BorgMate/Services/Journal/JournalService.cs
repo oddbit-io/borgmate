@@ -37,8 +37,8 @@ public partial class JournalService : ObservableObject, IJournalService
         _db.CompleteStaleRunning();
 
         var entries = _db.LoadAll(MaxEntries);
-        foreach (var entry in entries)
-            Entries.Add(entry);
+        for (var i = entries.Count - 1; i >= 0; i--)
+            Entries.Insert(0, entries[i]);
     }
 
     public JournalEntry Add(JournalEventKind eventKind, object[]? titleArgs = null, string? repositoryName = null)
