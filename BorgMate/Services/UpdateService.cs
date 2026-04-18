@@ -33,13 +33,14 @@ public class UpdateService(ILogger<UpdateService> logger)
         try
         {
             var url = UpdateUrl;
-            logger.LogInformation("Checking for updates at {UpdateUrl}", url);
             var mgr = new UpdateManager(url);
             if (!mgr.IsInstalled)
             {
                 logger.LogDebug("App is not installed via Velopack, skipping update check");
                 return;
             }
+
+            logger.LogInformation("Checking for updates at {UpdateUrl}", url);
 
             var update = await mgr.CheckForUpdatesAsync();
             if (update is not null)
@@ -50,7 +51,7 @@ public class UpdateService(ILogger<UpdateService> logger)
             }
             else
             {
-                logger.LogDebug("No updates available");
+                logger.LogInformation("No updates available");
             }
         }
         catch (Exception ex)

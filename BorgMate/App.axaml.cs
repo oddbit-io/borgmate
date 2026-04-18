@@ -78,6 +78,7 @@ public partial class App : Application
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             desktop.ShutdownRequested += (_, _) =>
             {
+                _logger.LogInformation("BorgMate v{Version} shutting down", AppVersion);
                 _isShuttingDown = true;
                 CaptureWindowState();
                 _mainVm.SaveConfig();
@@ -86,7 +87,7 @@ public partial class App : Application
                 _sigTermRegistration?.Dispose();
                 _sigHupRegistration?.Dispose();
                 _sigIntRegistration?.Dispose();
-                _logger.LogInformation("BorgMate v{Version} shutting down", AppVersion);
+                (Services as IDisposable)?.Dispose();
             };
 
             // Handle POSIX shutdown signals so session managers (KDE ksmserver,
@@ -300,7 +301,7 @@ public partial class App : Application
         }
 
         _isShuttingDown = true;
-        desktop.Shutdown();
+        desktop.TryShutdown();
     }
 
     /// <summary>

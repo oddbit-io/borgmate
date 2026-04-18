@@ -16,6 +16,7 @@ public class AppSettings
     public bool StartMinimized { get; set; }
     public string Language { get; set; } = "auto";
     public bool LoggingEnabled { get; set; } = true;
+    public AppLogLevel LogLevel { get; set; } = AppLogLevel.Info;
     public RetentionPeriod? LogRetention { get; set; } = RetentionPeriod.OneWeek;
     public bool SidebarExpanded { get; set; }
     public RetentionPeriod? JournalRetention { get; set; } = RetentionPeriod.OneWeek;

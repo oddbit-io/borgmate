@@ -12,6 +12,7 @@ using BorgMate.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Events;
 
 namespace BorgMate.Services;
 
@@ -23,7 +24,15 @@ public static class ServiceCollectionExtensions
         var config = configService.Load();
         var settings = config.Settings;
 
-        var logConfig = new LoggerConfiguration().MinimumLevel.Debug();
+        var minimumLevel = settings.LogLevel switch
+        {
+            AppLogLevel.Debug => LogEventLevel.Debug,
+            AppLogLevel.Info => LogEventLevel.Information,
+            AppLogLevel.Warning => LogEventLevel.Warning,
+            AppLogLevel.Error => LogEventLevel.Error,
+            _ => LogEventLevel.Information
+        };
+        var logConfig = new LoggerConfiguration().MinimumLevel.Is(minimumLevel);
 
         if (settings.LoggingEnabled)
         {

@@ -22,6 +22,7 @@ public class AppSettingsViewModelTests
         _settings.ShowNotifications = false;
         _settings.StartMinimized = true;
         _settings.LoggingEnabled = false;
+        _settings.LogLevel = AppLogLevel.Warning;
         _settings.BinaryUnits = false;
         _settings.SshKeepAliveInterval = 10;
         _settings.SshKeepAliveCountMax = 5;
@@ -33,6 +34,7 @@ public class AppSettingsViewModelTests
         Assert.False(vm.ShowNotifications);
         Assert.True(vm.StartMinimized);
         Assert.False(vm.LoggingEnabled);
+        Assert.Equal(AppLogLevel.Warning, vm.LogLevel);
         Assert.False(vm.BinaryUnits);
         Assert.Equal(10, vm.SshKeepAliveInterval);
         Assert.Equal(5, vm.SshKeepAliveCountMax);
@@ -49,6 +51,7 @@ public class AppSettingsViewModelTests
         vm.BinaryUnits = false;
         vm.SshKeepAliveInterval = 15;
         vm.SshKeepAliveCountMax = 8;
+        vm.LogLevel = AppLogLevel.Error;
 
         vm.SaveCommand.Execute(null);
 
@@ -59,6 +62,7 @@ public class AppSettingsViewModelTests
         Assert.False(_settings.BinaryUnits);
         Assert.Equal(15, _settings.SshKeepAliveInterval);
         Assert.Equal(8, _settings.SshKeepAliveCountMax);
+        Assert.Equal(AppLogLevel.Error, _settings.LogLevel);
     }
 
     [Fact]

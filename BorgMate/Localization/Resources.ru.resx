@@ -394,6 +394,21 @@
   <data name="SshKeepAliveCountMax" xml:space="preserve">
     <value>Макс. попыток</value>
   </data>
+  <data name="LogLevel" xml:space="preserve">
+    <value>Уровень журнала</value>
+  </data>
+  <data name="LogLevel.Debug" xml:space="preserve">
+    <value>Отладка</value>
+  </data>
+  <data name="LogLevel.Info" xml:space="preserve">
+    <value>Инфо</value>
+  </data>
+  <data name="LogLevel.Warning" xml:space="preserve">
+    <value>Предупреждения</value>
+  </data>
+  <data name="LogLevel.Error" xml:space="preserve">
+    <value>Ошибки</value>
+  </data>
   <data name="LogRetention" xml:space="preserve">
     <value>Хранение журналов</value>
   </data>

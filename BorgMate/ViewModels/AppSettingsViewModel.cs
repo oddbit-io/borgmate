@@ -54,6 +54,9 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
     private bool _loggingEnabled;
 
     [ObservableProperty]
+    private AppLogLevel _logLevel = AppLogLevel.Info;
+
+    [ObservableProperty]
     private bool _isLogRetentionEnabled;
 
     [ObservableProperty]
@@ -77,6 +80,7 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
     public AppTheme[] Themes { get; } = System.Enum.GetValues<AppTheme>();
     public string[] Languages { get; } = ["Auto", "English", "Русский"];
     public RetentionPeriod[] RetentionPeriods { get; } = System.Enum.GetValues<RetentionPeriod>();
+    public AppLogLevel[] LogLevels { get; } = System.Enum.GetValues<AppLogLevel>();
 
     partial void OnSelectedThemeChanged(AppTheme value)
     {
@@ -101,6 +105,7 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
         StartAtLogin = _settings.StartAtLogin;
         StartMinimized = _settings.StartMinimized;
         LoggingEnabled = _settings.LoggingEnabled;
+        LogLevel = _settings.LogLevel;
         IsLogRetentionEnabled = _settings.LogRetention.HasValue;
         LogRetention = _settings.LogRetention ?? RetentionPeriod.OneWeek;
         IsJournalRetentionEnabled = _settings.JournalRetention.HasValue;
@@ -122,6 +127,7 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
             _autoStartService.SetEnabled(StartAtLogin);
         _settings.StartMinimized = StartMinimized;
         _settings.LoggingEnabled = LoggingEnabled;
+        _settings.LogLevel = LogLevel;
         var langCode = SelectedLanguage == "Auto" ? "auto" : Strings.DisplayToCode(SelectedLanguage);
         _settings.Language = langCode;
         Strings.ApplyLanguageCode(langCode);

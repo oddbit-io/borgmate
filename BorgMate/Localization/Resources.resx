@@ -394,6 +394,21 @@
   <data name="SshKeepAliveCountMax" xml:space="preserve">
     <value>Max retries</value>
   </data>
+  <data name="LogLevel" xml:space="preserve">
+    <value>Log level</value>
+  </data>
+  <data name="LogLevel.Debug" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="LogLevel.Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="LogLevel.Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="LogLevel.Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
   <data name="LogRetention" xml:space="preserve">
     <value>Log retention</value>
   </data>
