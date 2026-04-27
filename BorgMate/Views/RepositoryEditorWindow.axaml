@@ -322,6 +322,9 @@
                                            Value="{Binding KeepYearly}" Minimum="1" Increment="1" FormatString="0"
                                            IsEnabled="{Binding KeepYearlyEnabled}"/>
                         </Grid>
+
+                        <CheckBox Content="{Binding [Prune.CompactAfter], Source={x:Static loc:Strings.Instance}}"
+                                  IsChecked="{Binding CompactAfterPrune}"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

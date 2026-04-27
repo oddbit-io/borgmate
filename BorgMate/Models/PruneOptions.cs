@@ -28,6 +28,9 @@ public partial class PruneOptions : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasAnyRetention))]
     private int _keepYearly;
 
+    [ObservableProperty]
+    private bool _compactAfterPrune = true;
+
     public bool HasAnyRetention =>
         KeepLast > 0 || KeepHourly > 0 || KeepDaily > 0 ||
         KeepWeekly > 0 || KeepMonthly > 0 || KeepYearly > 0;

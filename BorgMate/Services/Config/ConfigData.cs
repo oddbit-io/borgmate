@@ -36,6 +36,7 @@ public class PruneOptionsData
     public int KeepWeekly { get; set; }
     public int KeepMonthly { get; set; }
     public int KeepYearly { get; set; }
+    public bool CompactAfterPrune { get; set; } = true;
 }
 
 /// <summary>Legacy format. Migrated to BorgRepository source directories on first load.</summary>

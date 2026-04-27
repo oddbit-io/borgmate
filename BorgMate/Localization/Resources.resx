@@ -82,6 +82,9 @@
   <data name="Prune.KeepYearly" xml:space="preserve">
     <value>Keep yearly</value>
   </data>
+  <data name="Prune.CompactAfter" xml:space="preserve">
+    <value>Compact repository after prune</value>
+  </data>
   <data name="Compact" xml:space="preserve">
     <value>Compact</value>
   </data>

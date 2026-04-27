@@ -103,6 +103,7 @@ public class ConfigService(ILogger<ConfigService>? logger = null) : IConfigServi
             repo.PruneOptions.KeepWeekly = data.PruneOptions.KeepWeekly;
             repo.PruneOptions.KeepMonthly = data.PruneOptions.KeepMonthly;
             repo.PruneOptions.KeepYearly = data.PruneOptions.KeepYearly;
+            repo.PruneOptions.CompactAfterPrune = data.PruneOptions.CompactAfterPrune;
         }
         return repo;
     }
@@ -141,7 +142,8 @@ public class ConfigService(ILogger<ConfigService>? logger = null) : IConfigServi
                 KeepDaily = repo.PruneOptions.KeepDaily,
                 KeepWeekly = repo.PruneOptions.KeepWeekly,
                 KeepMonthly = repo.PruneOptions.KeepMonthly,
-                KeepYearly = repo.PruneOptions.KeepYearly
+                KeepYearly = repo.PruneOptions.KeepYearly,
+                CompactAfterPrune = repo.PruneOptions.CompactAfterPrune
             } : null
         };
     }

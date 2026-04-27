@@ -204,6 +204,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     [ObservableProperty]
     private int _keepYearly = 2;
 
+    [ObservableProperty]
+    private bool _compactAfterPrune = true;
+
     // --- Mode flags and dialog state ---
 
     [ObservableProperty]
@@ -392,6 +395,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         if (repo.PruneOptions.KeepMonthly > 0) KeepMonthly = repo.PruneOptions.KeepMonthly;
         KeepYearlyEnabled = repo.PruneOptions.KeepYearly > 0;
         if (repo.PruneOptions.KeepYearly > 0) KeepYearly = repo.PruneOptions.KeepYearly;
+        CompactAfterPrune = repo.PruneOptions.CompactAfterPrune;
 
         DecomposePath(repo.Path);
     }
@@ -435,6 +439,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         repo.PruneOptions.KeepWeekly = KeepWeeklyEnabled ? KeepWeekly : 0;
         repo.PruneOptions.KeepMonthly = KeepMonthlyEnabled ? KeepMonthly : 0;
         repo.PruneOptions.KeepYearly = KeepYearlyEnabled ? KeepYearly : 0;
+        repo.PruneOptions.CompactAfterPrune = CompactAfterPrune;
 
         repo.RefreshScheduleDisplay();
     }

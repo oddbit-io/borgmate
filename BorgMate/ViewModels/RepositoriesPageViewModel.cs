@@ -445,7 +445,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     {
         var service = _borgServiceFactory.GetService(repo.BorgVersion);
 
-        await RunCommandAsync(repo, JournalEventKind.Prune,
+        var result = await RunCommandAsync(repo, JournalEventKind.Prune,
             jobName: $"{Strings.Get("Job.Prune")}: {repo.Name}",
             execute: (j, ct) =>
             {
@@ -455,6 +455,9 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             confirmMessage: confirm ? string.Format(Strings.Get("ConfirmPrune"), repo.Name) : null,
             onJobCreated: job => { if (SelectedRepository == repo) Progress.SetActiveJob(job); },
             invalidateArchivesOnSuccess: true);
+
+        if (result.Success && repo.PruneOptions.CompactAfterPrune)
+            await RunCompactForRepo(repo);
     }
 
     [RelayCommand(AllowConcurrentExecutions = true)]
@@ -478,7 +481,12 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     [RelayCommand(AllowConcurrentExecutions = true)]
     private async Task CompactRepo()
     {
-        if (SelectedRepository is not { } repo) return;
+        if (SelectedRepository is { } repo)
+            await RunCompactForRepo(repo, confirm: true);
+    }
+
+    private async Task RunCompactForRepo(BorgRepository repo, bool confirm = false)
+    {
         var service = _borgServiceFactory.GetService(repo.BorgVersion);
 
         var result = await RunCommandAsync(repo, JournalEventKind.Compact,
@@ -490,7 +498,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
                 return _runner.RunWithTransientRetry(j,
                     () => service.CompactAsync(repo, ct, onStderrLine: line => BorgProgressParser.Update(j, line)));
             },
-            confirmMessage: string.Format(Strings.Get("ConfirmCompact"), repo.Name),
+            confirmMessage: confirm ? string.Format(Strings.Get("ConfirmCompact"), repo.Name) : null,
             onJobCreated: job => { if (SelectedRepository == repo) Progress.SetActiveJob(job); },
             invalidateArchivesOnSuccess: true);
 
