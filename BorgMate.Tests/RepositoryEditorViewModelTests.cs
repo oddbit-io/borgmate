@@ -91,6 +91,104 @@ public class RepositoryEditorViewModelTests
         Assert.Equal("/data/borg", vm.RepoPath);
     }
 
+    // --- Duplicate ---
+
+    [Fact]
+    public void ForDuplicate_LoadsAllFieldsAndOverridesName()
+    {
+        var source = new BorgRepository
+        {
+            Name = "Original",
+            Path = "user@host:/data/borg",
+            IsLocal = false,
+            SshKeyPath = "~/.ssh/id_ed25519",
+            SshPort = 2222,
+            BorgVersion = BorgVersion.Borg1,
+            EncryptionMode = BorgEncryptionMode.RepokeyBlake2,
+            RateLimit = 500,
+            Mode = BackupMode.Scheduled,
+            LastBackupAt = new DateTime(2026, 4, 1, 12, 0, 0),
+        };
+        source.Schedule.Frequency = ScheduleFrequency.Weekly;
+        source.Schedule.Hour = 3;
+        source.SourceDirectories.Add("/home/user/docs");
+        source.PruneOptions.KeepDaily = 7;
+        source.PruneOptions.KeepWeekly = 4;
+
+        var vm = RepositoryEditorViewModel.ForDuplicate(
+            CreateFactory(), new FilePickerService(), source, "Original (Copy)");
+
+        Assert.True(vm.IsDuplicate);
+        Assert.False(vm.IsNew);
+        Assert.False(vm.IsOpen);
+        Assert.Equal("Original (Copy)", vm.Name);
+        Assert.Equal("host", vm.SshHost);
+        Assert.Equal("user", vm.SshUser);
+        Assert.Equal("/data/borg", vm.RepoPath);
+        Assert.Equal(2222, vm.SshPort);
+        Assert.Equal(BackupMode.Scheduled, vm.Mode);
+        Assert.Equal(ScheduleFrequency.Weekly, vm.SelectedFrequency);
+        Assert.Single(vm.SourceDirectories);
+        Assert.True(vm.KeepDailyEnabled);
+        Assert.Equal(7, vm.KeepDaily);
+        Assert.True(vm.KeepWeeklyEnabled);
+    }
+
+    [Fact]
+    public void ForDuplicate_Save_NoDeps_ProducesFreshRepoCarryingLastBackupAt()
+    {
+        var lastBackup = new DateTime(2026, 4, 1, 12, 0, 0);
+        var source = new BorgRepository
+        {
+            Name = "Original",
+            Path = "/data/borg",
+            IsLocal = true,
+            LastBackupAt = lastBackup,
+        };
+        source.SourceDirectories.Add("/home/user/docs");
+
+        var vm = RepositoryEditorViewModel.ForDuplicate(
+            CreateFactory(), new FilePickerService(), source, "Original (Copy)");
+
+        vm.SaveCommand.Execute(null);
+
+        Assert.True(vm.IsSaved);
+        Assert.NotNull(vm.Repository);
+        Assert.NotSame(source, vm.Repository);
+        Assert.Equal("Original (Copy)", vm.Repository!.Name);
+        Assert.Equal("/data/borg", vm.Repository.Path);
+        Assert.Equal(lastBackup, vm.Repository.LastBackupAt);
+        // Nested objects must be independent instances.
+        Assert.NotSame(source.Schedule, vm.Repository.Schedule);
+        Assert.NotSame(source.PruneOptions, vm.Repository.PruneOptions);
+        Assert.NotSame(source.SourceDirectories, vm.Repository.SourceDirectories);
+    }
+
+    [Fact]
+    public void ForDuplicate_Save_DoesNotMutateSource()
+    {
+        var source = new BorgRepository
+        {
+            Name = "Original",
+            Path = "/data/borg",
+            IsLocal = true,
+            RateLimit = 100,
+        };
+        source.SourceDirectories.Add("/home/user/docs");
+
+        var vm = RepositoryEditorViewModel.ForDuplicate(
+            CreateFactory(), new FilePickerService(), source, "Original (Copy)");
+
+        vm.RateLimit = 999;
+        vm.SourceDirectories.Add("/home/user/photos");
+        vm.SaveCommand.Execute(null);
+
+        Assert.True(vm.IsSaved);
+        Assert.Equal("Original", source.Name);
+        Assert.Equal(100, source.RateLimit);
+        Assert.Single(source.SourceDirectories);
+    }
+
     // --- Save validation ---
 
     [Fact]

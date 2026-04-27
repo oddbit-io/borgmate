@@ -40,6 +40,15 @@
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>
   </data>
+  <data name="Duplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="Duplicate.NameCopy" xml:space="preserve">
+    <value>{0} (Copy)</value>
+  </data>
+  <data name="Duplicate.NameCopyN" xml:space="preserve">
+    <value>{0} (Copy {1})</value>
+  </data>
   <data name="More" xml:space="preserve">
     <value>More</value>
   </data>
@@ -264,6 +273,9 @@
   </data>
   <data name="OpenExistingRepo" xml:space="preserve">
     <value>Open Existing Repository</value>
+  </data>
+  <data name="DuplicateRepo" xml:space="preserve">
+    <value>Duplicate Repository</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Open</value>

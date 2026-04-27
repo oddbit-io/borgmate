@@ -40,6 +40,15 @@
   <data name="Remove" xml:space="preserve">
     <value>Удалить</value>
   </data>
+  <data name="Duplicate" xml:space="preserve">
+    <value>Дублировать</value>
+  </data>
+  <data name="Duplicate.NameCopy" xml:space="preserve">
+    <value>{0} (копия)</value>
+  </data>
+  <data name="Duplicate.NameCopyN" xml:space="preserve">
+    <value>{0} (копия {1})</value>
+  </data>
   <data name="More" xml:space="preserve">
     <value>Ещё</value>
   </data>
@@ -264,6 +273,9 @@
   </data>
   <data name="OpenExistingRepo" xml:space="preserve">
     <value>Открытие репозитория</value>
+  </data>
+  <data name="DuplicateRepo" xml:space="preserve">
+    <value>Дублирование репозитория</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>

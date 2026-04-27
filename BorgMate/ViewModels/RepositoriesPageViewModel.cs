@@ -370,6 +370,38 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task DuplicateRepository(BorgRepository repo)
+    {
+        if (repo is null) return;
+
+        var copyName = GenerateUniqueCopyName(repo.Name);
+        var vm = RepositoryEditorViewModel.ForDuplicate(
+            _borgServiceFactory, _filePicker, repo, copyName,
+            _jobQueue, _journalService, _passphrase, _runner, _wsl);
+        await ShowEditorAsync(vm);
+
+        if (vm.IsSaved && vm.Repository is { } newRepo)
+        {
+            _store.Add(newRepo);
+            SelectedRepository = newRepo;
+            _configService.RequestSave();
+        }
+    }
+
+    internal string GenerateUniqueCopyName(string baseName)
+    {
+        var existing = new HashSet<string>(_store.Repositories.Select(r => r.Name), StringComparer.Ordinal);
+        var first = string.Format(Strings.Get("Duplicate.NameCopy"), baseName);
+        if (!existing.Contains(first)) return first;
+
+        for (var i = 2; ; i++)
+        {
+            var candidate = string.Format(Strings.Get("Duplicate.NameCopyN"), baseName, i);
+            if (!existing.Contains(candidate)) return candidate;
+        }
+    }
+
+    [RelayCommand]
     private async Task RemoveRepository(BorgRepository repo)
     {
         if (!await DialogHelper.ConfirmAsync(string.Format(Strings.Get("ConfirmDeleteRepo"), repo.Name)))

@@ -611,4 +611,32 @@ public class RepositoriesPageViewModelTests : IDisposable
         Assert.False(vm.SelectedRepository!.HasError);
     }
 
+    // === Duplicate name generation ===
+
+    [Fact]
+    public void GenerateUniqueCopyName_NoCollision_ReturnsFirstSuffix()
+    {
+        var vm = CreateVm();
+        Assert.Equal("Foo (Copy)", vm.GenerateUniqueCopyName("Foo"));
+    }
+
+    [Fact]
+    public void GenerateUniqueCopyName_FirstSuffixCollides_ReturnsCopy2()
+    {
+        var vm = CreateVm();
+        _store.Add(new BorgRepository { Name = "Foo (Copy)", Path = "/a" });
+
+        Assert.Equal("Foo (Copy 2)", vm.GenerateUniqueCopyName("Foo"));
+    }
+
+    [Fact]
+    public void GenerateUniqueCopyName_MultipleCollisions_WalksToNextFree()
+    {
+        var vm = CreateVm();
+        _store.Add(new BorgRepository { Name = "Foo (Copy)", Path = "/a" });
+        _store.Add(new BorgRepository { Name = "Foo (Copy 2)", Path = "/b" });
+        _store.Add(new BorgRepository { Name = "Foo (Copy 3)", Path = "/c" });
+
+        Assert.Equal("Foo (Copy 4)", vm.GenerateUniqueCopyName("Foo"));
+    }
 }

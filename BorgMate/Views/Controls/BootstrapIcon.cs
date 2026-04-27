@@ -72,7 +72,7 @@ public partial class BootstrapIcon : Control
             "FileEarmarkImage", "FileEarmarkMusic", "FileEarmarkPlay", "FileEarmarkZip",
             "FileEarmarkWord", "FileEarmarkRichtext", "FileEarmarkExcel", "FileEarmarkPpt",
             "FileEarmarkFont", "FileEarmarkBinary", "FileEarmarkSpreadsheet",
-            "Folder2Open",
+            "Files", "Folder2Open",
         };
 
         foreach (var name in names)

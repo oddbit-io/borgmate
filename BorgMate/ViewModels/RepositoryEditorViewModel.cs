@@ -34,7 +34,12 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     /// <summary>The live instance being edited (Edit mode only). Null for Create/Open.</summary>
     private BorgRepository? _targetRepo;
 
-    /// <summary>Snapshot of VM reachability fields at dialog open time (Edit only).</summary>
+    /// <summary>
+    /// Carries LastBackupAt through the editor for Edit (round-trips the same value)
+    /// and Duplicate (preserves the source's value so a duplicate of a scheduled
+    /// repo doesn't immediately fire a missed-backup run). Null for Create/Open.
+    /// </summary>
+    private DateTime? _vmLastBackupAt;
 
 
     public RepositoryEditorViewModel() { }
@@ -219,6 +224,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private bool _isOpen;
 
     [ObservableProperty]
+    private bool _isDuplicate;
+
+    [ObservableProperty]
     private bool _isSaved;
 
     [ObservableProperty]
@@ -274,10 +282,12 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
     public string Title => IsNew ? Strings.Get("CreateNewRepo")
         : IsOpen ? Strings.Get("OpenExistingRepo")
+        : IsDuplicate ? Strings.Get("DuplicateRepo")
         : Strings.Get("EditRepo");
 
     public string SaveButtonText => IsNew ? Strings.Get("Create")
         : IsOpen ? Strings.Get("Open")
+        : IsDuplicate ? Strings.Get("Create")
         : Strings.Get("Save");
 
     public BorgVersion[] BorgVersions { get; } = System.Enum.GetValues<BorgVersion>();
@@ -360,6 +370,23 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         return vm;
     }
 
+    /// <summary>
+    /// Creates a VM seeded with a copy of <paramref name="source"/>'s persisted state,
+    /// with <see cref="Name"/> overridden to <paramref name="newName"/>.
+    /// </summary>
+    public static RepositoryEditorViewModel ForDuplicate(
+        BorgServiceFactory factory, IFilePickerService filePicker, BorgRepository source, string newName,
+        JobQueueService? jobQueue = null, IJournalService? journalService = null,
+        PassphrasePrompt? passphrase = null, BorgOperationRunner? runner = null,
+        WslHelper? wsl = null)
+    {
+        var vm = new RepositoryEditorViewModel(factory, filePicker, jobQueue, journalService, passphrase, runner, wsl);
+        vm.LoadFrom(source);
+        vm.Name = newName;
+        vm.IsDuplicate = true;
+        return vm;
+    }
+
     /// <summary>Copies <paramref name="repo"/>'s persistable fields into this VM.</summary>
     private void LoadFrom(BorgRepository repo)
     {
@@ -401,6 +428,8 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         if (repo.PruneOptions.KeepYearly > 0) KeepYearly = repo.PruneOptions.KeepYearly;
         CompactAfterPrune = repo.PruneOptions.CompactAfterPrune;
 
+        _vmLastBackupAt = repo.LastBackupAt;
+
         DecomposePath(repo.Path);
     }
 
@@ -425,6 +454,8 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         repo.Schedule.DayOfWeek = SelectedDayOfWeek;
         repo.Schedule.DayOfMonth = ScheduleDayOfMonth;
         repo.Schedule.IntervalHours = IntervalHours;
+
+        repo.LastBackupAt = _vmLastBackupAt;
 
         if (!repo.Schedule.RunMissed && RunMissed)
         {
@@ -565,7 +596,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         {
             await CopySshKeyIfNeededAsync();
 
-            if (IsNew)
+            if (IsNew || IsDuplicate)
                 await VerifyByInitializingAsync(candidate);
             else
                 // Open and Edit both verify via `borg info` against the candidate.
