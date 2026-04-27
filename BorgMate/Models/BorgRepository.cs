@@ -10,6 +10,13 @@ public partial class BorgRepository : ObservableObject
     [ObservableProperty]
     private string _name = string.Empty;
 
+    /// <summary>
+    /// Optional prefix used when generating archive names for backups.
+    /// When empty, <see cref="Name"/> is used instead.
+    /// </summary>
+    [ObservableProperty]
+    private string _archiveNamePrefix = string.Empty;
+
     [ObservableProperty]
     private string _path = string.Empty;
 

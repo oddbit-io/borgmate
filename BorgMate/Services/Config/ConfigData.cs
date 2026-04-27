@@ -13,6 +13,7 @@ public class ConfigData
 public class RepositoryData
 {
     public string Name { get; set; } = string.Empty;
+    public string ArchiveNamePrefix { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;
     public BorgEncryptionMode EncryptionMode { get; set; } = BorgEncryptionMode.RepokeyBlake2;
     public string SshKeyPath { get; set; } = string.Empty;

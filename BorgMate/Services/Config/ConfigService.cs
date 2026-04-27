@@ -69,6 +69,7 @@ public class ConfigService(ILogger<ConfigService>? logger = null) : IConfigServi
         var repo = new BorgRepository
         {
             Name = data.Name,
+            ArchiveNamePrefix = data.ArchiveNamePrefix,
             Path = data.Path,
             EncryptionMode = data.EncryptionMode,
             SshKeyPath = data.SshKeyPath,
@@ -113,6 +114,7 @@ public class ConfigService(ILogger<ConfigService>? logger = null) : IConfigServi
         return new RepositoryData
         {
             Name = repo.Name,
+            ArchiveNamePrefix = repo.ArchiveNamePrefix,
             Path = repo.Path,
             EncryptionMode = repo.EncryptionMode,
             SshKeyPath = repo.SshKeyPath,

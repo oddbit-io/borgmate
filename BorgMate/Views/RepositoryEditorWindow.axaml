@@ -65,13 +65,23 @@
             <TabItem Header="{Binding [General], Source={x:Static loc:Strings.Instance}}">
                 <ScrollViewer Margin="0,8,0,0">
                     <StackPanel Spacing="{StaticResource FormSpacing}">
-                        <StackPanel Spacing="{StaticResource FieldSpacing}">
-                            <TextBlock Text="{Binding [DisplayName], Source={x:Static loc:Strings.Instance}}"/>
-                            <TextBox Name="NameInput" Text="{Binding Name}" PlaceholderText="{Binding [WatermarkRepoName], Source={x:Static loc:Strings.Instance}}"/>
-                            <TextBlock Text="{Binding NameError}" FontSize="{StaticResource ValidationFontSize}"
-                                       Foreground="{StaticResource ValidationErrorBrush}"
-                                       IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                        </StackPanel>
+                        <Grid ColumnDefinitions="*,16,*">
+                            <StackPanel Grid.Column="0" Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [RepositoryName], Source={x:Static loc:Strings.Instance}}"/>
+                                <TextBox Name="NameInput" Text="{Binding Name}" PlaceholderText="{Binding [WatermarkRepoName], Source={x:Static loc:Strings.Instance}}"/>
+                                <TextBlock Text="{Binding NameError}" FontSize="{StaticResource ValidationFontSize}"
+                                           Foreground="{StaticResource ValidationErrorBrush}"
+                                           IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [ArchiveNamePrefix], Source={x:Static loc:Strings.Instance}}"/>
+                                <TextBox Text="{Binding ArchiveNamePrefix}" PlaceholderText="{Binding Name}"/>
+                                <TextBlock Text="{Binding [ArchiveNamePrefix.Hint], Source={x:Static loc:Strings.Instance}}"
+                                           FontSize="{StaticResource SecondaryFontSize}"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
 
                         <StackPanel Spacing="{StaticResource FieldSpacing}">
                             <TextBlock Text="{Binding [Location], Source={x:Static loc:Strings.Instance}}"/>

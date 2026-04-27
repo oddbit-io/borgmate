@@ -392,7 +392,8 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     {
         if (repo.SourceDirectories.Count == 0) return;
 
-        var archiveName = $"{repo.Name}-{DateTime.Now:yyyy-MM-ddTHH-mm-ss}";
+        var prefix = string.IsNullOrWhiteSpace(repo.ArchiveNamePrefix) ? repo.Name : repo.ArchiveNamePrefix;
+        var archiveName = $"{prefix}-{DateTime.Now:yyyy-MM-ddTHH-mm-ss}";
         var service = _borgServiceFactory.GetService(repo.BorgVersion);
 
         var result = await RunCommandAsync(repo, JournalEventKind.Backup,

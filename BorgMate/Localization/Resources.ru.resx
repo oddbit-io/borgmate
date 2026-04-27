@@ -268,8 +268,14 @@
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
   </data>
-  <data name="DisplayName" xml:space="preserve">
-    <value>Отображаемое имя</value>
+  <data name="RepositoryName" xml:space="preserve">
+    <value>Имя репозитория</value>
+  </data>
+  <data name="ArchiveNamePrefix" xml:space="preserve">
+    <value>Префикс имени архива</value>
+  </data>
+  <data name="ArchiveNamePrefix.Hint" xml:space="preserve">
+    <value>Необязательно. Если пусто, используется имя репозитория.</value>
   </data>
   <data name="BorgVersion" xml:space="preserve">
     <value>Версия Borg</value>

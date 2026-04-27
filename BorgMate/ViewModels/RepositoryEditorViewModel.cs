@@ -70,6 +70,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private string _name = string.Empty;
 
     [ObservableProperty]
+    private string _archiveNamePrefix = string.Empty;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSsh))]
     private bool _isLocal = true;
 
@@ -361,6 +364,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private void LoadFrom(BorgRepository repo)
     {
         Name = repo.Name;
+        ArchiveNamePrefix = repo.ArchiveNamePrefix;
         IsLocal = repo.IsLocal;
         BorgVersion = repo.BorgVersion;
         EncryptionMode = repo.EncryptionMode;
@@ -404,6 +408,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private void ApplyTo(BorgRepository repo)
     {
         repo.Name = Name;
+        repo.ArchiveNamePrefix = ArchiveNamePrefix;
         repo.IsLocal = IsLocal;
         repo.Path = ComposePath();
         repo.BorgVersion = BorgVersion;
