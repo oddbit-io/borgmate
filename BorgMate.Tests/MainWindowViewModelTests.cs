@@ -40,7 +40,7 @@ public class MainWindowViewModelTests : IDisposable
         var runner = new BorgOperationRunner(
             Substitute.For<ILogger<BorgOperationRunner>>(), _jobQueue, _journalService, passphrase);
         var sizeCalculator = new DirectorySizeCalculator(Substitute.For<ILogger<DirectorySizeCalculator>>());
-        return new RepositoriesPageViewModel(borgFactory, _configService, new FilePickerService(),
+        return new RepositoriesPageViewModel(_settings, borgFactory, _configService, new FilePickerService(),
             new BorgCacheService(), _journalService, runner, passphrase, Wsl, sizeCalculator,
             null!, _store, Substitute.For<ILogger<RepositoriesPageViewModel>>());
     }

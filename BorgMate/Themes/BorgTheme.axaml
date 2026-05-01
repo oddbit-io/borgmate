@@ -37,6 +37,7 @@
                     <Color x:Key="HoverOverlayColor">#10000000</Color>
                     <Color x:Key="PressedOverlayColor">#14000000</Color>
                     <SolidColorBrush x:Key="BorderBrush" Color="#14000000"/>
+                    <SolidColorBrush x:Key="GroupBoxBorderBrush" Color="#22000000"/>
                     <SolidColorBrush x:Key="SubtleBgBrush" Color="#06000000"/>
                     <SolidColorBrush x:Key="SecondaryTextBrush" Color="#8F8F94"/>
                     <SolidColorBrush x:Key="InputBorderBrush" Color="#2A000000"/>
@@ -44,7 +45,7 @@
                     <Color x:Key="ListItemSelectedHoverColor">#0055BB</Color>
                     <SolidColorBrush x:Key="SidebarBrush" Color="#F0F0F0"/>
                     <SolidColorBrush x:Key="WindowBrush" Color="#F5F5F7"/>
-                    <SolidColorBrush x:Key="ButtonBevelBrush" Color="#22000000"/>
+                    <SolidColorBrush x:Key="ButtonBevelBrush" Color="#33000000"/>
                     <SolidColorBrush x:Key="ButtonPressedBevelBrush" Color="#30000000"/>
                     <LinearGradientBrush x:Key="AccentBevelBrush" StartPoint="0%,0%" EndPoint="0%,100%">
                         <GradientStop Color="#30FFFFFF" Offset="0"/>
@@ -65,6 +66,7 @@
                     <Color x:Key="HoverOverlayColor">#33FFFFFF</Color>
                     <Color x:Key="PressedOverlayColor">#08FFFFFF</Color>
                     <SolidColorBrush x:Key="BorderBrush" Color="#14FFFFFF"/>
+                    <SolidColorBrush x:Key="GroupBoxBorderBrush" Color="#11FFFFFF"/>
                     <SolidColorBrush x:Key="SubtleBgBrush" Color="#08FFFFFF"/>
                     <SolidColorBrush x:Key="SecondaryTextBrush" Color="#98989D"/>
                     <SolidColorBrush x:Key="InputBorderBrush" Color="#24FFFFFF"/>
@@ -121,6 +123,11 @@
     </Style>
     <Style Selector="Border.card">
         <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+
+    <Style Selector="GroupBox">
+        <Setter Property="Padding" Value="6,6"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource GroupBoxBorderBrush}"/>
     </Style>
 
     <!-- ===== Input height and vertical centering ===== -->

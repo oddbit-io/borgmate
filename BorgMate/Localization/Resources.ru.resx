@@ -322,6 +322,27 @@
   <data name="SourceDirectories" xml:space="preserve">
     <value>Исходные каталоги</value>
   </data>
+  <data name="AppSettings.Group.Startup" xml:space="preserve">
+    <value>Запуск</value>
+  </data>
+  <data name="AppSettings.Group.Notifications" xml:space="preserve">
+    <value>Обновления и уведомления</value>
+  </data>
+  <data name="AppSettings.Group.AutoLoad" xml:space="preserve">
+    <value>Автозагрузка</value>
+  </data>
+  <data name="AppSettings.AutoLoadArchives" xml:space="preserve">
+    <value>Автоматически загружать список архивов при выборе</value>
+  </data>
+  <data name="AppSettings.AutoLoadStats" xml:space="preserve">
+    <value>Автоматически загружать сведения о репозитории при выборе</value>
+  </data>
+  <data name="AppSettings.AutoLoadArchiveDetails" xml:space="preserve">
+    <value>Автоматически загружать сведения об архиве при выборе</value>
+  </data>
+  <data name="ArchiveList.AutoLoadOffHint" xml:space="preserve">
+    <value>Нажмите «Обновить», чтобы загрузить список архивов.</value>
+  </data>
   <data name="Restore" xml:space="preserve">
     <value>Восстановление</value>
   </data>

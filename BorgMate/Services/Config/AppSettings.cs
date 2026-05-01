@@ -34,6 +34,15 @@ public class AppSettings
     /// <summary>SSH ServerAliveCountMax — number of missed keep-alive responses before disconnect.</summary>
     public int SshKeepAliveCountMax { get; set; } = 3;
 
+    /// <summary>Auto-fetch the archive list when a repository is selected.</summary>
+    public bool AutoLoadArchives { get; set; } = true;
+
+    /// <summary>Auto-fetch repository statistics when a repository is selected.</summary>
+    public bool AutoLoadStats { get; set; } = true;
+
+    /// <summary>Auto-fetch per-archive details on archive selection.</summary>
+    public bool AutoLoadArchiveDetails { get; set; } = true;
+
     /// <summary>Returns effective borg binary path (user override or auto-detected).</summary>
     [JsonIgnore]
     public string EffectiveBorgPath =>

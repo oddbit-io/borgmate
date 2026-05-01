@@ -37,7 +37,7 @@ public class RepositoriesPageViewModelTests : IDisposable
         var sizeCalculator = new DirectorySizeCalculator(Substitute.For<ILogger<DirectorySizeCalculator>>());
         var logger = Substitute.For<ILogger<RepositoriesPageViewModel>>();
         // null! for _jobQueue so auto-fetch paths short-circuit in tests
-        return new RepositoriesPageViewModel(borgFactory, _configService, filePicker, cache,
+        return new RepositoriesPageViewModel(new AppSettings(), borgFactory, _configService, filePicker, cache,
             _journalService, runner, Prompt, Wsl, sizeCalculator, null!, _store, logger);
     }
 

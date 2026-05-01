@@ -82,57 +82,40 @@
         </Border>
 
         <!-- Repository detail panel (bottom) -->
-        <Border DockPanel.Dock="Bottom"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
-                Height="92">
-            <Panel>
-                <TextBlock Text="{Binding [SelectRepoDetail], Source={x:Static loc:Strings.Instance}}"
-                           Classes="placeholder"
-                           IsVisible="{Binding SelectedRepository, Converter={x:Static ObjectConverters.IsNull}}" />
-                <ScrollViewer Margin="12,8" VerticalScrollBarVisibility="Auto"
-                              IsVisible="{Binding SelectedRepository, Converter={x:Static ObjectConverters.IsNotNull}}">
-                    <StackPanel Spacing="2">
-                        <StackPanel Spacing="2" Margin="0,0,0,2">
-                            <DockPanel>
-                                <ctrl:SpinnerControl DockPanel.Dock="Right" Width="16" Height="16"
-                                                     VerticalAlignment="Center"
-                                                     Foreground="{DynamicResource SecondaryTextBrush}"
-                                                     IsVisible="{Binding SelectedRepository.IsLoadingStats}" />
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <ctrl:BootstrapIcon Kind="Database" Width="14" Height="14"
-                                                               VerticalAlignment="Center"
-                                                               Foreground="{DynamicResource SecondaryTextBrush}" />
-                                    <TextBlock Text="{Binding SelectedRepository.Name}" FontWeight="SemiBold" />
-                                </StackPanel>
-                            </DockPanel>
-                            <TextBlock Classes="secondary" Text="{Binding SelectedRepository.Path}"
-                                       TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
-
-                        <!-- Operation progress (shown when repo is busy) -->
-                        <ctrl:ProgressPanel DataContext="{Binding Progress}"/>
-
-                        <!-- Stats grid (hidden when busy) -->
-                        <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">
-                            <Grid.IsVisible>
-                                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                    <Binding Path="SelectedRepository.HasStats" />
-                                    <Binding Path="Progress.HasActiveJob" Converter="{x:Static BoolConverters.Not}" />
-                                </MultiBinding>
-                            </Grid.IsVisible>
-                            <TextBlock Grid.Row="0" Grid.Column="0" Classes="secondary"
-                                       Text="{Binding [TotalSize], Source={x:Static loc:Strings.Instance}}" />
-                            <TextBlock Grid.Row="0" Grid.Column="2" Classes="secondary"
-                                       Text="{Binding SelectedRepository.StatsTotalSize, Converter={x:Static conv:FormatBytesConverter.Instance}}" />
-                            <TextBlock Grid.Row="2" Grid.Column="0" Classes="secondary"
-                                       Text="{Binding [TotalChunks], Source={x:Static loc:Strings.Instance}}" />
-                            <TextBlock Grid.Row="2" Grid.Column="2" Classes="secondary"
-                                       Text="{Binding SelectedRepository.StatsTotalChunks, Converter={x:Static conv:FormatNumberConverter.Instance}}" />
-                        </Grid>
-                    </StackPanel>
-                </ScrollViewer>
-            </Panel>
-        </Border>
+        <ctrl:DetailPanel DockPanel.Dock="Bottom"
+                          ShowPlaceholder="{Binding SelectedRepository, Converter={x:Static ObjectConverters.IsNull}}"
+                          PlaceholderText="{Binding [SelectRepoDetail], Source={x:Static loc:Strings.Instance}}"
+                          IconKind="Database"
+                          Title="{Binding SelectedRepository.Name}"
+                          Subtitle="{Binding SelectedRepository.Path}"
+                          IsLoading="{Binding SelectedRepository.IsLoadingStats, FallbackValue=False}"
+                          RefreshCommand="{Binding FetchStatsCommand}">
+            <ctrl:DetailPanel.ShowRefreshButton>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="AutoLoadStats" Converter="{x:Static BoolConverters.Not}"/>
+                    <Binding Path="SelectedRepository.IsLoadingStats" Converter="{x:Static BoolConverters.Not}"/>
+                </MultiBinding>
+            </ctrl:DetailPanel.ShowRefreshButton>
+            <StackPanel Spacing="2">
+                <ctrl:ProgressPanel DataContext="{Binding Progress}"/>
+                <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">
+                    <Grid.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="SelectedRepository.HasStats"/>
+                            <Binding Path="Progress.HasActiveJob" Converter="{x:Static BoolConverters.Not}"/>
+                        </MultiBinding>
+                    </Grid.IsVisible>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="secondary"
+                               Text="{Binding [TotalSize], Source={x:Static loc:Strings.Instance}}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="secondary"
+                               Text="{Binding SelectedRepository.StatsTotalSize, Converter={x:Static conv:FormatBytesConverter.Instance}}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="secondary"
+                               Text="{Binding [TotalChunks], Source={x:Static loc:Strings.Instance}}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="secondary"
+                               Text="{Binding SelectedRepository.StatsTotalChunks, Converter={x:Static conv:FormatNumberConverter.Instance}}"/>
+                </Grid>
+            </StackPanel>
+        </ctrl:DetailPanel>
 
         <!-- Repository list header -->
         <Border DockPanel.Dock="Top" Padding="8,6" BorderBrush="{DynamicResource BorderBrush}"

@@ -77,6 +77,15 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
     [ObservableProperty]
     private int _sshKeepAliveCountMax;
 
+    [ObservableProperty]
+    private bool _autoLoadArchives = true;
+
+    [ObservableProperty]
+    private bool _autoLoadStats = true;
+
+    [ObservableProperty]
+    private bool _autoLoadArchiveDetails = true;
+
     public AppTheme[] Themes { get; } = System.Enum.GetValues<AppTheme>();
     public string[] Languages { get; } = ["Auto", "English", "Русский"];
     public RetentionPeriod[] RetentionPeriods { get; } = System.Enum.GetValues<RetentionPeriod>();
@@ -113,6 +122,9 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
         BinaryUnits = _settings.BinaryUnits;
         SshKeepAliveInterval = _settings.SshKeepAliveInterval;
         SshKeepAliveCountMax = _settings.SshKeepAliveCountMax;
+        AutoLoadArchives = _settings.AutoLoadArchives;
+        AutoLoadStats = _settings.AutoLoadStats;
+        AutoLoadArchiveDetails = _settings.AutoLoadArchiveDetails;
     }
 
     [RelayCommand]
@@ -136,6 +148,9 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
         _settings.BinaryUnits = BinaryUnits;
         _settings.SshKeepAliveInterval = SshKeepAliveInterval;
         _settings.SshKeepAliveCountMax = SshKeepAliveCountMax;
+        _settings.AutoLoadArchives = AutoLoadArchives;
+        _settings.AutoLoadStats = AutoLoadStats;
+        _settings.AutoLoadArchiveDetails = AutoLoadArchiveDetails;
         _configService?.RequestSave();
         IsSaved = true;
     }

@@ -1,0 +1,69 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:BorgMate.Localization"
+        xmlns:ctrl="using:BorgMate.Views.Controls">
+
+    <Styles.Resources>
+        <ControlTheme x:Key="{x:Type ctrl:DetailPanel}" TargetType="ctrl:DetailPanel">
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="0,1,0,0"/>
+            <Setter Property="Height" Value="92"/>
+            <Setter Property="Template">
+                <ControlTemplate TargetType="ctrl:DetailPanel">
+                    <Border BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Panel>
+                            <TextBlock Text="{TemplateBinding PlaceholderText}"
+                                       Classes="placeholder"
+                                       IsVisible="{TemplateBinding ShowPlaceholder}"/>
+                            <ScrollViewer Margin="12,8" VerticalScrollBarVisibility="Auto">
+                                <ScrollViewer.IsVisible>
+                                    <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                             Path="ShowPlaceholder"
+                                             Converter="{x:Static BoolConverters.Not}"/>
+                                </ScrollViewer.IsVisible>
+                                <StackPanel Spacing="2">
+                                    <DockPanel Margin="0,0,0,2">
+                                        <Panel DockPanel.Dock="Right"
+                                               Width="16" Height="16"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0">
+                                            <ctrl:SpinnerControl Width="16" Height="16"
+                                                                 Foreground="{DynamicResource SecondaryTextBrush}"
+                                                                 IsVisible="{TemplateBinding IsLoading}"/>
+                                            <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                                    MinWidth="0" MinHeight="0"
+                                                    Width="16" Height="16"
+                                                    Cursor="Hand"
+                                                    IsVisible="{TemplateBinding ShowRefreshButton}"
+                                                    Command="{TemplateBinding RefreshCommand}"
+                                                    ToolTip.Tip="{Binding [Refresh], Source={x:Static loc:Strings.Instance}}">
+                                                <ctrl:BootstrapIcon Kind="ArrowClockwise" Width="14" Height="14"
+                                                                    Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                            </Button>
+                                        </Panel>
+                                        <StackPanel Spacing="2">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <ctrl:BootstrapIcon Kind="{TemplateBinding IconKind}"
+                                                                    Width="14" Height="14"
+                                                                    VerticalAlignment="Center"
+                                                                    Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                                <TextBlock Text="{TemplateBinding Title}" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                            <TextBlock Classes="secondary"
+                                                       Text="{TemplateBinding Subtitle}"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Panel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </Styles.Resources>
+
+</Styles>

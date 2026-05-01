@@ -322,6 +322,27 @@
   <data name="SourceDirectories" xml:space="preserve">
     <value>Source Directories</value>
   </data>
+  <data name="AppSettings.Group.Startup" xml:space="preserve">
+    <value>Startup</value>
+  </data>
+  <data name="AppSettings.Group.Notifications" xml:space="preserve">
+    <value>Updates &amp; Notifications</value>
+  </data>
+  <data name="AppSettings.Group.AutoLoad" xml:space="preserve">
+    <value>Auto-load</value>
+  </data>
+  <data name="AppSettings.AutoLoadArchives" xml:space="preserve">
+    <value>Auto-load archive list on selection</value>
+  </data>
+  <data name="AppSettings.AutoLoadStats" xml:space="preserve">
+    <value>Auto-load repository details on selection</value>
+  </data>
+  <data name="AppSettings.AutoLoadArchiveDetails" xml:space="preserve">
+    <value>Auto-load archive details on selection</value>
+  </data>
+  <data name="ArchiveList.AutoLoadOffHint" xml:space="preserve">
+    <value>Click Refresh to load the archive list.</value>
+  </data>
   <data name="Restore" xml:space="preserve">
     <value>Restore</value>
   </data>

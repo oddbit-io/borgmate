@@ -75,56 +75,38 @@
         <!-- Detail panel (bottom). Hidden while the archive list is still loading —
              there's nothing to show and the "Select an archive" placeholder would just
              flash through as a visual distraction. -->
-        <Border DockPanel.Dock="Bottom"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
-                Height="92"
-                IsVisible="{Binding !IsLoadingArchives}">
-            <Panel>
-                <TextBlock Text="{Binding [SelectArchiveDetail], Source={x:Static loc:Strings.Instance}}"
-                           Classes="placeholder"
-                           IsVisible="{Binding SelectedArchive, Converter={x:Static ObjectConverters.IsNull}}"/>
-                <ScrollViewer Margin="12,8" VerticalScrollBarVisibility="Auto"
-                              IsVisible="{Binding SelectedArchive, Converter={x:Static ObjectConverters.IsNotNull}}">
-                <StackPanel Spacing="2">
-                    <DockPanel Margin="0,0,0,2">
-                        <Panel DockPanel.Dock="Right" VerticalAlignment="Top" Margin="8,0,0,0"
-                               IsVisible="{Binding HasSelectedArchive}">
-                            <ctrl:SpinnerControl Width="16" Height="16"
-                                                 Foreground="{DynamicResource SecondaryTextBrush}"
-                                                 IsVisible="{Binding SelectedArchive.IsLoadingDetail}" />
-                        </Panel>
-                        <StackPanel Spacing="2">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <ctrl:BootstrapIcon Kind="Box" Width="14" Height="14"
-                                    VerticalAlignment="Center"
-                                    Foreground="{DynamicResource SecondaryTextBrush}"/>
-                                <TextBlock Text="{Binding SelectedArchive.Name}" FontWeight="SemiBold"/>
-                            </StackPanel>
-                            <TextBlock Classes="secondary"
-                                       Text="{Binding SelectedArchive.Date, Converter={x:Static conv:DateTimeFormatConverter.Instance}, ConverterParameter='d MMMM yyyy, HH:mm'}"/>
-                        </StackPanel>
-                    </DockPanel>
-
-                    <!-- Restore progress -->
-                    <ctrl:ProgressPanel DataContext="{Binding RestoreProgress}"/>
-
-                    <!-- Archive stats (hidden during restore) -->
-                    <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">
-                        <Grid.IsVisible>
-                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                <Binding Path="HasDetail"/>
-                                <Binding Path="Progress.HasActiveJob" Converter="{x:Static BoolConverters.Not}"/>
-                            </MultiBinding>
-                        </Grid.IsVisible>
-                        <TextBlock Grid.Row="0" Grid.Column="0" Classes="secondary" Text="{Binding [OriginalSize], Source={x:Static loc:Strings.Instance}}"/>
-                        <TextBlock Grid.Row="0" Grid.Column="2" Classes="secondary" Text="{Binding DetailOriginalSize}"/>
-                        <TextBlock Grid.Row="2" Grid.Column="0" Classes="secondary" Text="{Binding [Files], Source={x:Static loc:Strings.Instance}}"/>
-                        <TextBlock Grid.Row="2" Grid.Column="2" Classes="secondary" Text="{Binding DetailFileCount}"/>
-                    </Grid>
-                </StackPanel>
-            </ScrollViewer>
-            </Panel>
-        </Border>
+        <ctrl:DetailPanel DockPanel.Dock="Bottom"
+                          IsVisible="{Binding !IsLoadingArchives}"
+                          ShowPlaceholder="{Binding SelectedArchive, Converter={x:Static ObjectConverters.IsNull}}"
+                          PlaceholderText="{Binding [SelectArchiveDetail], Source={x:Static loc:Strings.Instance}}"
+                          IconKind="Box"
+                          Title="{Binding SelectedArchive.Name}"
+                          Subtitle="{Binding SelectedArchive.Date, Converter={x:Static conv:DateTimeFormatConverter.Instance}, ConverterParameter='d MMMM yyyy, HH:mm'}"
+                          IsLoading="{Binding SelectedArchive.IsLoadingDetail, FallbackValue=False}"
+                          RefreshCommand="{Binding FetchDetailCommand}">
+            <ctrl:DetailPanel.ShowRefreshButton>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="AutoLoadArchiveDetails" Converter="{x:Static BoolConverters.Not}"/>
+                    <Binding Path="SelectedArchive.IsLoadingDetail" Converter="{x:Static BoolConverters.Not}"/>
+                    <Binding Path="HasDetail" Converter="{x:Static BoolConverters.Not}"/>
+                </MultiBinding>
+            </ctrl:DetailPanel.ShowRefreshButton>
+            <StackPanel Spacing="2">
+                <ctrl:ProgressPanel DataContext="{Binding RestoreProgress}"/>
+                <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">
+                    <Grid.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="HasDetail"/>
+                            <Binding Path="Progress.HasActiveJob" Converter="{x:Static BoolConverters.Not}"/>
+                        </MultiBinding>
+                    </Grid.IsVisible>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="secondary" Text="{Binding [OriginalSize], Source={x:Static loc:Strings.Instance}}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="secondary" Text="{Binding DetailOriginalSize}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="secondary" Text="{Binding [Files], Source={x:Static loc:Strings.Instance}}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="secondary" Text="{Binding DetailFileCount}"/>
+                </Grid>
+            </StackPanel>
+        </ctrl:DetailPanel>
 
         <Panel>
             <!-- Busy spinner (loading or deleting) -->
@@ -151,11 +133,20 @@
                 </TextBlock>
             </StackPanel>
 
+            <TextBlock Text="{Binding [ArchiveList.AutoLoadOffHint], Source={x:Static loc:Strings.Instance}}"
+                       Classes="placeholder"
+                       IsVisible="{Binding ShowArchiveListPlaceholder}"/>
+
             <ListBox ItemsSource="{Binding Archives}"
-                     IsVisible="{Binding !IsArchiveBusy}"
                      IsEnabled="{Binding IsRepoIdle}"
                      SelectedItem="{Binding SelectedArchive}"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="IsArchiveBusy" Converter="{x:Static BoolConverters.Not}"/>
+                        <Binding Path="ShowArchiveListPlaceholder" Converter="{x:Static BoolConverters.Not}"/>
+                    </MultiBinding>
+                </ListBox.IsVisible>
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="models:BorgArchive">
                         <DockPanel Margin="8,4" MinHeight="30">

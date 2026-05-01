@@ -22,6 +22,7 @@ namespace BorgMate.ViewModels;
 /// <summary>Single VM for the entire Repositories page (left list + right archives).</summary>
 public partial class RepositoriesPageViewModel : ViewModelBase
 {
+    private readonly AppSettings _settings = null!;
     private readonly BorgServiceFactory _borgServiceFactory = null!;
     private readonly IConfigService _configService = null!;
     private readonly IFilePickerService _filePicker = null!;
@@ -70,6 +71,25 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     public string? SelectedRepoLastError => SelectedRepository?.LastError;
     public bool ShowArchiveList => IsRepositorySelected && !SelectedRepoHasError;
 
+    /// <summary>Forwards <c>AppSettings.AutoLoadArchives</c> for view bindings.</summary>
+    public bool AutoLoadArchives => _settings?.AutoLoadArchives ?? true;
+
+    /// <summary>Forwards <c>AppSettings.AutoLoadStats</c> for view bindings.</summary>
+    public bool AutoLoadStats => _settings?.AutoLoadStats ?? true;
+
+    /// <summary>Forwards <c>AppSettings.AutoLoadArchiveDetails</c> for view bindings.</summary>
+    public bool AutoLoadArchiveDetails => _settings?.AutoLoadArchiveDetails ?? true;
+
+    /// <summary>
+    /// Visible when AutoLoadArchives is off, the list is empty, and we are
+    /// not currently fetching — prompts the user to click Refresh.
+    /// </summary>
+    public bool ShowArchiveListPlaceholder =>
+        !AutoLoadArchives &&
+        SelectedRepository is { IsBusy: false, HasError: false } &&
+        !IsArchiveBusy &&
+        Archives.Count == 0;
+
     // === Page activation (set from MainWindowViewModel based on ActivePage) ===
 
     [ObservableProperty]
@@ -79,10 +99,12 @@ public partial class RepositoriesPageViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsArchiveBusy))]
+    [NotifyPropertyChangedFor(nameof(ShowArchiveListPlaceholder))]
     private bool _isLoadingArchives;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsArchiveBusy))]
+    [NotifyPropertyChangedFor(nameof(ShowArchiveListPlaceholder))]
     private bool _isDeletingArchive;
 
     public bool IsArchiveBusy => IsLoadingArchives || IsDeletingArchive;
@@ -131,6 +153,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     }
 
     public RepositoriesPageViewModel(
+        AppSettings settings,
         BorgServiceFactory borgServiceFactory,
         IConfigService configService,
         IFilePickerService filePicker,
@@ -144,6 +167,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         RepositoryStore store,
         ILogger<RepositoriesPageViewModel> logger)
     {
+        _settings = settings;
         _borgServiceFactory = borgServiceFactory;
         _configService = configService;
         _filePicker = filePicker;
@@ -171,6 +195,23 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         };
         Strings.LanguageChanged += ReformatDetail;
         Strings.LanguageChanged += RefreshArchiveDates;
+
+        Archives.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ShowArchiveListPlaceholder));
+
+        _configService.SaveRequested += OnSettingsMaybeChanged;
+    }
+
+    /// <summary>
+    /// Re-broadcasts the AutoLoad* getters whenever any save request fires. Cheap and
+    /// covers settings-dialog edits without an additional event channel — view bindings
+    /// to <see cref="AutoLoadArchives"/>, <see cref="AutoLoadStats"/>, etc. refresh.
+    /// </summary>
+    private void OnSettingsMaybeChanged()
+    {
+        OnPropertyChanged(nameof(AutoLoadArchives));
+        OnPropertyChanged(nameof(AutoLoadStats));
+        OnPropertyChanged(nameof(AutoLoadArchiveDetails));
+        OnPropertyChanged(nameof(ShowArchiveListPlaceholder));
     }
 
     // === Selection / store handlers ===
@@ -215,13 +256,15 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         {
             Archives.ReplaceWith(archives);
         }
-        else if (IsActive && !newRepo.IsBusy && !newRepo.HasError)
+        else if (IsActive && !newRepo.IsBusy && !newRepo.HasError && _settings.AutoLoadArchives)
         {
             ListArchivesCommand.ExecuteAsync(null);
         }
 
-        if (!newRepo.HasError && !newRepo.HasStats)
+        if (!newRepo.HasError && !newRepo.HasStats && _settings.AutoLoadStats)
             FetchStatsCommand.ExecuteAsync(null);
+
+        OnPropertyChanged(nameof(ShowArchiveListPlaceholder));
 
         UpdateActiveJob();
     }
@@ -237,6 +280,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             OnPropertyChanged(nameof(SelectedRepoHasError));
             OnPropertyChanged(nameof(SelectedRepoLastError));
             OnPropertyChanged(nameof(ShowArchiveList));
+            OnPropertyChanged(nameof(ShowArchiveListPlaceholder));
             RefreshArchiveCommandStates();
             if (e.PropertyName == nameof(BorgRepository.IsBusy))
                 UpdateActiveJob();
@@ -256,7 +300,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
 
     partial void OnIsActiveChanged(bool value)
     {
-        if (value && _store.SelectedRepository is { IsBusy: false, HasError: false } && Archives.Count == 0)
+        if (value && _settings.AutoLoadArchives && _store.SelectedRepository is { IsBusy: false, HasError: false } && Archives.Count == 0)
             ListArchivesCommand.ExecuteAsync(null);
     }
 
@@ -269,13 +313,14 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         }
         Archives.Clear();
         SelectedArchive = null;
-        if (IsActive && _store.SelectedRepository is { IsBusy: false, HasError: false })
+        if (IsActive && _settings.AutoLoadArchives && _store.SelectedRepository is { IsBusy: false, HasError: false })
             ListArchivesCommand.ExecuteAsync(null);
+        OnPropertyChanged(nameof(ShowArchiveListPlaceholder));
     }
 
     public void FetchArchivesIfEmpty()
     {
-        if (Archives.Count == 0 && IsActive && _store.SelectedRepository is { IsBusy: false, HasError: false })
+        if (Archives.Count == 0 && IsActive && _settings.AutoLoadArchives && _store.SelectedRepository is { IsBusy: false, HasError: false })
             ListArchivesCommand.ExecuteAsync(null);
     }
 
@@ -358,12 +403,13 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             if (SelectedRepository == repo)
             {
                 InvalidateArchives();
-                _ = FetchStatsCommand.ExecuteAsync(null);
+                if (_settings.AutoLoadStats)
+                    _ = FetchStatsCommand.ExecuteAsync(null);
             }
         }
         else if (SelectedRepository == repo)
         {
-            if (SelectedRepository is { HasStats: false })
+            if (SelectedRepository is { HasStats: false } && _settings.AutoLoadStats)
                 _ = FetchStatsCommand.ExecuteAsync(null);
             FetchArchivesIfEmpty();
         }
@@ -727,7 +773,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             FormatDetail(value);
             OnPropertyChanged(nameof(HasDetail));
         }
-        else if (!SelectedRepository.HasError)
+        else if (!SelectedRepository.HasError && _settings.AutoLoadArchiveDetails)
         {
             FetchDetailCommand.ExecuteAsync(null);
         }
@@ -808,7 +854,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
 
         await window.ShowDialog(mainWindow);
 
-        if (SelectedArchive is not null && !HasDetail)
+        if (SelectedArchive is not null && !HasDetail && _settings.AutoLoadArchiveDetails)
             _ = FetchDetailCommand.ExecuteAsync(null);
 
         if (window.SelectedDestination is null || window.SelectedPaths is null || window.SelectedPaths.Count == 0)
@@ -858,7 +904,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
 
         RestoreProgress.SetActiveJob(null);
 
-        if (SelectedArchive is not null && !HasDetail)
+        if (SelectedArchive is not null && !HasDetail && _settings.AutoLoadArchiveDetails)
             _ = FetchDetailCommand.ExecuteAsync(null);
     }
 

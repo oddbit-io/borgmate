@@ -143,6 +143,7 @@
                                        Foreground="{StaticResource ValidationErrorBrush}"
                                        IsVisible="{Binding PathError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                         </StackPanel>
+
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
