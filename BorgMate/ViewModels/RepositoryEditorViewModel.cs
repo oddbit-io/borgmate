@@ -35,6 +35,25 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private BorgRepository? _targetRepo;
 
     /// <summary>
+    /// Snapshot of reachability-affecting fields captured at <see cref="ForEdit"/> time.
+    /// Used by <see cref="NeedsReachabilityCheck"/> to skip the borg info call entirely
+    /// when none of these fields changed (rename / schedule / prune / autoload edits).
+    /// Null for Create/Open/Duplicate, which always verify.
+    /// </summary>
+    private ReachabilitySnapshot? _reachabilitySnapshot;
+
+    private readonly record struct ReachabilitySnapshot(
+        bool IsLocal,
+        string SshHost,
+        string SshUser,
+        int SshPort,
+        string SshKeyPath,
+        string RepoPath,
+        BorgVersion BorgVersion,
+        BorgEncryptionMode EncryptionMode,
+        string BorgRemotePath);
+
+    /// <summary>
     /// Carries LastBackupAt through the editor for Edit (round-trips the same value)
     /// and Duplicate (preserves the source's value so a duplicate of a scheduled
     /// repo doesn't immediately fire a missed-backup run). Null for Create/Open.
@@ -367,6 +386,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         var vm = new RepositoryEditorViewModel(factory, filePicker, jobQueue, journalService, passphrase, runner, wsl);
         vm.LoadFrom(repo);
         vm._targetRepo = repo;
+        vm._reachabilitySnapshot = vm.CaptureReachabilitySnapshot();
         return vm;
     }
 
@@ -529,7 +549,19 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
     // --- Reachability check (Edit mode: skip borg info when nothing relevant changed) ---
 
+    private ReachabilitySnapshot CaptureReachabilitySnapshot() => new(
+        IsLocal, SshHost, SshUser, SshPort, SshKeyPath, RepoPath,
+        BorgVersion, EncryptionMode, BorgRemotePath);
+
     /// <summary>
+    /// True only in Edit mode when at least one reachability-affecting field has
+    /// diverged from the snapshot taken at <see cref="ForEdit"/>. Always true for
+    /// Create/Open/Duplicate (no snapshot captured).
+    /// </summary>
+    private bool NeedsReachabilityCheck =>
+        _reachabilitySnapshot is not { } snap ||
+        !snap.Equals(CaptureReachabilitySnapshot());
+
     // --- Diagnostic buttons (Check Version / Check Remote Path) ---
 
     [RelayCommand]
@@ -585,6 +617,14 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
         // Design-time or test path with no borg deps: accept immediately.
         if (_jobQueue is null || _journalService is null || _passphrase is null || _runner is null || _borgServiceFactory is null)
+        {
+            CommitResult(candidate);
+            return;
+        }
+
+        // Edit mode: if no reachability-affecting field changed, the existing repo
+        // is still reachable with the same credentials — skip the borg info call.
+        if (_targetRepo is not null && !NeedsReachabilityCheck)
         {
             CommitResult(candidate);
             return;
