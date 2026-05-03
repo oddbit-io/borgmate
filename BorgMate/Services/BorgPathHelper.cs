@@ -15,6 +15,7 @@ public static class BorgPathHelper
 
     private static readonly string[] LinuxPaths =
     [
+        "/app/bin/borg",
         "/usr/bin/borg",
         "/usr/local/bin/borg",
         "/snap/bin/borg",

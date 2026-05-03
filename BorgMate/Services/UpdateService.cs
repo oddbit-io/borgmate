@@ -30,6 +30,12 @@ public class UpdateService(ILogger<UpdateService> logger)
 
     public async Task CheckForUpdatesAsync()
     {
+        if (Environment.GetEnvironmentVariable("FLATPAK_ID") is not null)
+        {
+            logger.LogInformation("Skipping update check: managed by Flatpak host");
+            return;
+        }
+
         try
         {
             var url = UpdateUrl;
