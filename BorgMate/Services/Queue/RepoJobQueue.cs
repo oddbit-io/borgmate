@@ -108,6 +108,11 @@ internal sealed class RepoJobQueue : IDisposable
             {
                 result = new BorgResult(-1, "", "", WasCancelled: true);
             }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Job {Name} threw an unhandled exception", job.Name);
+                result = new BorgResult(-1, "", ex.Message);
+            }
             finally
             {
                 BorgJob.Current.Value = null;
