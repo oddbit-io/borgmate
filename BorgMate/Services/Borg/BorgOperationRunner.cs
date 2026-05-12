@@ -21,7 +21,7 @@ public class BorgOperationRunner(
 {
     private const int MaxAttempts = 3;
     private static readonly int[] RetryDelays = [5, 10, 30, 60, 300];
-    private static readonly BorgResult CancelledResult = new(-1, "", "Operation was cancelled.");
+    private static readonly BorgResult CancelledResult = new(-1, "", "", WasCancelled: true);
 
     /// <summary>
     /// Executes a borg operation with up to MaxAttempts passphrase prompts.
