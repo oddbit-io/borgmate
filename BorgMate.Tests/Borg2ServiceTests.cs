@@ -165,6 +165,35 @@ public class Borg2ServiceTests
         Assert.Contains("--json-lines", svc.LastArgs!);
     }
 
+    [Fact]
+    public async Task ChangePassphraseAsync_UsesRepoFlag()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+        repo.EncryptionMode = BorgEncryptionMode.RepokeyBlake2;
+
+        await svc.ChangePassphraseAsync(repo, "new-pass");
+
+        Assert.Contains("key change-passphrase", svc.LastArgs!);
+        Assert.Contains("--repo", svc.LastArgs!);
+        Assert.Contains(repo.Path, svc.LastArgs!);
+    }
+
+    [Fact]
+    public async Task ChangePassphraseAsync_SetsBothPassphraseEnvVars()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+        repo.EncryptionMode = BorgEncryptionMode.RepokeyBlake2;
+        repo.Passphrase = "old-pass";
+
+        await svc.ChangePassphraseAsync(repo, "new-pass");
+
+        Assert.NotNull(svc.LastEnvVars);
+        Assert.Equal("old-pass", svc.LastEnvVars!["BORG_PASSPHRASE"]);
+        Assert.Equal("new-pass", svc.LastEnvVars!["BORG_NEW_PASSPHRASE"]);
+    }
+
     /// <summary>
     /// Test subclass that captures RunCommandAsync arguments instead of executing processes.
     /// </summary>
@@ -173,6 +202,7 @@ public class Borg2ServiceTests
     {
         public string? LastFileName { get; private set; }
         public string? LastArgs { get; private set; }
+        public IReadOnlyDictionary<string, string>? LastEnvVars { get; private set; }
 
         protected override Task<BorgResult> RunCommandAsync(
             string fileName, string arguments, BorgEnv? env = null,
@@ -181,6 +211,7 @@ public class Borg2ServiceTests
         {
             LastFileName = fileName;
             LastArgs = arguments;
+            LastEnvVars = env?.Variables;
             return Task.FromResult(new BorgResult(0, "", ""));
         }
     }

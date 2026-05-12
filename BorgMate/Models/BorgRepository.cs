@@ -21,6 +21,7 @@ public partial class BorgRepository : ObservableObject
     private string _path = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEncrypted))]
     private BorgEncryptionMode _encryptionMode = BorgEncryptionMode.RepokeyBlake2;
 
     [ObservableProperty]
@@ -47,6 +48,9 @@ public partial class BorgRepository : ObservableObject
     private bool _isLocal = true;
 
     public bool IsSsh => !IsLocal;
+
+    /// <summary>True when the repository uses any encryption mode other than <see cref="BorgEncryptionMode.None"/>.</summary>
+    public bool IsEncrypted => EncryptionMode != BorgEncryptionMode.None;
 
     /// <summary>
     /// True when any operation (backup, restore, list, delete) is running on this repo.

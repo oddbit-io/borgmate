@@ -65,7 +65,7 @@ public partial class BootstrapIcon : Control
             "ArrowClockwise", "ArrowUpCircle", "ArrowsCollapse", "Bell", "Box", "BoxArrowDown",
             "CheckCircleFill", "ChevronDown", "ChevronRight", "Clock", "DashCircleFill",
             "Database", "ExclamationCircle", "FileDiff", "FolderFill", "FolderPlus",
-            "GearWideConnected", "HourglassSplit", "InfoCircle", "List", "ListNested",
+            "GearWideConnected", "HourglassSplit", "InfoCircle", "KeyFill", "List", "ListNested",
             "PencilSquare", "PlayFill", "PlusLg", "QuestionCircle", "Scissors", "ShieldCheck",
             "StopFill", "ThreeDotsVertical", "Trash", "XCircleFill",
             "FileEarmark", "FileEarmarkCode", "FileEarmarkText", "FileEarmarkPdf",

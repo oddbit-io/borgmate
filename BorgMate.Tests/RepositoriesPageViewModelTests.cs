@@ -3,6 +3,7 @@ using BorgMate.Services;
 using BorgMate.Services.Borg;
 using BorgMate.Services.Config;
 using BorgMate.Services.Journal;
+using BorgMate.Services.Keychain;
 using BorgMate.Services.Queue;
 using BorgMate.Services.UI;
 using BorgMate.ViewModels;
@@ -38,7 +39,7 @@ public class RepositoriesPageViewModelTests : IDisposable
         var logger = Substitute.For<ILogger<RepositoriesPageViewModel>>();
         // null! for _jobQueue so auto-fetch paths short-circuit in tests
         return new RepositoriesPageViewModel(new AppSettings(), borgFactory, _configService, filePicker, cache,
-            _journalService, runner, Prompt, Wsl, sizeCalculator, null!, _store, logger);
+            _journalService, runner, Prompt, Substitute.For<IKeychainService>(), Wsl, sizeCalculator, null!, _store, logger);
     }
 
     public void Dispose()

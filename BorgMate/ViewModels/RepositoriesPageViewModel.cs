@@ -30,6 +30,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     private readonly IJournalService _journalService = null!;
     private readonly BorgOperationRunner _runner = null!;
     private readonly PassphrasePrompt _passphrase = null!;
+    private readonly IKeychainService _keychain = null!;
     private readonly WslHelper _wsl = null!;
     private readonly DirectorySizeCalculator _sizeCalculator = null!;
     private readonly JobQueueService? _jobQueue;
@@ -161,6 +162,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         IJournalService journalService,
         BorgOperationRunner runner,
         PassphrasePrompt passphrase,
+        IKeychainService keychain,
         WslHelper wsl,
         DirectorySizeCalculator sizeCalculator,
         JobQueueService jobQueue,
@@ -175,6 +177,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         _journalService = journalService;
         _runner = runner;
         _passphrase = passphrase;
+        _keychain = keychain;
         _wsl = wsl;
         _sizeCalculator = sizeCalculator;
         _jobQueue = jobQueue;
@@ -583,6 +586,47 @@ public partial class RepositoriesPageViewModel : ViewModelBase
 
         if (result.Success && SelectedRepository == repo)
             _ = FetchStatsCommand.ExecuteAsync(null);
+    }
+
+    [RelayCommand(AllowConcurrentExecutions = true)]
+    private async Task ChangePassphrase()
+    {
+        if (SelectedRepository is not { } repo) return;
+        if (!repo.IsEncrypted) return;
+
+        // Unlock the repo first so the new-passphrase dialog comes after the old-passphrase prompt.
+        if (!await _passphrase.EnsurePassphraseAsync(repo)) return;
+
+        var parent = DialogHelper.GetMainWindow();
+        if (parent is null) return;
+
+        var (newPass, saveToKeychain) = await DialogHelper.ShowNewPassphraseDialogAsync(
+            parent,
+            Strings.Get("ChangePassphrase"),
+            string.Format(Strings.Get("ChangePassphrase.Prompt"), repo.Name));
+        if (newPass is null) return;
+
+        var service = _borgServiceFactory.GetService(repo.BorgVersion);
+
+        var result = await RunCommandAsync(repo, JournalEventKind.ChangePassphrase,
+            jobName: $"{Strings.Get("Job.ChangePassphrase")}: {repo.Name}",
+            execute: (j, ct) =>
+            {
+                j.StatusMessage = string.Format(Strings.Get("Status.ChangingPassphrase"), repo.Name);
+                return _runner.RunWithTransientRetry(j,
+                    () => service.ChangePassphraseAsync(repo, newPass, ct));
+            },
+            onJobCreated: job => { if (SelectedRepository == repo) Progress.SetActiveJob(job); });
+
+        if (result.Success)
+        {
+            // RunCommandAsync clears repo.Passphrase on completion — re-seed with the new value.
+            repo.Passphrase = newPass;
+            if (saveToKeychain)
+                await _keychain.SetPassphraseAsync(repo.Path, newPass);
+            else
+                await _keychain.DeletePassphraseAsync(repo.Path);
+        }
     }
 
     // === Active job tracking for the detail panel ===

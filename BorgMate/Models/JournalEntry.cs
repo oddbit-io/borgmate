@@ -18,7 +18,8 @@ public enum JournalEventKind
     Delete = 4,
     Create = 5,
     PassphraseFailed = 6,
-    Restore = 7
+    Restore = 7,
+    ChangePassphrase = 8
 }
 
 public partial class JournalEntry : ObservableObject

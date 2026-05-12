@@ -178,6 +178,9 @@
   <data name="Job.Compact" xml:space="preserve">
     <value>Уплотнение</value>
   </data>
+  <data name="Job.ChangePassphrase" xml:space="preserve">
+    <value>Смена пароля</value>
+  </data>
   <data name="Job.ListArchives" xml:space="preserve">
     <value>Список архивов</value>
   </data>
@@ -234,6 +237,9 @@
   </data>
   <data name="Notif.PassphraseFailed" xml:space="preserve">
     <value>Неверная парольная фраза для «{0}»</value>
+  </data>
+  <data name="Notif.ChangePassphrase" xml:space="preserve">
+    <value>Смена пароля «{0}»</value>
   </data>
   <data name="Repositories" xml:space="preserve">
     <value>Репозитории</value>
@@ -804,6 +810,24 @@
   </data>
   <data name="Status.CompactComplete" xml:space="preserve">
     <value>Уплотнение завершено</value>
+  </data>
+  <data name="Status.ChangingPassphrase" xml:space="preserve">
+    <value>Смена пароля для «{0}»...</value>
+  </data>
+  <data name="ChangePassphrase" xml:space="preserve">
+    <value>Сменить пароль...</value>
+  </data>
+  <data name="ChangePassphrase.Prompt" xml:space="preserve">
+    <value>Введите новый пароль для «{0}». Если вы его потеряете, доступ к резервным копиям будет невозможен.</value>
+  </data>
+  <data name="ChangePassphrase.NewLabel" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="ChangePassphrase.ConfirmLabel" xml:space="preserve">
+    <value>Подтвердите пароль</value>
+  </data>
+  <data name="ChangePassphrase.Mismatch" xml:space="preserve">
+    <value>Пароли не совпадают.</value>
   </data>
   <data name="Status.RestoreCompleted" xml:space="preserve">
     <value>Восстановление завершено в {0}.</value>

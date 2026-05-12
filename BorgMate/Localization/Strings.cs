@@ -127,7 +127,8 @@ public class Strings : INotifyPropertyChanged
     private static readonly string[] EventKindKeys =
     [
         "Notif.Backup", "Notif.Prune", "Notif.Check", "Notif.Compact",
-        "Notif.Delete", "Notif.Create", "Notif.PassphraseFailed", "Notif.Restore"
+        "Notif.Delete", "Notif.Create", "Notif.PassphraseFailed", "Notif.Restore",
+        "Notif.ChangePassphrase"
     ];
 
     public static string FormatJournalTitle(Models.JournalEventKind kind, object[]? titleArgs) =>

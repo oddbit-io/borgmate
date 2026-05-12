@@ -70,13 +70,16 @@ public abstract class BorgServiceBase(ILogger logger, AppSettings settings, SshA
         return result;
     }
 
+    private static bool IsSecretEnv(string key) =>
+        key is "BORG_PASSPHRASE" or "BORG_NEW_PASSPHRASE";
+
     private static void PopulateJobDebugInfo(string fileName, string arguments,
         Dictionary<string, string>? environment)
     {
         if (BorgJob.Current.Value is not { } job) return;
         job.CommandLine = $"{fileName} {arguments}";
         var safeEnv = environment?
-            .Select(kv => kv.Key == "BORG_PASSPHRASE" ? $"{kv.Key}=***" : $"{kv.Key}={kv.Value}")
+            .Select(kv => IsSecretEnv(kv.Key) ? $"{kv.Key}=***" : $"{kv.Key}={kv.Value}")
             .ToList();
         job.EnvironmentDisplay = safeEnv is { Count: > 0 } ? string.Join("\n", safeEnv) : null;
     }
@@ -88,7 +91,7 @@ public abstract class BorgServiceBase(ILogger logger, AppSettings settings, SshA
         if (workingDirectory is not null)
             logger.LogInformation("  CWD: {WorkingDirectory}", workingDirectory);
         var safeEnv = environment?
-            .Select(kv => kv.Key == "BORG_PASSPHRASE" ? $"{kv.Key}=***" : $"{kv.Key}={kv.Value}")
+            .Select(kv => IsSecretEnv(kv.Key) ? $"{kv.Key}=***" : $"{kv.Key}={kv.Value}")
             .ToList();
         if (safeEnv is { Count: > 0 })
             logger.LogInformation("  ENV: {Environment}", string.Join(", ", safeEnv));
@@ -114,9 +117,10 @@ public abstract class BorgServiceBase(ILogger logger, AppSettings settings, SshA
 
     /// <summary>
     /// Builds the process environment for a borg command: BORG_PASSPHRASE, BORG_RSH (for SSH repos),
-    /// BORG_REMOTE_PATH, and loads SSH keys into the agent.
+    /// BORG_REMOTE_PATH, and loads SSH keys into the agent. When <paramref name="newPassphrase"/>
+    /// is non-empty, BORG_NEW_PASSPHRASE is set (used by <c>borg key change-passphrase</c>).
     /// </summary>
-    protected async Task<BorgEnv> BuildEnvironmentAsync(BorgRepository repo)
+    protected async Task<BorgEnv> BuildEnvironmentAsync(BorgRepository repo, string? newPassphrase = null)
     {
         var env = new Dictionary<string, string>();
         List<string>? wslPreCommands = null;
@@ -126,6 +130,9 @@ public abstract class BorgServiceBase(ILogger logger, AppSettings settings, SshA
 
         if (!string.IsNullOrWhiteSpace(repo.Passphrase))
             env["BORG_PASSPHRASE"] = repo.Passphrase;
+
+        if (!string.IsNullOrEmpty(newPassphrase))
+            env["BORG_NEW_PASSPHRASE"] = newPassphrase;
 
         if (!repo.IsLocal)
         {
@@ -295,6 +302,10 @@ public abstract class BorgServiceBase(ILogger logger, AppSettings settings, SshA
         BorgRepository repo,
         CancellationToken ct = default,
         Action<string>? onStderrLine = null);
+
+    public abstract Task<BorgResult> ChangePassphraseAsync(
+        BorgRepository repo, string newPassphrase,
+        CancellationToken ct = default);
 
     public abstract Task<BorgResult> InfoRepoAsync(
         BorgRepository repo,

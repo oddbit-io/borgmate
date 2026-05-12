@@ -108,6 +108,15 @@ public class Borg1Service(ILogger<Borg1Service> logger, AppSettings settings, Ss
         return await RunCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 
+    public override async Task<BorgResult> ChangePassphraseAsync(
+        BorgRepository repo, string newPassphrase,
+        CancellationToken ct = default)
+    {
+        var env = await BuildEnvironmentAsync(repo, newPassphrase);
+        var args = $"key change-passphrase \"{P(repo.Path)}\"";
+        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+    }
+
     public override async Task<BorgResult> InfoRepoAsync(
         BorgRepository repo,
         CancellationToken ct = default)

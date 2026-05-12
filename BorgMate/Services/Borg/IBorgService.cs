@@ -65,6 +65,15 @@ public interface IBorgService
         CancellationToken ct = default,
         Action<string>? onStderrLine = null);
 
+    /// <summary>
+    /// Rotates the repository's encryption passphrase. The current passphrase comes
+    /// from <c>repo.Passphrase</c>; the new one is passed explicitly. Only valid for
+    /// encrypted repos — borg refuses on <see cref="BorgEncryptionMode.None"/>.
+    /// </summary>
+    Task<BorgResult> ChangePassphraseAsync(
+        BorgRepository repo, string newPassphrase,
+        CancellationToken ct = default);
+
     /// <summary>Returns text diff output (parsed by BorgDiffParser).</summary>
     Task<BorgResult> DiffArchivesAsync(
         BorgRepository repo, string archive1, string archive2,

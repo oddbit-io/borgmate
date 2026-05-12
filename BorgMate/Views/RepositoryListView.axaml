@@ -60,6 +60,14 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator />
+                            <MenuItem Header="{Binding [ChangePassphrase], Source={x:Static loc:Strings.Instance}}"
+                                      Command="{Binding ChangePassphraseCommand}"
+                                      IsEnabled="{Binding SelectedRepository.IsEncrypted, FallbackValue=False}">
+                                <MenuItem.Icon>
+                                    <ctrl:BootstrapIcon Kind="KeyFill" Width="14" Height="14" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
                             <MenuItem Header="{Binding [Duplicate], Source={x:Static loc:Strings.Instance}}"
                                       Command="{Binding DuplicateRepositoryCommand}"
                                       CommandParameter="{Binding SelectedRepository}">

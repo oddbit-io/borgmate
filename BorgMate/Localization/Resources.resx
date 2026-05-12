@@ -175,6 +175,9 @@
   <data name="Notif.PassphraseFailed" xml:space="preserve">
     <value>Wrong passphrase for &#x27;{0}&#x27;</value>
   </data>
+  <data name="Notif.ChangePassphrase" xml:space="preserve">
+    <value>Change passphrase &#x27;{0}&#x27;</value>
+  </data>
   <data name="Job.Running" xml:space="preserve">
     <value>Running...</value>
   </data>
@@ -201,6 +204,9 @@
   </data>
   <data name="Job.Compact" xml:space="preserve">
     <value>Compact</value>
+  </data>
+  <data name="Job.ChangePassphrase" xml:space="preserve">
+    <value>Change passphrase</value>
   </data>
   <data name="Job.ListArchives" xml:space="preserve">
     <value>List archives</value>
@@ -804,6 +810,24 @@
   </data>
   <data name="Status.CompactComplete" xml:space="preserve">
     <value>Compact complete</value>
+  </data>
+  <data name="Status.ChangingPassphrase" xml:space="preserve">
+    <value>Changing passphrase for &#x27;{0}&#x27;...</value>
+  </data>
+  <data name="ChangePassphrase" xml:space="preserve">
+    <value>Change Passphrase...</value>
+  </data>
+  <data name="ChangePassphrase.Prompt" xml:space="preserve">
+    <value>Enter a new passphrase for &#x27;{0}&#x27;. If you lose it, your backups will be unrecoverable.</value>
+  </data>
+  <data name="ChangePassphrase.NewLabel" xml:space="preserve">
+    <value>New passphrase</value>
+  </data>
+  <data name="ChangePassphrase.ConfirmLabel" xml:space="preserve">
+    <value>Confirm new passphrase</value>
+  </data>
+  <data name="ChangePassphrase.Mismatch" xml:space="preserve">
+    <value>Passphrases do not match.</value>
   </data>
   <data name="Status.RestoreCompleted" xml:space="preserve">
     <value>Restore completed to {0}.</value>

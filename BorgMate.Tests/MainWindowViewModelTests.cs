@@ -4,6 +4,7 @@ using BorgMate.Services.Borg;
 using BorgMate.Services.AutoStart;
 using BorgMate.Services.Config;
 using BorgMate.Services.Journal;
+using BorgMate.Services.Keychain;
 using BorgMate.Services.Queue;
 using BorgMate.Services.UI;
 using BorgMate.ViewModels;
@@ -41,7 +42,7 @@ public class MainWindowViewModelTests : IDisposable
             Substitute.For<ILogger<BorgOperationRunner>>(), _jobQueue, _journalService, passphrase);
         var sizeCalculator = new DirectorySizeCalculator(Substitute.For<ILogger<DirectorySizeCalculator>>());
         return new RepositoriesPageViewModel(_settings, borgFactory, _configService, new FilePickerService(),
-            new BorgCacheService(), _journalService, runner, passphrase, Wsl, sizeCalculator,
+            new BorgCacheService(), _journalService, runner, passphrase, Substitute.For<IKeychainService>(), Wsl, sizeCalculator,
             null!, _store, Substitute.For<ILogger<RepositoriesPageViewModel>>());
     }
 
