@@ -8,7 +8,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
     <InvariantGlobalization>false</InvariantGlobalization>
-    <Version>0.9.10</Version>
+    <Version>0.9.11</Version>
   </PropertyGroup>
 
   <ItemGroup>
