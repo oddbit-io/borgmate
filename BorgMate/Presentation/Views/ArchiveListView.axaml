@@ -1,0 +1,169 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:BorgMate.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:BorgMate.Presentation.ViewModels"
+             xmlns:controls="clr-namespace:BorgMate.Presentation.Controls"
+             xmlns:conv="clr-namespace:BorgMate.Presentation.Converters"
+             xmlns:archives="clr-namespace:BorgMate.Domain.Archives"
+             mc:Ignorable="d" d:DesignWidth="750" d:DesignHeight="450"
+             x:Class="BorgMate.Presentation.Views.ArchiveListView"
+             x:DataType="viewModels:RepositoriesPageViewModel">
+
+    <Design.DataContext>
+        <x:Static Member="viewModels:DesignData.RepositoriesPage" />
+    </Design.DataContext>
+
+    <DockPanel>
+        <!-- Action buttons -->
+        <Border DockPanel.Dock="Top" Classes="toolbar">
+            <DockPanel>
+                <controls:ToolbarButton DockPanel.Dock="Right"
+                                        Icon="Trash"
+                                        Label="{Binding [Delete], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding DeleteArchiveCommand}" />
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <controls:ToolbarButton Icon="BoxArrowDown"
+                                            Label="{Binding [RestoreTo], Source={x:Static loc:Strings.Instance}}"
+                                            Command="{Binding PickAndRestoreCommand}" />
+                    <controls:ToolbarButton Icon="ListNested"
+                                            Label="{Binding [BrowseRestore], Source={x:Static loc:Strings.Instance}}"
+                                            Command="{Binding BrowseAndRestoreCommand}" />
+                    <controls:ToolbarButton Icon="ArrowClockwise"
+                                            Label="{Binding [Refresh], Source={x:Static loc:Strings.Instance}}"
+                                            Command="{Binding ListArchivesCommand}"
+                                            IsEnabled="{Binding IsRepoIdle}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Archives header -->
+        <Border DockPanel.Dock="Top" Padding="8,6" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1" MinHeight="32">
+            <TextBlock Text="{Binding [Archives], Source={x:Static loc:Strings.Instance}}" FontWeight="SemiBold"
+                       FontSize="{StaticResource SecondaryFontSize}" Foreground="{DynamicResource SecondaryTextBrush}"
+                       VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Column sort -->
+        <Border DockPanel.Dock="Top" Padding="4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <Button DockPanel.Dock="Right"
+                        Command="{Binding SortByDateCommand}"
+                        Background="Transparent" BorderThickness="0" Padding="4" Cursor="Hand"
+                        MinWidth="0">
+                    <TextBlock FontSize="{StaticResource SecondaryFontSize}"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               FontWeight="SemiBold">
+                        <Run Text="{Binding [DateHeader], Source={x:Static loc:Strings.Instance}}" />
+                        <Run Text="{Binding DateSortIndicator}" />
+                    </TextBlock>
+                </Button>
+                <Button DockPanel.Dock="Left" Command="{Binding SortByNameCommand}"
+                        Background="Transparent" BorderThickness="0" Padding="4" Cursor="Hand"
+                        HorizontalAlignment="Left" MinWidth="0">
+                    <TextBlock FontSize="{StaticResource SecondaryFontSize}"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               FontWeight="SemiBold">
+                        <Run Text="{Binding [NameHeader], Source={x:Static loc:Strings.Instance}}" />
+                        <Run Text="{Binding NameSortIndicator}" />
+                    </TextBlock>
+                </Button>
+            </DockPanel>
+        </Border>
+
+        <!-- Detail panel (bottom). Hidden while the archive list is still loading —
+             there's nothing to show and the "Select an archive" placeholder would just
+             flash through as a visual distraction. -->
+        <controls:DetailPanel DockPanel.Dock="Bottom"
+                              IsVisible="{Binding !IsLoadingArchives}"
+                              ShowPlaceholder="{Binding SelectedArchive, Converter={x:Static ObjectConverters.IsNull}}"
+                              PlaceholderText="{Binding [SelectArchiveDetail], Source={x:Static loc:Strings.Instance}}"
+                              IconKind="Box"
+                              Title="{Binding SelectedArchive.Name}"
+                              Subtitle="{Binding SelectedArchive.Date, Converter={x:Static conv:DateTimeFormatConverter.Instance}, ConverterParameter='d MMMM yyyy, HH:mm'}"
+                              IsLoading="{Binding SelectedArchive.IsLoadingDetail, FallbackValue=False}"
+                              RefreshCommand="{Binding FetchDetailCommand}">
+            <controls:DetailPanel.ShowRefreshButton>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="AutoLoadArchiveDetails" Converter="{x:Static BoolConverters.Not}" />
+                    <Binding Path="SelectedArchive.IsLoadingDetail" Converter="{x:Static BoolConverters.Not}" />
+                    <Binding Path="HasDetail" Converter="{x:Static BoolConverters.Not}" />
+                </MultiBinding>
+            </controls:DetailPanel.ShowRefreshButton>
+            <StackPanel Spacing="2">
+                <controls:ProgressPanel DataContext="{Binding RestoreProgress}" />
+                <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">
+                    <Grid.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="HasDetail" />
+                            <Binding Path="Progress.HasActiveJob" Converter="{x:Static BoolConverters.Not}" />
+                        </MultiBinding>
+                    </Grid.IsVisible>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="secondary"
+                               Text="{Binding [OriginalSize], Source={x:Static loc:Strings.Instance}}" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="secondary" Text="{Binding DetailOriginalSize}" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="secondary"
+                               Text="{Binding [Files], Source={x:Static loc:Strings.Instance}}" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="secondary" Text="{Binding DetailFileCount}" />
+                </Grid>
+            </StackPanel>
+        </controls:DetailPanel>
+
+        <Panel>
+            <!-- Busy spinner (loading or deleting) -->
+            <StackPanel IsVisible="{Binding IsArchiveBusy}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Spacing="8" Orientation="Horizontal">
+                <controls:SpinnerControl Width="16" Height="16"
+                                         Foreground="{DynamicResource SecondaryTextBrush}" />
+                <TextBlock Classes="secondary" VerticalAlignment="Center">
+                    <TextBlock.IsVisible>
+                        <Binding Path="IsLoadingArchives" />
+                    </TextBlock.IsVisible>
+                    <TextBlock.Text>
+                        <Binding Path="[Status.LoadingArchives]" Source="{x:Static loc:Strings.Instance}" />
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Classes="secondary" VerticalAlignment="Center">
+                    <TextBlock.IsVisible>
+                        <Binding Path="IsDeletingArchive" />
+                    </TextBlock.IsVisible>
+                    <TextBlock.Text>
+                        <Binding Path="[DeletingArchive]" Source="{x:Static loc:Strings.Instance}" />
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+
+            <TextBlock Text="{Binding [ArchiveList.AutoLoadOffHint], Source={x:Static loc:Strings.Instance}}"
+                       Classes="placeholder"
+                       IsVisible="{Binding ShowArchiveListPlaceholder}" />
+
+            <ListBox ItemsSource="{Binding Archives}"
+                     IsEnabled="{Binding IsRepoIdle}"
+                     SelectedItem="{Binding SelectedArchive}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="IsArchiveBusy" Converter="{x:Static BoolConverters.Not}" />
+                        <Binding Path="ShowArchiveListPlaceholder" Converter="{x:Static BoolConverters.Not}" />
+                    </MultiBinding>
+                </ListBox.IsVisible>
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="archives:BorgArchive">
+                        <DockPanel Margin="8,4" MinHeight="30">
+                            <controls:BootstrapIcon Kind="Box" Width="18" Height="18" VerticalAlignment="Center"
+                                                    Margin="4,0,14,0" />
+                            <TextBlock DockPanel.Dock="Right" Classes="secondary" VerticalAlignment="Center"
+                                       Margin="8,0,0,0"
+                                       Text="{Binding Date, Converter={x:Static conv:DateTimeFormatConverter.Instance}, ConverterParameter='d MMMM yyyy, HH:mm'}" />
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Panel>
+    </DockPanel>
+</UserControl>

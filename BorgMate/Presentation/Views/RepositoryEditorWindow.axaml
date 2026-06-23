@@ -1,0 +1,423 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:BorgMate.Localization"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:BorgMate.Presentation.ViewModels"
+        xmlns:controls="clr-namespace:BorgMate.Presentation.Controls"
+        xmlns:conv="clr-namespace:BorgMate.Presentation.Converters"
+        mc:Ignorable="d" d:DesignWidth="580" d:DesignHeight="450"
+        x:Class="BorgMate.Presentation.Views.RepositoryEditorWindow"
+        x:DataType="viewModels:RepositoryEditorViewModel"
+        Title="{Binding Title}"
+        Width="580"
+        Height="480"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Design.DataContext>
+        <viewModels:RepositoryEditorViewModel />
+    </Design.DataContext>
+
+    <DockPanel Margin="{StaticResource ModalPadding}">
+        <!-- Bottom bar: verify status/error on the left, action buttons on the right.
+             Single Grid row so height stays constant whether or not HasVerifyMessage is
+             set — the verify content appears/disappears without shifting the dialog. -->
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+            <!-- Left: single-line verify row (spinner + status while in flight,
+                 first line of error after failure, full text via tooltip). -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
+                        VerticalAlignment="Center" Margin="0,0,16,0"
+                        IsVisible="{Binding HasVerifyMessage}"
+                        ToolTip.Tip="{Binding VerifyError}">
+                <controls:SpinnerControl Width="14" Height="14" VerticalAlignment="Center"
+                                         Foreground="{DynamicResource SecondaryTextBrush}"
+                                         IsVisible="{Binding IsVerifying}" />
+                <TextBlock Text="{Binding VerifyMessage}"
+                           FontSize="{StaticResource SecondaryFontSize}"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           MaxLines="1"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding !VerifyMessageIsError}" />
+                <TextBlock Text="{Binding VerifyMessage}"
+                           FontSize="{StaticResource SecondaryFontSize}"
+                           Foreground="{StaticResource ValidationErrorBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           MaxLines="1"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding VerifyMessageIsError}" />
+            </StackPanel>
+            <!-- Right: dialog buttons. Inline Margin="0" overrides the class's top
+                 margin since the outer Grid supplies the spacing. Disabled while
+                 verifying so Cancel + Save both lock out — the verify row is the
+                 only interactive element until borg completes. -->
+            <StackPanel Grid.Column="1" Classes="dialog-buttons"
+                        Margin="0" VerticalAlignment="Center"
+                        IsEnabled="{Binding !IsVerifying}">
+                <Button Content="{Binding [Cancel], Source={x:Static loc:Strings.Instance}}" Name="CancelButton" />
+                <Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}" Classes="accent" />
+            </StackPanel>
+        </Grid>
+
+        <TabControl IsEnabled="{Binding !IsVerifying}">
+            <!-- General tab -->
+            <TabItem Header="{Binding [General], Source={x:Static loc:Strings.Instance}}">
+                <ScrollViewer Margin="0,8,0,0">
+                    <StackPanel Spacing="{StaticResource FormSpacing}">
+                        <Grid ColumnDefinitions="*,16,*">
+                            <StackPanel Grid.Column="0" Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [RepositoryName], Source={x:Static loc:Strings.Instance}}" />
+                                <TextBox Name="NameInput" Text="{Binding Name}"
+                                         PlaceholderText="{Binding [WatermarkRepoName], Source={x:Static loc:Strings.Instance}}" />
+                                <TextBlock Text="{Binding NameError}" FontSize="{StaticResource ValidationFontSize}"
+                                           Foreground="{StaticResource ValidationErrorBrush}"
+                                           IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [ArchiveNamePrefix], Source={x:Static loc:Strings.Instance}}" />
+                                <TextBox Text="{Binding ArchiveNamePrefix}" PlaceholderText="{Binding Name}" />
+                                <TextBlock
+                                    Text="{Binding [ArchiveNamePrefix.Hint], Source={x:Static loc:Strings.Instance}}"
+                                    FontSize="{StaticResource SecondaryFontSize}"
+                                    Foreground="{DynamicResource SecondaryTextBrush}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding ShowBorgVersionSelection}">
+                            <TextBlock Text="{Binding [BorgVersion], Source={x:Static loc:Strings.Instance}}" />
+                            <ComboBox ItemsSource="{Binding BorgVersions}"
+                                      SelectedItem="{Binding BorgVersion}"
+                                      HorizontalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="{StaticResource FieldSpacing}">
+                            <TextBlock Text="{Binding [Location], Source={x:Static loc:Strings.Instance}}" />
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <RadioButton Content="{Binding [Local], Source={x:Static loc:Strings.Instance}}"
+                                             IsChecked="{Binding IsLocal}" GroupName="RepoType" />
+                                <RadioButton Content="{Binding [SSH], Source={x:Static loc:Strings.Instance}}"
+                                             IsChecked="{Binding IsSsh}" GroupName="RepoType" />
+                                <RadioButton Content="{Binding [BorgUrl], Source={x:Static loc:Strings.Instance}}"
+                                             IsChecked="{Binding IsBorgUrlLocation}" GroupName="RepoType"
+                                             IsVisible="{Binding CanUseBorgUrl}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- SSH connection fields -->
+                        <StackPanel Spacing="{StaticResource FormSpacing}"
+                                    IsVisible="{Binding IsSsh}">
+
+                            <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
+                                <StackPanel Grid.Column="0" Spacing="{StaticResource FieldSpacing}">
+                                    <TextBlock Text="{Binding [SshHost], Source={x:Static loc:Strings.Instance}}" />
+                                    <TextBox Text="{Binding SshHost}"
+                                             PlaceholderText="{Binding [WatermarkSshHost], Source={x:Static loc:Strings.Instance}}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="{StaticResource FieldSpacing}" Margin="8,0,0,0"
+                                            Width="80">
+                                    <TextBlock Text="{Binding [SshPort], Source={x:Static loc:Strings.Instance}}" />
+                                    <NumericUpDown Value="{Binding SshPort}" Minimum="1" Maximum="65535"
+                                                   Increment="1" FormatString="0" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="{StaticResource FieldSpacing}" Margin="8,0,0,0"
+                                            Width="100">
+                                    <TextBlock Text="{Binding [SshUser], Source={x:Static loc:Strings.Instance}}" />
+                                    <TextBox Text="{Binding SshUser}"
+                                             PlaceholderText="{Binding [WatermarkSshUser], Source={x:Static loc:Strings.Instance}}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <StackPanel Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [SshKeyPath], Source={x:Static loc:Strings.Instance}}" />
+                                <DockPanel>
+                                    <Button Content="{Binding [Browse], Source={x:Static loc:Strings.Instance}}"
+                                            Command="{Binding BrowseSshKeyCommand}" DockPanel.Dock="Right"
+                                            Margin="8,0,0,0" />
+                                    <TextBox Text="{Binding SshKeyPath}"
+                                             PlaceholderText="{Binding [WatermarkSshKey], Source={x:Static loc:Strings.Instance}}" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding SshKeyError}" FontSize="{StaticResource ValidationFontSize}"
+                                           Foreground="{StaticResource ValidationErrorBrush}"
+                                           IsVisible="{Binding SshKeyError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Repository path -->
+                        <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding !IsBorgUrlLocation}">
+                            <TextBlock Text="{Binding [RepositoryPath], Source={x:Static loc:Strings.Instance}}" />
+                            <DockPanel>
+                                <Button Content="{Binding [Browse], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding BrowseRepoPathCommand}" DockPanel.Dock="Right"
+                                        Margin="8,0,0,0"
+                                        IsVisible="{Binding IsLocal}" />
+                                <TextBox Text="{Binding RepoPath}"
+                                         PlaceholderText="{Binding [WatermarkRepoPath], Source={x:Static loc:Strings.Instance}}" />
+                            </DockPanel>
+                            <TextBlock Text="{Binding PathError}" FontSize="{StaticResource ValidationFontSize}"
+                                       Foreground="{StaticResource ValidationErrorBrush}"
+                                       IsVisible="{Binding PathError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding IsBorgUrlLocation}">
+                            <TextBlock Text="{Binding [BorgUrl], Source={x:Static loc:Strings.Instance}}" />
+                            <TextBox Text="{Binding BorgUrl}"
+                                     PlaceholderText="{Binding [WatermarkBorgUrl], Source={x:Static loc:Strings.Instance}}" />
+                            <TextBlock Text="{Binding PathError}" FontSize="{StaticResource ValidationFontSize}"
+                                       Foreground="{StaticResource ValidationErrorBrush}"
+                                       IsVisible="{Binding PathError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+
+            <!-- Source Folders tab -->
+            <TabItem Header="{Binding [SourceDirectories], Source={x:Static loc:Strings.Instance}}">
+                <DockPanel Margin="0,8,0,0">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
+                        <controls:ToolbarButton Icon="FolderPlus"
+                                                Label="{Binding [Add], Source={x:Static loc:Strings.Instance}}"
+                                                Command="{Binding BrowseSourceDirectoriesCommand}" />
+                        <controls:ToolbarButton Icon="Trash"
+                                                Label="{Binding [Remove], Source={x:Static loc:Strings.Instance}}"
+                                                Command="{Binding RemoveSourceDirectoryCommand}"
+                                                CommandParameter="{Binding SelectedDirectory}"
+                                                IsEnabled="{Binding SelectedDirectory, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding SourceDirectories}"
+                             SelectedItem="{Binding SelectedDirectory}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <ItemsControl
+                                    ItemsSource="{Binding Converter={x:Static conv:PathToBreadcrumbConverter.Instance}}"
+                                    Margin="2,2">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="0" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="conv:PathSegment">
+                                            <StackPanel Orientation="Horizontal" Spacing="0">
+                                                <controls:BootstrapIcon Kind="FolderFill" Width="12" Height="12"
+                                                                        VerticalAlignment="Center" Margin="0,0,3,0"
+                                                                        Foreground="{DynamicResource SecondaryTextBrush}" />
+                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                                           FontSize="12" />
+                                                <TextBlock Text=" › " VerticalAlignment="Center" FontSize="12"
+                                                           Foreground="{DynamicResource SecondaryTextBrush}"
+                                                           IsVisible="{Binding HasSeparator}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </TabItem>
+
+            <!-- Schedule tab -->
+            <TabItem Header="{Binding [Schedule], Source={x:Static loc:Strings.Instance}}">
+                <ScrollViewer Margin="0,8,0,0">
+                    <StackPanel Spacing="{StaticResource FormSpacing}">
+                        <!-- Mode selector -->
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <RadioButton Content="{Binding [Mode.Manual], Source={x:Static loc:Strings.Instance}}"
+                                         IsChecked="{Binding !IsScheduled}"
+                                         GroupName="BackupMode" />
+                            <RadioButton Content="{Binding [Mode.Scheduled], Source={x:Static loc:Strings.Instance}}"
+                                         IsChecked="{Binding IsScheduled}"
+                                         GroupName="BackupMode" />
+                        </StackPanel>
+
+                        <!-- Schedule options (visible when Scheduled) -->
+                        <StackPanel Orientation="Horizontal" Spacing="12" IsVisible="{Binding IsScheduled}">
+                            <!-- Frequency -->
+                            <StackPanel Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [Frequency], Source={x:Static loc:Strings.Instance}}" />
+                                <ComboBox ItemsSource="{Binding Frequencies}"
+                                          SelectedItem="{Binding SelectedFrequency}" MinWidth="140">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Text="{Binding Converter={x:Static conv:FrequencyToStringConverter.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- Hour:Minute (for Daily, Weekly, Monthly) -->
+                            <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding ShowHourMinute}">
+                                <TextBlock Text="{Binding [Time], Source={x:Static loc:Strings.Instance}}" />
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <NumericUpDown Value="{Binding ScheduleHour}" Minimum="0" Maximum="23" Width="64"
+                                                   FormatString="00" />
+                                    <TextBlock Text=":" VerticalAlignment="Center" FontWeight="Bold" />
+                                    <NumericUpDown Value="{Binding ScheduleMinute}" Minimum="0" Maximum="59" Width="64"
+                                                   FormatString="00" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Interval (for EveryNHours) -->
+                            <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding ShowInterval}">
+                                <TextBlock Text="{Binding [RunEveryHours], Source={x:Static loc:Strings.Instance}}" />
+                                <NumericUpDown Value="{Binding IntervalHours}" Minimum="1" Maximum="24" Width="64"
+                                               HorizontalAlignment="Left" />
+                            </StackPanel>
+
+                            <!-- Day of week (for Weekly) -->
+                            <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding ShowDayOfWeek}">
+                                <TextBlock Text="{Binding [DayOfWeek], Source={x:Static loc:Strings.Instance}}" />
+                                <ComboBox ItemsSource="{Binding DaysOfWeek}"
+                                          SelectedItem="{Binding SelectedDayOfWeek}" MinWidth="140">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Text="{Binding Converter={x:Static conv:DayOfWeekToStringConverter.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- Day of month (for Monthly) -->
+                            <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding ShowDayOfMonth}">
+                                <TextBlock Text="{Binding [DayOfMonth], Source={x:Static loc:Strings.Instance}}" />
+                                <NumericUpDown Value="{Binding ScheduleDayOfMonth}" Minimum="1" Maximum="28" Width="64"
+                                               HorizontalAlignment="Left" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <CheckBox Content="{Binding [Schedule.RunMissed], Source={x:Static loc:Strings.Instance}}"
+                                  IsChecked="{Binding RunMissed}"
+                                  IsVisible="{Binding IsScheduled}" />
+
+                        <CheckBox
+                            Content="{Binding [Schedule.RunPruneAfterBackup], Source={x:Static loc:Strings.Instance}}"
+                            IsChecked="{Binding RunPruneAfterBackup}"
+                            IsVisible="{Binding IsScheduled}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Prune tab -->
+            <TabItem Header="{Binding [Prune], Source={x:Static loc:Strings.Instance}}">
+                <ScrollViewer Margin="0,8,0,0">
+                    <StackPanel Spacing="{StaticResource FormSpacing}">
+                        <TextBlock Text="{Binding [Prune.Help], Source={x:Static loc:Strings.Instance}}"
+                                   TextWrapping="Wrap"
+                                   FontSize="{StaticResource SecondaryFontSize}"
+                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                            <CheckBox Grid.Row="0" Grid.Column="0"
+                                      IsChecked="{Binding KeepLastEnabled}"
+                                      Content="{Binding [Prune.KeepLast], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Row="0" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepLast}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepLastEnabled}" />
+
+                            <CheckBox Grid.Row="1" Grid.Column="0"
+                                      IsChecked="{Binding KeepHourlyEnabled}"
+                                      Content="{Binding [Prune.KeepHourly], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Row="1" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepHourly}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepHourlyEnabled}" />
+
+                            <CheckBox Grid.Row="2" Grid.Column="0"
+                                      IsChecked="{Binding KeepDailyEnabled}"
+                                      Content="{Binding [Prune.KeepDaily], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Row="2" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepDaily}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepDailyEnabled}" />
+
+                            <CheckBox Grid.Row="3" Grid.Column="0"
+                                      IsChecked="{Binding KeepWeeklyEnabled}"
+                                      Content="{Binding [Prune.KeepWeekly], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Row="3" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepWeekly}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepWeeklyEnabled}" />
+
+                            <CheckBox Grid.Row="4" Grid.Column="0"
+                                      IsChecked="{Binding KeepMonthlyEnabled}"
+                                      Content="{Binding [Prune.KeepMonthly], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Row="4" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepMonthly}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepMonthlyEnabled}" />
+
+                            <CheckBox Grid.Row="5" Grid.Column="0"
+                                      IsChecked="{Binding KeepYearlyEnabled}"
+                                      Content="{Binding [Prune.KeepYearly], Source={x:Static loc:Strings.Instance}}"
+                                      VerticalAlignment="Center" />
+                            <NumericUpDown Grid.Row="5" Grid.Column="1" Width="120"
+                                           Value="{Binding KeepYearly}" Minimum="1" Increment="1" FormatString="0"
+                                           IsEnabled="{Binding KeepYearlyEnabled}" />
+                        </Grid>
+
+                        <CheckBox Content="{Binding [Prune.CompactAfter], Source={x:Static loc:Strings.Instance}}"
+                                  IsChecked="{Binding CompactAfterPrune}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Advanced tab -->
+            <TabItem Header="{Binding [Advanced], Source={x:Static loc:Strings.Instance}}">
+                <ScrollViewer Margin="0,8,0,0">
+                    <StackPanel Spacing="{StaticResource FormSpacing}">
+                        <!-- Borg Remote Path (SSH only) -->
+                        <StackPanel Spacing="{StaticResource FieldSpacing}"
+                                    IsVisible="{Binding ShowRemoteBorgPathOptions}">
+                            <TextBlock Text="{Binding [BorgRemotePath], Source={x:Static loc:Strings.Instance}}" />
+                            <TextBox Text="{Binding BorgRemotePath}"
+                                     PlaceholderText="{Binding [WatermarkBorgRemotePath], Source={x:Static loc:Strings.Instance}}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding ShowBorg1EncryptionMode}">
+                            <TextBlock Text="{Binding [BorgEncryptionMode], Source={x:Static loc:Strings.Instance}}" />
+                            <ComboBox ItemsSource="{Binding BorgEncryptionModes}"
+                                      SelectedItem="{Binding EncryptionMode}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            Text="{Binding Converter={x:Static conv:EnumToBorgStringConverter.Instance}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding ShowBorg2EncryptionMode}">
+                            <TextBlock Text="{Binding [BorgEncryptionMode], Source={x:Static loc:Strings.Instance}}" />
+                            <ComboBox ItemsSource="{Binding Borg2EncryptionModes}"
+                                      SelectedItem="{Binding Borg2EncryptionMode}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            Text="{Binding Converter={x:Static conv:EnumToBorgStringConverter.Instance}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Spacing="{StaticResource FieldSpacing}">
+                            <TextBlock Text="{Binding [RateLimit], Source={x:Static loc:Strings.Instance}}" />
+                            <NumericUpDown Value="{Binding RateLimit}" Minimum="0" Increment="100"
+                                           FormatString="0" Width="150" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

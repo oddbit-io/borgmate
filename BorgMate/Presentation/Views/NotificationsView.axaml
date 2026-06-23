@@ -1,0 +1,133 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:BorgMate.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:BorgMate.Presentation.ViewModels"
+             xmlns:controls="clr-namespace:BorgMate.Presentation.Controls"
+             xmlns:conv="clr-namespace:BorgMate.Presentation.Converters"
+             xmlns:journal="clr-namespace:BorgMate.Domain.Journal"
+             mc:Ignorable="d" d:DesignWidth="650" d:DesignHeight="500"
+             x:Class="BorgMate.Presentation.Views.NotificationsView"
+             x:DataType="viewModels:NotificationsViewModel">
+
+    <DockPanel>
+        <!-- List header -->
+        <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
+                Padding="8,6"
+                MinHeight="32">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Command="{Binding ClearCompletedCommand}"
+                        Background="Transparent" BorderThickness="0" Padding="4,2"
+                        MinWidth="0" MinHeight="0" Cursor="Hand"
+                        IsVisible="{Binding Items.Count}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <controls:BootstrapIcon Kind="Trash" Width="12" Height="12"
+                                                Foreground="{DynamicResource SecondaryTextBrush}" />
+                        <TextBlock Text="{Binding [ClearAll], Source={x:Static loc:Strings.Instance}}"
+                                   FontSize="{StaticResource SecondaryFontSize}"
+                                   Foreground="{DynamicResource SecondaryTextBrush}" />
+                    </StackPanel>
+                </Button>
+                <TextBlock Text="{Binding [Notifications], Source={x:Static loc:Strings.Instance}}"
+                           FontWeight="SemiBold"
+                           FontSize="{StaticResource SecondaryFontSize}"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+
+        <!-- Notification detail panel (bottom, hidden when list is empty) -->
+        <Border DockPanel.Dock="Bottom"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
+                Height="140"
+                IsVisible="{Binding Items.Count}">
+            <Panel>
+                <TextBlock Text="{Binding [SelectNotificationDetail], Source={x:Static loc:Strings.Instance}}"
+                           Classes="placeholder"
+                           IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNull}}" />
+                <ScrollViewer Margin="12,8" VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Spacing="4">
+                        <DockPanel>
+                            <controls:BootstrapIcon DockPanel.Dock="Left" Width="16" Height="16"
+                                                    Margin="0,2,8,0" VerticalAlignment="Top"
+                                                    Kind="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToIconConverter.Instance}}"
+                                                    Foreground="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}" />
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Text="{Binding SelectedItem.Entry, Converter={x:Static conv:JournalTitleConverter.Instance}}"
+                                    FontWeight="SemiBold"
+                                    TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding SelectedItem.RepositoryName}" Classes="secondary"
+                                               IsVisible="{Binding SelectedItem.RepositoryName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    <TextBlock Text="·" Classes="secondary"
+                                               IsVisible="{Binding SelectedItem.RepositoryName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    <TextBlock
+                                        Text="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalResultConverter.Instance}}"
+                                        Classes="secondary"
+                                        Foreground="{Binding SelectedItem.DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}" />
+                                    <TextBlock Text="·" Classes="secondary" />
+                                    <TextBlock
+                                        Text="{Binding SelectedItem.DisplayTime, Converter={x:Static conv:RelativeTimeConverter.Instance}}"
+                                        Classes="secondary" />
+                                </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+                        <TextBlock Text="{Binding SelectedItem.Detail}"
+                                   TextWrapping="Wrap"
+                                   FontSize="{StaticResource SecondaryFontSize}"
+                                   IsVisible="{Binding SelectedItem.Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Panel>
+        </Border>
+
+        <Panel>
+            <!-- Empty state -->
+            <TextBlock Text="{Binding [NoNotifications], Source={x:Static loc:Strings.Instance}}"
+                       Classes="placeholder" IsVisible="{Binding !Items.Count}" />
+
+            <!-- Notifications list -->
+            <ListBox ItemsSource="{Binding Items}"
+                     IsVisible="{Binding Items.Count}"
+                     SelectedItem="{Binding SelectedItem}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="journal:NotificationItem">
+                        <DockPanel Margin="8,4" MinHeight="30">
+                            <!-- Result icon -->
+                            <controls:BootstrapIcon Width="18" Height="18"
+                                                    DockPanel.Dock="Left" VerticalAlignment="Center" Margin="4,0,14,0"
+                                                    Kind="{Binding DisplayResult, Converter={x:Static conv:JournalEntryTypeToIconConverter.Instance}}"
+                                                    Foreground="{Binding DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}" />
+
+                            <!-- Relative time + result -->
+                            <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0,0,0">
+                                <TextBlock
+                                    Text="{Binding DisplayTime, Converter={x:Static conv:RelativeTimeConverter.Instance}}"
+                                    Classes="secondary" HorizontalAlignment="Right" />
+                                <TextBlock
+                                    Text="{Binding DisplayResult, Converter={x:Static conv:JournalResultConverter.Instance}}"
+                                    Classes="secondary" HorizontalAlignment="Right"
+                                    Foreground="{Binding DisplayResult, Converter={x:Static conv:JournalEntryTypeToColorConverter.Instance}}" />
+                            </StackPanel>
+
+                            <!-- Title + detail -->
+                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                <TextBlock
+                                    Text="{Binding Entry, Converter={x:Static conv:JournalTitleConverter.Instance}}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding Detail}" Classes="secondary"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxLines="1"
+                                           IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            </StackPanel>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Panel>
+    </DockPanel>
+</UserControl>

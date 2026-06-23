@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:BorgMate.Localization"
+        mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="280"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        x:Class="BorgMate.Presentation.Views.RestoreOptionsWindow"
+        Title="{Binding [RestoreOptions.Title], Source={x:Static loc:Strings.Instance}}"
+        Width="420"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="{StaticResource ModalPadding}" LastChildFill="True">
+        <StackPanel Classes="dialog-buttons" DockPanel.Dock="Bottom">
+            <Button Content="{Binding [Cancel], Source={x:Static loc:Strings.Instance}}" Name="CancelButton" />
+            <Button Content="{Binding [Restore], Source={x:Static loc:Strings.Instance}}" Name="RestoreButton"
+                    Classes="accent" />
+        </StackPanel>
+
+        <StackPanel Spacing="12">
+            <TextBlock Text="{Binding [RestoreOptions.Message], Source={x:Static loc:Strings.Instance}}"
+                       TextWrapping="Wrap" />
+
+            <GroupBox Header="{Binding [RestoreOptions.Group.Metadata], Source={x:Static loc:Strings.Instance}}">
+                <StackPanel Spacing="8">
+                    <CheckBox Name="NoFlagsCheck"
+                              Content="{Binding [RestoreOptions.NoFlags], Source={x:Static loc:Strings.Instance}}" />
+                    <CheckBox Name="NoAclsCheck"
+                              Content="{Binding [RestoreOptions.NoAcls], Source={x:Static loc:Strings.Instance}}" />
+                    <CheckBox Name="NoXattrsCheck"
+                              Content="{Binding [RestoreOptions.NoXattrs], Source={x:Static loc:Strings.Instance}}" />
+                    <CheckBox Name="SparseCheck"
+                              Content="{Binding [RestoreOptions.Sparse], Source={x:Static loc:Strings.Instance}}" />
+                </StackPanel>
+            </GroupBox>
+
+            <CheckBox Name="SaveAsDefaultCheck"
+                      Content="{Binding [RestoreOptions.SaveAsDefault], Source={x:Static loc:Strings.Instance}}" />
+        </StackPanel>
+    </DockPanel>
+</Window>

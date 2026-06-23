@@ -1,886 +1,969 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter</value></resheader>
-  <data name="AppTitle" xml:space="preserve">
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter</value>
+    </resheader>
+    <data name="AppTitle" xml:space="preserve">
     <value>BorgMate</value>
   </data>
-  <data name="Quit" xml:space="preserve">
+    <data name="Quit" xml:space="preserve">
     <value>Quit</value>
   </data>
-  <data name="OpenBorgMate" xml:space="preserve">
+    <data name="OpenBorgMate" xml:space="preserve">
     <value>Open BorgMate</value>
   </data>
-  <data name="Save" xml:space="preserve">
+    <data name="Save" xml:space="preserve">
     <value>Save</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
+    <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="Close" xml:space="preserve">
+    <data name="Close" xml:space="preserve">
     <value>Close</value>
   </data>
-  <data name="Create" xml:space="preserve">
+    <data name="Create" xml:space="preserve">
     <value>Create</value>
   </data>
-  <data name="Check" xml:space="preserve">
+    <data name="Check" xml:space="preserve">
     <value>Check</value>
   </data>
-  <data name="Browse" xml:space="preserve">
+    <data name="Browse" xml:space="preserve">
     <value>Browse...</value>
   </data>
-  <data name="Add" xml:space="preserve">
+    <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
-  <data name="Edit" xml:space="preserve">
+    <data name="Edit" xml:space="preserve">
     <value>Edit</value>
   </data>
-  <data name="Remove" xml:space="preserve">
+    <data name="Remove" xml:space="preserve">
     <value>Remove</value>
   </data>
-  <data name="Duplicate" xml:space="preserve">
+    <data name="Duplicate" xml:space="preserve">
     <value>Duplicate</value>
   </data>
-  <data name="Duplicate.NameCopy" xml:space="preserve">
+    <data name="Duplicate.NameCopy" xml:space="preserve">
     <value>{0} (Copy)</value>
   </data>
-  <data name="Duplicate.NameCopyN" xml:space="preserve">
+    <data name="Duplicate.NameCopyN" xml:space="preserve">
     <value>{0} (Copy {1})</value>
   </data>
-  <data name="More" xml:space="preserve">
+    <data name="More" xml:space="preserve">
     <value>More</value>
   </data>
-  <data name="Run" xml:space="preserve">
+    <data name="Run" xml:space="preserve">
     <value>Run</value>
   </data>
-  <data name="Backup" xml:space="preserve">
+    <data name="Backup" xml:space="preserve">
     <value>Backup</value>
   </data>
-  <data name="Refresh" xml:space="preserve">
+    <data name="Refresh" xml:space="preserve">
     <value>Refresh</value>
   </data>
-  <data name="RestoreTo" xml:space="preserve">
+    <data name="RestoreTo" xml:space="preserve">
     <value>Restore to...</value>
   </data>
-  <data name="Prune" xml:space="preserve">
+    <data name="Prune" xml:space="preserve">
     <value>Prune</value>
   </data>
-  <data name="Schedule.RunPruneAfterBackup" xml:space="preserve">
+    <data name="Schedule.RunPruneAfterBackup" xml:space="preserve">
     <value>Prune after each backup</value>
   </data>
-  <data name="Prune.Help" xml:space="preserve">
+    <data name="Prune.Help" xml:space="preserve">
     <value>Prune removes archives that no longer fit these retention rules. Enable a rule and set a count to keep that many of the most recent archives in the given interval. At least one rule must be enabled for prune to run.</value>
   </data>
-  <data name="Prune.KeepLast" xml:space="preserve">
+    <data name="Prune.KeepLast" xml:space="preserve">
     <value>Keep last (archives)</value>
   </data>
-  <data name="Prune.KeepHourly" xml:space="preserve">
+    <data name="Prune.KeepHourly" xml:space="preserve">
     <value>Keep hourly</value>
   </data>
-  <data name="Prune.KeepDaily" xml:space="preserve">
+    <data name="Prune.KeepDaily" xml:space="preserve">
     <value>Keep daily</value>
   </data>
-  <data name="Prune.KeepWeekly" xml:space="preserve">
+    <data name="Prune.KeepWeekly" xml:space="preserve">
     <value>Keep weekly</value>
   </data>
-  <data name="Prune.KeepMonthly" xml:space="preserve">
+    <data name="Prune.KeepMonthly" xml:space="preserve">
     <value>Keep monthly</value>
   </data>
-  <data name="Prune.KeepYearly" xml:space="preserve">
+    <data name="Prune.KeepYearly" xml:space="preserve">
     <value>Keep yearly</value>
   </data>
-  <data name="Prune.CompactAfter" xml:space="preserve">
+    <data name="Prune.CompactAfter" xml:space="preserve">
     <value>Compact repository after prune</value>
   </data>
-  <data name="Compact" xml:space="preserve">
+    <data name="Compact" xml:space="preserve">
     <value>Compact</value>
   </data>
-  <data name="Statistics" xml:space="preserve">
+    <data name="Statistics" xml:space="preserve">
     <value>Statistics</value>
   </data>
-  <data name="TotalSize" xml:space="preserve">
+    <data name="TotalSize" xml:space="preserve">
     <value>Repo size</value>
   </data>
-  <data name="TotalChunks" xml:space="preserve">
+    <data name="TotalChunks" xml:space="preserve">
     <value>Total chunks</value>
   </data>
-  <data name="UniqueChunks" xml:space="preserve">
+    <data name="UniqueChunks" xml:space="preserve">
     <value>Unique chunks</value>
   </data>
-  <data name="TotalArchives" xml:space="preserve">
+    <data name="TotalArchives" xml:space="preserve">
     <value>Archives</value>
   </data>
-  <data name="BytesB" xml:space="preserve">
+    <data name="BytesB" xml:space="preserve">
     <value>B</value>
   </data>
-  <data name="BytesKB.bin" xml:space="preserve">
+    <data name="BytesKB.bin" xml:space="preserve">
     <value>KiB</value>
   </data>
-  <data name="BytesMB.bin" xml:space="preserve">
+    <data name="BytesMB.bin" xml:space="preserve">
     <value>MiB</value>
   </data>
-  <data name="BytesGB.bin" xml:space="preserve">
+    <data name="BytesGB.bin" xml:space="preserve">
     <value>GiB</value>
   </data>
-  <data name="BytesTB.bin" xml:space="preserve">
+    <data name="BytesTB.bin" xml:space="preserve">
     <value>TiB</value>
   </data>
-  <data name="BytesKB.dec" xml:space="preserve">
+    <data name="BytesKB.dec" xml:space="preserve">
     <value>KB</value>
   </data>
-  <data name="BytesMB.dec" xml:space="preserve">
+    <data name="BytesMB.dec" xml:space="preserve">
     <value>MB</value>
   </data>
-  <data name="BytesGB.dec" xml:space="preserve">
+    <data name="BytesGB.dec" xml:space="preserve">
     <value>GB</value>
   </data>
-  <data name="BytesTB.dec" xml:space="preserve">
+    <data name="BytesTB.dec" xml:space="preserve">
     <value>TB</value>
   </data>
-  <data name="Notifications" xml:space="preserve">
+    <data name="Notifications" xml:space="preserve">
     <value>Notifications</value>
   </data>
-  <data name="ClearAll" xml:space="preserve">
+    <data name="ClearAll" xml:space="preserve">
     <value>Clear All</value>
   </data>
-  <data name="NoNotifications" xml:space="preserve">
+    <data name="NoNotifications" xml:space="preserve">
     <value>No notifications</value>
   </data>
-  <data name="NoOperations" xml:space="preserve">
+    <data name="NoOperations" xml:space="preserve">
     <value>No background operations</value>
   </data>
-  <data name="Notif.Backup" xml:space="preserve">
+    <data name="Notif.Backup" xml:space="preserve">
     <value>Backup &#x27;{0}&#x27;</value>
   </data>
-  <data name="Notif.Prune" xml:space="preserve">
+    <data name="Notif.Prune" xml:space="preserve">
     <value>Prune &#x27;{0}&#x27;</value>
   </data>
-  <data name="Notif.Check" xml:space="preserve">
+    <data name="Notif.Check" xml:space="preserve">
     <value>Check &#x27;{0}&#x27;</value>
   </data>
-  <data name="Notif.Compact" xml:space="preserve">
+    <data name="Notif.Compact" xml:space="preserve">
     <value>Compact &#x27;{0}&#x27;</value>
   </data>
-  <data name="Notif.Delete" xml:space="preserve">
+    <data name="Notif.Delete" xml:space="preserve">
     <value>Delete &#x27;{0}&#x27;</value>
   </data>
-  <data name="Notif.Create" xml:space="preserve">
+    <data name="Notif.Create" xml:space="preserve">
     <value>Create &#x27;{0}&#x27;</value>
   </data>
-  <data name="Notif.Restore" xml:space="preserve">
+    <data name="Notif.Restore" xml:space="preserve">
     <value>Restore &#x27;{0}&#x27;</value>
   </data>
-  <data name="Notif.PassphraseFailed" xml:space="preserve">
+    <data name="Notif.PassphraseFailed" xml:space="preserve">
     <value>Wrong passphrase for &#x27;{0}&#x27;</value>
   </data>
-  <data name="Notif.ChangePassphrase" xml:space="preserve">
+    <data name="Notif.ChangePassphrase" xml:space="preserve">
     <value>Change passphrase &#x27;{0}&#x27;</value>
   </data>
-  <data name="Job.Running" xml:space="preserve">
+    <data name="Job.Running" xml:space="preserve">
     <value>Running...</value>
   </data>
-  <data name="Job.Completed" xml:space="preserve">
+    <data name="Job.Completed" xml:space="preserve">
     <value>Completed</value>
   </data>
-  <data name="Job.Failed" xml:space="preserve">
+    <data name="Job.Failed" xml:space="preserve">
     <value>Failed</value>
   </data>
-  <data name="Job.Cancelled" xml:space="preserve">
+    <data name="Job.Cancelled" xml:space="preserve">
     <value>Cancelled</value>
   </data>
-  <data name="Job.Backup" xml:space="preserve">
+    <data name="Job.Backup" xml:space="preserve">
     <value>Backup</value>
   </data>
-  <data name="Job.Restore" xml:space="preserve">
+    <data name="Job.Restore" xml:space="preserve">
     <value>Restore</value>
   </data>
-  <data name="Job.Prune" xml:space="preserve">
+    <data name="Job.Prune" xml:space="preserve">
     <value>Prune</value>
   </data>
-  <data name="Job.Check" xml:space="preserve">
+    <data name="Job.Check" xml:space="preserve">
     <value>Check</value>
   </data>
-  <data name="Job.Compact" xml:space="preserve">
+    <data name="Job.Compact" xml:space="preserve">
     <value>Compact</value>
   </data>
-  <data name="Job.ChangePassphrase" xml:space="preserve">
+    <data name="Job.ChangePassphrase" xml:space="preserve">
     <value>Change passphrase</value>
   </data>
-  <data name="Job.ListArchives" xml:space="preserve">
+    <data name="Job.ListArchives" xml:space="preserve">
     <value>List archives</value>
   </data>
-  <data name="Job.ListContents" xml:space="preserve">
+    <data name="Job.ListContents" xml:space="preserve">
     <value>List contents</value>
   </data>
-  <data name="Job.Diff" xml:space="preserve">
+    <data name="Job.Diff" xml:space="preserve">
     <value>Compare archives</value>
   </data>
-  <data name="Job.Init" xml:space="preserve">
+    <data name="Job.Init" xml:space="preserve">
     <value>Init repository</value>
   </data>
-  <data name="Job.VerifyRepo" xml:space="preserve">
+    <data name="Job.VerifyRepo" xml:space="preserve">
     <value>Verify repository</value>
   </data>
-  <data name="Job.DeleteArchive" xml:space="preserve">
+    <data name="Job.DeleteArchive" xml:space="preserve">
     <value>Delete archive</value>
   </data>
-  <data name="Job.StartedAt" xml:space="preserve">
+    <data name="Job.StartedAt" xml:space="preserve">
     <value>Started at {0}</value>
   </data>
-  <data name="Job.CompletedIn" xml:space="preserve">
+    <data name="Job.CompletedIn" xml:space="preserve">
     <value>completed in {0}</value>
   </data>
-  <data name="Job.Left" xml:space="preserve">
+    <data name="Job.Left" xml:space="preserve">
     <value>left</value>
   </data>
-  <data name="SpeedPerSec" xml:space="preserve">
+    <data name="SpeedPerSec" xml:space="preserve">
     <value>s</value>
   </data>
-  <data name="ComingSoon" xml:space="preserve">
+    <data name="ComingSoon" xml:space="preserve">
     <value>Coming soon</value>
   </data>
-  <data name="Repositories" xml:space="preserve">
+    <data name="Repositories" xml:space="preserve">
     <value>Repositories</value>
   </data>
-  <data name="Archives" xml:space="preserve">
+    <data name="Archives" xml:space="preserve">
     <value>Archives</value>
   </data>
-  <data name="CreateNew" xml:space="preserve">
+    <data name="CreateNew" xml:space="preserve">
     <value>Create</value>
   </data>
-  <data name="OpenExisting" xml:space="preserve">
+    <data name="OpenExisting" xml:space="preserve">
     <value>Open</value>
   </data>
-  <data name="SelectRepoPrompt" xml:space="preserve">
+    <data name="SelectRepoPrompt" xml:space="preserve">
     <value>Select or add a repository to get started.</value>
   </data>
-  <data name="SelectRepoDetail" xml:space="preserve">
+    <data name="SelectRepoDetail" xml:space="preserve">
     <value>Select a repository</value>
   </data>
-  <data name="SelectArchiveDetail" xml:space="preserve">
+    <data name="SelectArchiveDetail" xml:space="preserve">
     <value>Select an archive</value>
   </data>
-  <data name="SelectNotificationDetail" xml:space="preserve">
+    <data name="SelectNotificationDetail" xml:space="preserve">
     <value>Select a notification</value>
   </data>
-  <data name="General" xml:space="preserve">
+    <data name="General" xml:space="preserve">
     <value>General</value>
   </data>
-  <data name="Advanced" xml:space="preserve">
+    <data name="Advanced" xml:space="preserve">
     <value>Advanced</value>
   </data>
-  <data name="CreateNewRepo" xml:space="preserve">
+    <data name="CreateNewRepo" xml:space="preserve">
     <value>Create New Repository</value>
   </data>
-  <data name="EditRepo" xml:space="preserve">
+    <data name="EditRepo" xml:space="preserve">
     <value>Edit Repository</value>
   </data>
-  <data name="OpenExistingRepo" xml:space="preserve">
+    <data name="OpenExistingRepo" xml:space="preserve">
     <value>Open Existing Repository</value>
   </data>
-  <data name="DuplicateRepo" xml:space="preserve">
+    <data name="DuplicateRepo" xml:space="preserve">
     <value>Duplicate Repository</value>
   </data>
-  <data name="Open" xml:space="preserve">
+    <data name="Open" xml:space="preserve">
     <value>Open</value>
   </data>
-  <data name="RepositoryName" xml:space="preserve">
+    <data name="RepositoryName" xml:space="preserve">
     <value>Repository Name</value>
   </data>
-  <data name="ArchiveNamePrefix" xml:space="preserve">
+    <data name="ArchiveNamePrefix" xml:space="preserve">
     <value>Archive Name Prefix</value>
   </data>
-  <data name="ArchiveNamePrefix.Hint" xml:space="preserve">
+    <data name="ArchiveNamePrefix.Hint" xml:space="preserve">
     <value>Optional. If empty, the repository name is used.</value>
   </data>
-  <data name="BorgVersion" xml:space="preserve">
+    <data name="BorgVersion" xml:space="preserve">
     <value>Borg Version</value>
   </data>
-  <data name="Location" xml:space="preserve">
+    <data name="Location" xml:space="preserve">
     <value>Location</value>
   </data>
-  <data name="Local" xml:space="preserve">
+    <data name="Local" xml:space="preserve">
     <value>Local</value>
   </data>
-  <data name="SSH" xml:space="preserve">
+    <data name="SSH" xml:space="preserve">
     <value>SSH</value>
   </data>
-  <data name="RepositoryPath" xml:space="preserve">
+    <data name="RepositoryPath" xml:space="preserve">
     <value>Repository Path</value>
   </data>
-  <data name="SshKeyPath" xml:space="preserve">
+    <data name="SshKeyPath" xml:space="preserve">
     <value>SSH Key Path</value>
   </data>
-  <data name="SshPort" xml:space="preserve">
+    <data name="SshPort" xml:space="preserve">
     <value>SSH Port</value>
   </data>
-  <data name="BorgRemotePath" xml:space="preserve">
+    <data name="BorgRemotePath" xml:space="preserve">
     <value>Borg Remote Path (optional)</value>
   </data>
-  <data name="BorgEncryptionMode" xml:space="preserve">
+    <data name="BorgEncryptionMode" xml:space="preserve">
     <value>Encryption Mode</value>
   </data>
-  <data name="RateLimit" xml:space="preserve">
+    <data name="RateLimit" xml:space="preserve">
     <value>Rate Limit (kB/s, 0 = unlimited)</value>
   </data>
-  <data name="SourceDirectories" xml:space="preserve">
+    <data name="SourceDirectories" xml:space="preserve">
     <value>Source Directories</value>
   </data>
-  <data name="AppSettings.Group.Startup" xml:space="preserve">
+    <data name="AppSettings.Group.Startup" xml:space="preserve">
     <value>Startup</value>
   </data>
-  <data name="AppSettings.Group.Notifications" xml:space="preserve">
+    <data name="AppSettings.Group.Notifications" xml:space="preserve">
     <value>Updates &amp; Notifications</value>
   </data>
   <data name="AppSettings.Group.AutoLoad" xml:space="preserve">
     <value>Auto-load</value>
   </data>
-  <data name="AppSettings.AutoLoadArchives" xml:space="preserve">
+    <data name="AppSettings.Group.Restore" xml:space="preserve">
+    <value>Restore defaults</value>
+  </data>
+    <data name="AppSettings.Tab.Data" xml:space="preserve">
+    <value>Data</value>
+  </data>
+    <data name="AppSettings.Group.Journal" xml:space="preserve">
+    <value>Journal</value>
+  </data>
+    <data name="AppSettings.Group.Display" xml:space="preserve">
+    <value>Display</value>
+  </data>
+    <data name="AppSettings.Group.Logging" xml:space="preserve">
+    <value>Logging</value>
+  </data>
+    <data name="AppSettings.AutoLoadArchives" xml:space="preserve">
     <value>Auto-load archive list on selection</value>
   </data>
-  <data name="AppSettings.AutoLoadStats" xml:space="preserve">
+    <data name="AppSettings.AutoLoadStats" xml:space="preserve">
     <value>Auto-load repository details on selection</value>
   </data>
-  <data name="AppSettings.AutoLoadArchiveDetails" xml:space="preserve">
+    <data name="AppSettings.AutoLoadArchiveDetails" xml:space="preserve">
     <value>Auto-load archive details on selection</value>
   </data>
-  <data name="ArchiveList.AutoLoadOffHint" xml:space="preserve">
+    <data name="ArchiveList.AutoLoadOffHint" xml:space="preserve">
     <value>Click Refresh to load the archive list.</value>
   </data>
-  <data name="Restore" xml:space="preserve">
+    <data name="Restore" xml:space="preserve">
     <value>Restore</value>
   </data>
-  <data name="BrowseRestore" xml:space="preserve">
+    <data name="BrowseRestore" xml:space="preserve">
     <value>Browse</value>
   </data>
-  <data name="BrowseArchiveTitle" xml:space="preserve">
+    <data name="BrowseArchiveTitle" xml:space="preserve">
     <value>Browse: {0}</value>
   </data>
-  <data name="BrowseArchive.ShowChanges" xml:space="preserve">
+    <data name="BrowseArchive.ShowChanges" xml:space="preserve">
     <value>Show Changes</value>
   </data>
-  <data name="BrowseArchive.DiffLoading" xml:space="preserve">
+    <data name="BrowseArchive.DiffLoading" xml:space="preserve">
     <value>Comparing with previous backup...</value>
   </data>
   <data name="RestoreSelected" xml:space="preserve">
     <value>Restore Selected To...</value>
   </data>
+    <data name="RestoreOptions.Title" xml:space="preserve">
+    <value>Restore Options</value>
+  </data>
+    <data name="RestoreOptions.Message" xml:space="preserve">
+    <value>Choose extract options for this restore.</value>
+  </data>
+    <data name="RestoreOptions.Group.Metadata" xml:space="preserve">
+    <value>File metadata</value>
+  </data>
+    <data name="RestoreOptions.NoFlags" xml:space="preserve">
+    <value>Do not restore file flags</value>
+  </data>
+    <data name="RestoreOptions.NoAcls" xml:space="preserve">
+    <value>Do not restore ACLs</value>
+  </data>
+    <data name="RestoreOptions.NoXattrs" xml:space="preserve">
+    <value>Do not restore extended attributes</value>
+  </data>
+    <data name="RestoreOptions.Sparse" xml:space="preserve">
+    <value>Create sparse files</value>
+  </data>
+    <data name="RestoreOptions.SaveAsDefault" xml:space="preserve">
+    <value>Save as default</value>
+  </data>
   <data name="LoadingContents" xml:space="preserve">
     <value>Loading archive contents...</value>
   </data>
-  <data name="SelectedFiles" xml:space="preserve">
+    <data name="SelectedFiles" xml:space="preserve">
     <value>{0} files</value>
   </data>
-  <data name="SelectedFilesWithSize" xml:space="preserve">
+    <data name="SelectedFilesWithSize" xml:space="preserve">
     <value>{0} files, {1}</value>
   </data>
-  <data name="NoFilesSelected" xml:space="preserve">
+    <data name="NoFilesSelected" xml:space="preserve">
     <value>No files selected</value>
   </data>
-  <data name="NameHeader" xml:space="preserve">
+    <data name="NameHeader" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="DateHeader" xml:space="preserve">
+    <data name="DateHeader" xml:space="preserve">
     <value>Date</value>
   </data>
-  <data name="OriginalSize" xml:space="preserve">
+    <data name="OriginalSize" xml:space="preserve">
     <value>Original size</value>
   </data>
-  <data name="Files" xml:space="preserve">
+    <data name="Files" xml:space="preserve">
     <value>Files</value>
   </data>
-  <data name="FetchDetails" xml:space="preserve">
+    <data name="FetchDetails" xml:space="preserve">
     <value>Fetch archive details</value>
   </data>
-  <data name="About" xml:space="preserve">
+    <data name="About" xml:space="preserve">
     <value>About</value>
   </data>
-  <data name="AppSettings" xml:space="preserve">
+    <data name="AppSettings" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="Language" xml:space="preserve">
+    <data name="Language" xml:space="preserve">
     <value>Language</value>
   </data>
-  <data name="Theme" xml:space="preserve">
+    <data name="Theme" xml:space="preserve">
     <value>Theme</value>
   </data>
   <data name="BorgBinaryPath" xml:space="preserve">
     <value>Borg Binary Path</value>
   </data>
-  <data name="BorgPathOverride" xml:space="preserve">
+    <data name="Borg1BinaryPath" xml:space="preserve">
+    <value>Borg 1 binary path</value>
+  </data>
+    <data name="Borg2BinaryPath" xml:space="preserve">
+    <value>Borg 2 binary path</value>
+  </data>
+    <data name="AppSettings.ExperimentalBorg2Support" xml:space="preserve">
+    <value>Enable experimental Borg 2 support</value>
+  </data>
+    <data name="BorgPathOverride" xml:space="preserve">
     <value>Borg binary path override</value>
   </data>
-  <data name="DetectedBorgPath" xml:space="preserve">
+    <data name="DetectedBorgPath" xml:space="preserve">
     <value>Auto-detected: {0}</value>
   </data>
-  <data name="CheckForUpdates" xml:space="preserve">
+    <data name="BorgPathNotDetected" xml:space="preserve">
+    <value>Auto-detected: not found</value>
+  </data>
+    <data name="CheckForUpdates" xml:space="preserve">
     <value>Check for updates on startup</value>
   </data>
-  <data name="ShowNotifications" xml:space="preserve">
+    <data name="ShowNotifications" xml:space="preserve">
     <value>Show system notifications</value>
   </data>
-  <data name="StartAtLogin" xml:space="preserve">
+    <data name="StartAtLogin" xml:space="preserve">
     <value>Start at login</value>
   </data>
-  <data name="StartMinimized" xml:space="preserve">
+    <data name="StartMinimized" xml:space="preserve">
     <value>Start minimized</value>
   </data>
-  <data name="BinaryUnits" xml:space="preserve">
+    <data name="BinaryUnits" xml:space="preserve">
     <value>Binary size units (KiB, MiB, GiB)</value>
   </data>
-  <data name="EnableLogging" xml:space="preserve">
+    <data name="EnableLogging" xml:space="preserve">
     <value>Enable debug logging</value>
   </data>
-  <data name="SshKeepAlive" xml:space="preserve">
+    <data name="SshKeepAlive" xml:space="preserve">
     <value>SSH keep-alive</value>
   </data>
-  <data name="SshKeepAliveInterval" xml:space="preserve">
+    <data name="SshKeepAliveInterval" xml:space="preserve">
     <value>Interval (sec)</value>
   </data>
-  <data name="SshKeepAliveCountMax" xml:space="preserve">
+    <data name="SshKeepAliveCountMax" xml:space="preserve">
     <value>Max retries</value>
   </data>
-  <data name="LogLevel" xml:space="preserve">
+    <data name="LogLevel" xml:space="preserve">
     <value>Log level</value>
   </data>
-  <data name="LogLevel.Debug" xml:space="preserve">
+    <data name="LogLevel.Debug" xml:space="preserve">
     <value>Debug</value>
   </data>
-  <data name="LogLevel.Info" xml:space="preserve">
+    <data name="LogLevel.Info" xml:space="preserve">
     <value>Info</value>
   </data>
-  <data name="LogLevel.Warning" xml:space="preserve">
+    <data name="LogLevel.Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="LogLevel.Error" xml:space="preserve">
+    <data name="LogLevel.Error" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="LogRetention" xml:space="preserve">
+    <data name="LogRetention" xml:space="preserve">
     <value>Log retention</value>
   </data>
-  <data name="LogRetentionPeriod" xml:space="preserve">
+    <data name="LogRetentionPeriod" xml:space="preserve">
     <value>Retention period</value>
   </data>
-  <data name="JournalRetention" xml:space="preserve">
+    <data name="JournalRetention" xml:space="preserve">
     <value>Journal retention</value>
   </data>
-  <data name="Retention.OneDay" xml:space="preserve">
+    <data name="Retention.OneDay" xml:space="preserve">
     <value>One day</value>
   </data>
-  <data name="Retention.OneWeek" xml:space="preserve">
+    <data name="Retention.OneWeek" xml:space="preserve">
     <value>One week</value>
   </data>
-  <data name="Retention.OneMonth" xml:space="preserve">
+    <data name="Retention.OneMonth" xml:space="preserve">
     <value>One month</value>
   </data>
-  <data name="Retention.OneYear" xml:space="preserve">
+    <data name="Retention.OneYear" xml:space="preserve">
     <value>One year</value>
   </data>
-  <data name="Retention.Forever" xml:space="preserve">
+    <data name="Retention.Forever" xml:space="preserve">
     <value>Forever</value>
   </data>
-  <data name="UpdateAvailable" xml:space="preserve">
+    <data name="UpdateAvailable" xml:space="preserve">
     <value>Update available: v{0}</value>
   </data>
-  <data name="UpdateTitle" xml:space="preserve">
+    <data name="UpdateTitle" xml:space="preserve">
     <value>Update Available</value>
   </data>
-  <data name="UpdateChangelogTitle" xml:space="preserve">
+    <data name="UpdateChangelogTitle" xml:space="preserve">
     <value>What&#x27;s new in v{0}</value>
   </data>
-  <data name="UpdateNoChangelog" xml:space="preserve">
+    <data name="UpdateNoChangelog" xml:space="preserve">
     <value>No changelog available.</value>
   </data>
-  <data name="UpdateDownload" xml:space="preserve">
+    <data name="UpdateDownload" xml:space="preserve">
     <value>Download</value>
   </data>
-  <data name="DownloadingUpdate" xml:space="preserve">
+    <data name="DownloadingUpdate" xml:space="preserve">
     <value>Downloading update...</value>
   </data>
-  <data name="RestartToUpdate" xml:space="preserve">
+    <data name="RestartToUpdate" xml:space="preserve">
     <value>Update downloaded. Restart now to apply?</value>
   </data>
-  <data name="PassphraseRequired" xml:space="preserve">
+    <data name="PassphraseRequired" xml:space="preserve">
     <value>Passphrase Required</value>
   </data>
-  <data name="EnterPassphraseFor" xml:space="preserve">
+    <data name="EnterPassphraseFor" xml:space="preserve">
     <value>Enter passphrase for &#x27;{0}&#x27;:</value>
   </data>
-  <data name="WrongPassphraseRetry" xml:space="preserve">
+    <data name="WrongPassphraseRetry" xml:space="preserve">
     <value>Wrong passphrase. Please try again:</value>
   </data>
-  <data name="SaveToKeychain" xml:space="preserve">
+    <data name="SaveToKeychain" xml:space="preserve">
     <value>Save to system keychain</value>
   </data>
-  <data name="SshAuthentication" xml:space="preserve">
+    <data name="SshAuthentication" xml:space="preserve">
     <value>SSH Authentication</value>
   </data>
-  <data name="SshKeyPassphraseRequired" xml:space="preserve">
+    <data name="SshKeyPassphraseRequired" xml:space="preserve">
     <value>SSH Key Passphrase</value>
   </data>
-  <data name="EnterSshKeyPassphrase" xml:space="preserve">
+    <data name="EnterSshKeyPassphrase" xml:space="preserve">
     <value>Enter passphrase for SSH key &#x27;{0}&#x27;:</value>
   </data>
-  <data name="WrongSshKeyPassphrase" xml:space="preserve">
+    <data name="WrongSshKeyPassphrase" xml:space="preserve">
     <value>Wrong SSH key passphrase. Please try again:</value>
   </data>
-  <data name="WatermarkSshKeyPassphrase" xml:space="preserve">
+    <data name="WatermarkSshKeyPassphrase" xml:space="preserve">
     <value>SSH key passphrase</value>
   </data>
-  <data name="EnterPassword" xml:space="preserve">
+    <data name="EnterPassword" xml:space="preserve">
     <value>Enter password</value>
   </data>
-  <data name="OK" xml:space="preserve">
+    <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="Schedule" xml:space="preserve">
+    <data name="Schedule" xml:space="preserve">
     <value>Schedule</value>
   </data>
-  <data name="ScheduleManualOnly" xml:space="preserve">
+    <data name="ScheduleManualOnly" xml:space="preserve">
     <value>Only manual backups are supported for now. Scheduling will be available in a future update.</value>
   </data>
-  <data name="Mode.Manual" xml:space="preserve">
+    <data name="Mode.Manual" xml:space="preserve">
     <value>Manual</value>
   </data>
-  <data name="Mode.Scheduled" xml:space="preserve">
+    <data name="Mode.Scheduled" xml:space="preserve">
     <value>Scheduled</value>
   </data>
-  <data name="Frequency" xml:space="preserve">
+    <data name="Frequency" xml:space="preserve">
     <value>Frequency</value>
   </data>
-  <data name="Time" xml:space="preserve">
+    <data name="Time" xml:space="preserve">
     <value>Time</value>
   </data>
-  <data name="DayOfWeek" xml:space="preserve">
+    <data name="DayOfWeek" xml:space="preserve">
     <value>Day of Week</value>
   </data>
-  <data name="DayOfMonth" xml:space="preserve">
+    <data name="DayOfMonth" xml:space="preserve">
     <value>Day of Month</value>
   </data>
-  <data name="RunEveryHours" xml:space="preserve">
+    <data name="RunEveryHours" xml:space="preserve">
     <value>Run every (hours)</value>
   </data>
-  <data name="Schedule.NextRun" xml:space="preserve">
+    <data name="Schedule.NextRun" xml:space="preserve">
     <value>Next run</value>
   </data>
-  <data name="Schedule.InTime" xml:space="preserve">
+    <data name="Schedule.InTime" xml:space="preserve">
     <value>in {0}</value>
   </data>
-  <data name="Schedule.Now" xml:space="preserve">
+    <data name="Schedule.Now" xml:space="preserve">
     <value>now</value>
   </data>
-  <data name="Schedule.RunMissed" xml:space="preserve">
+    <data name="Schedule.RunMissed" xml:space="preserve">
     <value>Run missed backups on startup</value>
   </data>
-  <data name="ScheduleEveryNHours" xml:space="preserve">
+    <data name="ScheduleEveryNHours" xml:space="preserve">
     <value>Every {0}</value>
   </data>
-  <data name="ScheduleDaily" xml:space="preserve">
+    <data name="ScheduleDaily" xml:space="preserve">
     <value>Daily at {0}</value>
   </data>
-  <data name="ScheduleWeekly" xml:space="preserve">
+    <data name="ScheduleWeekly" xml:space="preserve">
     <value>Every {0} at {1}</value>
   </data>
-  <data name="ScheduleMonthly" xml:space="preserve">
+    <data name="ScheduleMonthly" xml:space="preserve">
     <value>Day {0} of each month at {1}</value>
   </data>
-  <data name="Freq.EveryNHours" xml:space="preserve">
+    <data name="Freq.EveryNHours" xml:space="preserve">
     <value>Every N Hours</value>
   </data>
-  <data name="Freq.Daily" xml:space="preserve">
+    <data name="Freq.Daily" xml:space="preserve">
     <value>Daily</value>
   </data>
-  <data name="Freq.Weekly" xml:space="preserve">
+    <data name="Freq.Weekly" xml:space="preserve">
     <value>Weekly</value>
   </data>
-  <data name="Freq.Monthly" xml:space="preserve">
+    <data name="Freq.Monthly" xml:space="preserve">
     <value>Monthly</value>
   </data>
-  <data name="Dow.Sunday" xml:space="preserve">
+    <data name="Dow.Sunday" xml:space="preserve">
     <value>Sunday</value>
   </data>
-  <data name="Dow.Monday" xml:space="preserve">
+    <data name="Dow.Monday" xml:space="preserve">
     <value>Monday</value>
   </data>
-  <data name="Dow.Tuesday" xml:space="preserve">
+    <data name="Dow.Tuesday" xml:space="preserve">
     <value>Tuesday</value>
   </data>
-  <data name="Dow.Wednesday" xml:space="preserve">
+    <data name="Dow.Wednesday" xml:space="preserve">
     <value>Wednesday</value>
   </data>
-  <data name="Dow.Thursday" xml:space="preserve">
+    <data name="Dow.Thursday" xml:space="preserve">
     <value>Thursday</value>
   </data>
-  <data name="Dow.Friday" xml:space="preserve">
+    <data name="Dow.Friday" xml:space="preserve">
     <value>Friday</value>
   </data>
-  <data name="Dow.Saturday" xml:space="preserve">
+    <data name="Dow.Saturday" xml:space="preserve">
     <value>Saturday</value>
   </data>
-  <data name="Dow.Short.Sunday" xml:space="preserve">
+    <data name="Dow.Short.Sunday" xml:space="preserve">
     <value>Sun</value>
   </data>
-  <data name="Dow.Short.Monday" xml:space="preserve">
+    <data name="Dow.Short.Monday" xml:space="preserve">
     <value>Mon</value>
   </data>
-  <data name="Dow.Short.Tuesday" xml:space="preserve">
+    <data name="Dow.Short.Tuesday" xml:space="preserve">
     <value>Tue</value>
   </data>
-  <data name="Dow.Short.Wednesday" xml:space="preserve">
+    <data name="Dow.Short.Wednesday" xml:space="preserve">
     <value>Wed</value>
   </data>
-  <data name="Dow.Short.Thursday" xml:space="preserve">
+    <data name="Dow.Short.Thursday" xml:space="preserve">
     <value>Thu</value>
   </data>
-  <data name="Dow.Short.Friday" xml:space="preserve">
+    <data name="Dow.Short.Friday" xml:space="preserve">
     <value>Fri</value>
   </data>
-  <data name="Dow.Short.Saturday" xml:space="preserve">
+    <data name="Dow.Short.Saturday" xml:space="preserve">
     <value>Sat</value>
   </data>
-  <data name="WatermarkRepoName" xml:space="preserve">
+    <data name="WatermarkRepoName" xml:space="preserve">
     <value>My Backup Repo</value>
   </data>
-  <data name="SshHost" xml:space="preserve">
+    <data name="SshHost" xml:space="preserve">
     <value>Host</value>
   </data>
-  <data name="SshUser" xml:space="preserve">
+    <data name="SshUser" xml:space="preserve">
     <value>User</value>
   </data>
-  <data name="WatermarkSshHost" xml:space="preserve">
+    <data name="BorgUrl" xml:space="preserve">
+    <value>Borg URL</value>
+  </data>
+    <data name="WatermarkSshHost" xml:space="preserve">
     <value>e.g. backup.example.com</value>
   </data>
-  <data name="WatermarkSshUser" xml:space="preserve">
+    <data name="WatermarkSshUser" xml:space="preserve">
     <value>e.g. root</value>
   </data>
-  <data name="WatermarkRepoPath" xml:space="preserve">
+    <data name="WatermarkRepoPath" xml:space="preserve">
     <value>/path/to/repo</value>
   </data>
-  <data name="WatermarkSshKey" xml:space="preserve">
+    <data name="WatermarkBorgUrl" xml:space="preserve">
+    <value>ssh://user@host//path/to/repo</value>
+  </data>
+    <data name="WatermarkSshKey" xml:space="preserve">
     <value>~/.ssh/id_rsa</value>
   </data>
-  <data name="WatermarkBorgRemotePath" xml:space="preserve">
+    <data name="WatermarkBorgRemotePath" xml:space="preserve">
     <value>e.g. /usr/local/bin/borg</value>
   </data>
-  <data name="WatermarkSourceDir" xml:space="preserve">
+    <data name="WatermarkSourceDir" xml:space="preserve">
     <value>/path/to/dir</value>
   </data>
-  <data name="WatermarkBorgBinary" xml:space="preserve">
+    <data name="WatermarkBorgBinary" xml:space="preserve">
     <value>borg</value>
   </data>
-  <data name="WatermarkPassphrase" xml:space="preserve">
+    <data name="WatermarkPassphrase" xml:space="preserve">
     <value>Enter passphrase</value>
   </data>
-  <data name="ErrorTitle" xml:space="preserve">
+    <data name="ErrorTitle" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="Confirm" xml:space="preserve">
+    <data name="Confirm" xml:space="preserve">
     <value>Confirm</value>
   </data>
-  <data name="ConfirmClearJournal" xml:space="preserve">
+    <data name="ConfirmClearJournal" xml:space="preserve">
     <value>Clear all journal entries?</value>
   </data>
-  <data name="ConfirmDeleteRepo" xml:space="preserve">
+    <data name="ConfirmDeleteRepo" xml:space="preserve">
     <value>Remove repository &#x27;{0}&#x27; from the list?</value>
   </data>
-  <data name="RepoExistsOpenInstead" xml:space="preserve">
+    <data name="RepoExistsOpenInstead" xml:space="preserve">
     <value>A repository already exists at this path. Open it instead?</value>
   </data>
-  <data name="ValidationRequired" xml:space="preserve">
+    <data name="ValidationRequired" xml:space="preserve">
     <value>This field is required</value>
   </data>
-  <data name="ValidationSourceDirsRequired" xml:space="preserve">
+    <data name="ValidationSourceDirsRequired" xml:space="preserve">
     <value>At least one source directory is required</value>
   </data>
   <data name="ValidationIntervalRequired" xml:space="preserve">
     <value>Interval must be at least 1 hour</value>
   </data>
-  <data name="Status.BackupFailed" xml:space="preserve">
+    <data name="Validation.BorgUrlRequiresBorg2" xml:space="preserve">
+    <value>Borg URLs require Borg 2</value>
+  </data>
+    <data name="Validation.BorgUrlCredentials" xml:space="preserve">
+    <value>Do not include passwords or secret tokens in repository URLs</value>
+  </data>
+    <data name="Validation.BorgUrlUnsupported" xml:space="preserve">
+    <value>Use a supported Borg URL: ssh://, sftp://, file://, rest://, rclone:, s3:, or b2:</value>
+  </data>
+    <data name="Validation.BorgVersionUnknown" xml:space="preserve">
+    <value>Could not determine borg version from selected binary</value>
+  </data>
+    <data name="Validation.BorgVersionMismatch" xml:space="preserve">
+    <value>Selected borg binary does not match this repository's Borg version</value>
+  </data>
+    <data name="Validation.Borg2TooOld" xml:space="preserve">
+    <value>Borg 2.0.0b21 or newer is required for Borg 2 repositories</value>
+  </data>
+    <data name="Status.BackupFailed" xml:space="preserve">
     <value>Backup failed: {0}</value>
   </data>
-  <data name="Status.BackupRunning" xml:space="preserve">
+    <data name="Status.BackupRunning" xml:space="preserve">
     <value>Running backup &#x27;{0}&#x27;...</value>
   </data>
-  <data name="Status.CalculatingSize" xml:space="preserve">
+    <data name="Status.CalculatingSize" xml:space="preserve">
     <value>Calculating size...</value>
   </data>
-  <data name="Status.CalculatingSizeProgress" xml:space="preserve">
+    <data name="Status.CalculatingSizeProgress" xml:space="preserve">
     <value>{0} folders, {1} files ({2}) found so far</value>
   </data>
-  <data name="Status.BackupProgress" xml:space="preserve">
+    <data name="Status.BackupProgress" xml:space="preserve">
     <value>{0} of {1} files, {2} of {3}</value>
   </data>
-  <data name="Status.BackupComplete" xml:space="preserve">
+    <data name="Status.BackupComplete" xml:space="preserve">
     <value>Complete — {0} files, {1}</value>
   </data>
-  <data name="Status.CheckingVersion" xml:space="preserve">
+    <data name="Status.CheckingVersion" xml:space="preserve">
     <value>Checking borg version...</value>
   </data>
-  <data name="Status.BorgVersion" xml:space="preserve">
+    <data name="Status.BorgVersion" xml:space="preserve">
     <value>Borg version: {0}</value>
   </data>
-  <data name="Status.CheckingRemotePath" xml:space="preserve">
+    <data name="Status.CheckingRemotePath" xml:space="preserve">
     <value>Checking remote path...</value>
   </data>
-  <data name="Status.Found" xml:space="preserve">
+    <data name="Status.Found" xml:space="preserve">
     <value>Found: {0}</value>
   </data>
-  <data name="Status.InitializingRepo" xml:space="preserve">
+    <data name="Status.InitializingRepo" xml:space="preserve">
     <value>Initializing repository...</value>
   </data>
-  <data name="Status.VerifyingRepo" xml:space="preserve">
+    <data name="Status.VerifyingRepo" xml:space="preserve">
     <value>Verifying repository...</value>
   </data>
-  <data name="Status.RemotePathOk" xml:space="preserve">
+    <data name="Status.RemotePathOk" xml:space="preserve">
     <value>Remote path OK</value>
   </data>
-  <data name="Status.RepoInitialized" xml:space="preserve">
+    <data name="Status.RepoInitialized" xml:space="preserve">
     <value>Repository initialized at {0}</value>
   </data>
-  <data name="Status.InitFailed" xml:space="preserve">
+    <data name="Status.InitFailed" xml:space="preserve">
     <value>Init failed: {0}</value>
   </data>
-  <data name="Status.RepoOpened" xml:space="preserve">
+    <data name="Status.RepoOpened" xml:space="preserve">
     <value>Opened repository: {0}</value>
   </data>
-  <data name="Status.RepoRemoved" xml:space="preserve">
+    <data name="Status.RepoRemoved" xml:space="preserve">
     <value>Repository &#x27;{0}&#x27; removed.</value>
   </data>
-  <data name="Status.LoadingArchives" xml:space="preserve">
+    <data name="Status.LoadingArchives" xml:space="preserve">
     <value>Loading archives...</value>
   </data>
-  <data name="Status.ArchivesFound" xml:space="preserve">
+    <data name="Status.ArchivesFound" xml:space="preserve">
     <value>Found {0} archive(s).</value>
   </data>
-  <data name="Status.ArchiveListError" xml:space="preserve">
+    <data name="Status.ArchiveListError" xml:space="preserve">
     <value>Error listing archives: {0}</value>
   </data>
-  <data name="Status.DeletingArchive" xml:space="preserve">
+    <data name="Status.DeletingArchive" xml:space="preserve">
     <value>Deleting archive &#x27;{0}&#x27;...</value>
   </data>
-  <data name="Status.ArchiveDeleted" xml:space="preserve">
+    <data name="Status.ArchiveDeleted" xml:space="preserve">
     <value>Archive &#x27;{0}&#x27; deleted.</value>
   </data>
-  <data name="Status.ArchiveDeleteError" xml:space="preserve">
+    <data name="Status.ArchiveDeleteError" xml:space="preserve">
     <value>Error deleting archive: {0}</value>
   </data>
-  <data name="ConfirmQuitWithRunningTasks" xml:space="preserve">
+    <data name="ConfirmQuitWithRunningTasks" xml:space="preserve">
     <value>Tasks are still running. Cancel them and quit?</value>
   </data>
-  <data name="ConfirmPrune" xml:space="preserve">
+    <data name="ConfirmPrune" xml:space="preserve">
     <value>Prune repository &#x27;{0}&#x27;? This will remove old archives based on retention rules.</value>
   </data>
-  <data name="ConfirmCompact" xml:space="preserve">
+    <data name="ConfirmCompact" xml:space="preserve">
     <value>Compact repository &#x27;{0}&#x27;? This will reclaim unused space.</value>
   </data>
-  <data name="ConfirmCancelOperation" xml:space="preserve">
+    <data name="ConfirmCancelOperation" xml:space="preserve">
     <value>Cancel the running operation?</value>
   </data>
-  <data name="ConfirmDeleteArchive" xml:space="preserve">
+    <data name="ConfirmDeleteArchive" xml:space="preserve">
     <value>Delete archive &#x27;{0}&#x27;? This cannot be undone.</value>
   </data>
-  <data name="Delete" xml:space="preserve">
+    <data name="Delete" xml:space="preserve">
     <value>Delete</value>
   </data>
-  <data name="DeletingArchive" xml:space="preserve">
+    <data name="DeletingArchive" xml:space="preserve">
     <value>Deleting archive...</value>
   </data>
-  <data name="Status.Restoring" xml:space="preserve">
+    <data name="Status.Restoring" xml:space="preserve">
     <value>Restoring &#x27;{0}&#x27;...</value>
   </data>
-  <data name="Status.Pruning" xml:space="preserve">
+    <data name="Status.Pruning" xml:space="preserve">
     <value>Pruning &#x27;{0}&#x27;...</value>
   </data>
-  <data name="Status.Checking" xml:space="preserve">
+    <data name="Status.Checking" xml:space="preserve">
     <value>Checking &#x27;{0}&#x27;...</value>
   </data>
-  <data name="Status.CheckingProgress" xml:space="preserve">
+    <data name="Status.CheckingProgress" xml:space="preserve">
     <value>Checking integrity...</value>
   </data>
-  <data name="Status.CheckComplete" xml:space="preserve">
+    <data name="Status.CheckComplete" xml:space="preserve">
     <value>Check complete</value>
   </data>
-  <data name="Status.Compacting" xml:space="preserve">
+    <data name="Status.Compacting" xml:space="preserve">
     <value>Compacting &#x27;{0}&#x27;...</value>
   </data>
-  <data name="Status.CompactingProgress" xml:space="preserve">
+    <data name="Status.CompactingProgress" xml:space="preserve">
     <value>Compacting...</value>
   </data>
-  <data name="Status.CompactComplete" xml:space="preserve">
+    <data name="Status.CompactComplete" xml:space="preserve">
     <value>Compact complete</value>
   </data>
-  <data name="Status.ChangingPassphrase" xml:space="preserve">
+    <data name="Status.ChangingPassphrase" xml:space="preserve">
     <value>Changing passphrase for &#x27;{0}&#x27;...</value>
   </data>
-  <data name="ChangePassphrase" xml:space="preserve">
+    <data name="ChangePassphrase" xml:space="preserve">
     <value>Change Passphrase...</value>
   </data>
-  <data name="ChangePassphrase.Prompt" xml:space="preserve">
+    <data name="ChangePassphrase.Prompt" xml:space="preserve">
     <value>Enter a new passphrase for &#x27;{0}&#x27;. If you lose it, your backups will be unrecoverable.</value>
   </data>
-  <data name="ChangePassphrase.NewLabel" xml:space="preserve">
+    <data name="ChangePassphrase.NewLabel" xml:space="preserve">
     <value>New passphrase</value>
   </data>
-  <data name="ChangePassphrase.ConfirmLabel" xml:space="preserve">
+    <data name="ChangePassphrase.ConfirmLabel" xml:space="preserve">
     <value>Confirm new passphrase</value>
   </data>
-  <data name="ChangePassphrase.Mismatch" xml:space="preserve">
+    <data name="ChangePassphrase.Mismatch" xml:space="preserve">
     <value>Passphrases do not match.</value>
   </data>
-  <data name="Status.RestoreCompleted" xml:space="preserve">
+    <data name="Status.RestoreCompleted" xml:space="preserve">
     <value>Restore completed to {0}.</value>
   </data>
-  <data name="Status.RestoreFailed" xml:space="preserve">
+    <data name="Status.RestoreFailed" xml:space="preserve">
     <value>Restore failed: {0}</value>
   </data>
-  <data name="Status.NoRepoSelected" xml:space="preserve">
+    <data name="Status.NoRepoSelected" xml:space="preserve">
     <value>No repository selected.</value>
   </data>
-  <data name="Status.NoArchiveSelected" xml:space="preserve">
+    <data name="Status.NoArchiveSelected" xml:space="preserve">
     <value>Please select an archive.</value>
   </data>
-  <data name="Status.NoRestorePath" xml:space="preserve">
+    <data name="Status.NoRestorePath" xml:space="preserve">
     <value>Restore destination path is required.</value>
   </data>
-  <data name="Status.RetryingIn" xml:space="preserve">
+    <data name="Status.RetryingIn" xml:space="preserve">
     <value>Connection lost, retrying in {0}s...</value>
   </data>
-  <data name="Status.RetryAttempt" xml:space="preserve">
+    <data name="Status.RetryAttempt" xml:space="preserve">
     <value>Retry {0} of {1}...</value>
   </data>
-  <data name="Status.Error" xml:space="preserve">
+    <data name="Status.Error" xml:space="preserve">
     <value>Error: {0}</value>
   </data>
-  <data name="Theme.Auto" xml:space="preserve">
+    <data name="Theme.Auto" xml:space="preserve">
     <value>Auto</value>
   </data>
-  <data name="Theme.Light" xml:space="preserve">
+    <data name="Theme.Light" xml:space="preserve">
     <value>Light</value>
   </data>
-  <data name="Theme.Dark" xml:space="preserve">
+    <data name="Theme.Dark" xml:space="preserve">
     <value>Dark</value>
   </data>
-  <data name="Picker.SelectRepository" xml:space="preserve">
+    <data name="Picker.SelectRepository" xml:space="preserve">
     <value>Select Repository</value>
   </data>
-  <data name="Picker.SelectSshKey" xml:space="preserve">
+    <data name="Picker.SelectSshKey" xml:space="preserve">
     <value>Select SSH Key</value>
   </data>
-  <data name="Picker.SelectSourceDirs" xml:space="preserve">
+    <data name="Picker.SelectSourceDirs" xml:space="preserve">
     <value>Select Source Directories</value>
   </data>
-  <data name="Picker.SelectRestoreDest" xml:space="preserve">
+    <data name="Picker.SelectRestoreDest" xml:space="preserve">
     <value>Select Restore Destination</value>
   </data>
-  <data name="Error.SshHostKeyVerificationFailed" xml:space="preserve">
+    <data name="Error.SshHostKeyVerificationFailed" xml:space="preserve">
     <value>SSH host key verification failed.
 
 The remote host is not in your known_hosts file. Connect manually once to accept the host key:
   ssh &lt;user@host&gt;</value>
   </data>
-  <data name="Error.SshPermissionDenied" xml:space="preserve">
+    <data name="Error.SshPermissionDenied" xml:space="preserve">
     <value>SSH permission denied.
 
 Possible causes:
@@ -889,7 +972,7 @@ Possible causes:
   - Remote user does not have access
 Check the SSH key path and remote username in repository settings.</value>
   </data>
-  <data name="Error.SshConnectionRefused" xml:space="preserve">
+    <data name="Error.SshConnectionRefused" xml:space="preserve">
     <value>SSH connection refused.
 
 The remote host refused the connection. Check that:
@@ -899,7 +982,7 @@ The remote host refused the connection. Check that:
 
 Borg uses checkpoints during backup — re-running will resume from where it left off.</value>
   </data>
-  <data name="Error.SshConnectionTimedOut" xml:space="preserve">
+    <data name="Error.SshConnectionTimedOut" xml:space="preserve">
     <value>SSH connection timed out.
 
 The remote host did not respond. Check that:
@@ -909,21 +992,21 @@ The remote host did not respond. Check that:
 
 Borg uses checkpoints during backup — re-running will resume from where it left off.</value>
   </data>
-  <data name="Error.SshNoRouteToHost" xml:space="preserve">
+    <data name="Error.SshNoRouteToHost" xml:space="preserve">
     <value>SSH: no route to host.
 
 The remote host is unreachable. Check your network connection and verify the host address.
 
 Borg uses checkpoints during backup — re-running will resume from where it left off.</value>
   </data>
-  <data name="Error.SshHostnameNotFound" xml:space="preserve">
+    <data name="Error.SshHostnameNotFound" xml:space="preserve">
     <value>SSH: could not resolve hostname.
 
 The hostname could not be found. Check that:
   - The host address is spelled correctly
   - DNS is working (try pinging the host)</value>
   </data>
-  <data name="Error.SshConnectionReset" xml:space="preserve">
+    <data name="Error.SshConnectionReset" xml:space="preserve">
     <value>SSH connection closed by remote host.
 
 The remote server terminated the connection. Possible causes:
@@ -933,12 +1016,12 @@ The remote server terminated the connection. Possible causes:
 
 Borg uses checkpoints during backup — re-running will resume from where it left off.</value>
   </data>
-  <data name="Error.SshKeyFileNotFound" xml:space="preserve">
+    <data name="Error.SshKeyFileNotFound" xml:space="preserve">
     <value>SSH key file not found.
 
 The configured SSH key path does not exist. Check the key path in repository settings.</value>
   </data>
-  <data name="Error.RepositoryNotFound" xml:space="preserve">
+    <data name="Error.RepositoryNotFound" xml:space="preserve">
     <value>Borg repository does not exist.
 
 The repository path could not be found. Check that:
@@ -946,22 +1029,22 @@ The repository path could not be found. Check that:
   - The repository has been initialized
   - You have read access to the path</value>
   </data>
-  <data name="Error.RepositoryAlreadyExists" xml:space="preserve">
+    <data name="Error.RepositoryAlreadyExists" xml:space="preserve">
     <value>Borg repository already exists at this path.
 
 Use &#x27;Open Existing&#x27; instead of &#x27;Create New&#x27; to add it.</value>
   </data>
-  <data name="Error.WrongPassphrase" xml:space="preserve">
+    <data name="Error.WrongPassphrase" xml:space="preserve">
     <value>Wrong passphrase.
 
 The passphrase for this repository is incorrect. Try again or update the passphrase.</value>
   </data>
-  <data name="Error.RepositoryLocked" xml:space="preserve">
+    <data name="Error.RepositoryLocked" xml:space="preserve">
     <value>Repository is locked.
 
 Another borg process is using this repository. Wait for it to finish, or run &#x27;borg break-lock&#x27; if the lock is stale.</value>
   </data>
-  <data name="Error.InvalidRepository" xml:space="preserve">
+    <data name="Error.InvalidRepository" xml:space="preserve">
     <value>Not a valid borg repository.
 
 The path does not contain a valid borg repository. Check that:
@@ -969,42 +1052,258 @@ The path does not contain a valid borg repository. Check that:
   - The repository is not corrupted
   - The borg version matches (borg1 vs borg2)</value>
   </data>
-  <data name="Error.IncompatibleRepository" xml:space="preserve">
+    <data name="Error.IncompatibleRepository" xml:space="preserve">
     <value>Incompatible repository version.
 
 This repository was created with a different borg version. Check the borg version setting (borg1 vs borg2) in repository settings.</value>
   </data>
-  <data name="Error.NoSpaceLeftOnDevice" xml:space="preserve">
+    <data name="Error.NoSpaceLeftOnDevice" xml:space="preserve">
     <value>No space left on device.
 
 The destination disk is full. Free up space and try again.</value>
   </data>
-  <data name="Error.BorgBinaryNotFound" xml:space="preserve">
+    <data name="Error.BorgBinaryNotFound" xml:space="preserve">
     <value>Borg binary not found on remote host.
 
 Install borg on the remote server, or set the &#x27;Borg Remote Path&#x27; in repository settings.</value>
   </data>
-  <data name="Error.BinaryNotFound" xml:space="preserve">
+    <data name="Error.BinaryNotFound" xml:space="preserve">
     <value>Binary not found.
 
 Check application settings for the correct borg binary path.</value>
   </data>
-  <data name="Error.WslNotAvailable" xml:space="preserve">
+    <data name="Error.WslNotAvailable" xml:space="preserve">
     <value>WSL is not available.
 
 Windows Subsystem for Linux is required for borg on Windows.
 Install WSL and try again.</value>
   </data>
-  <data name="Error.OperationCancelled" xml:space="preserve">
+    <data name="Error.OperationCancelled" xml:space="preserve">
     <value>Operation was cancelled.</value>
   </data>
-  <data name="Error.Unknown" xml:space="preserve">
+    <data name="Error.Unknown" xml:space="preserve">
     <value>An unknown error occurred.</value>
   </data>
-  <data name="TrayJobsRunning" xml:space="preserve">
+    <data name="Error.UnknownBorgExitCode" xml:space="preserve">
+    <value>Borg failed with unknown exit code {0}.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.Warning" xml:space="preserve">
+    <value>Borg completed with warnings.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.Error" xml:space="preserve">
+    <value>Borg failed with a generic error.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.CancelledByUser" xml:space="preserve">
+    <value>Borg operation was cancelled.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.CommandError" xml:space="preserve">
+    <value>Borg command error.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PlaceholderError" xml:space="preserve">
+    <value>Borg placeholder formatting error.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InvalidPlaceholder" xml:space="preserve">
+    <value>Borg placeholder is invalid.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryAlreadyExists" xml:space="preserve">
+    <value>Borg repository already exists at this path.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.AtticRepository" xml:space="preserve">
+    <value>Attic repository detected. Upgrade it before using it with BorgMate.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.CheckNeeded" xml:space="preserve">
+    <value>Repository check is required before Borg can continue.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryDoesNotExist" xml:space="preserve">
+    <value>Borg repository does not exist.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InsufficientFreeSpaceError" xml:space="preserve">
+    <value>Insufficient free space to complete the Borg transaction.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InvalidRepository" xml:space="preserve">
+    <value>Not a valid Borg repository.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InvalidRepositoryConfig" xml:space="preserve">
+    <value>Borg repository configuration is invalid.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ObjectNotFound" xml:space="preserve">
+    <value>Borg repository object was not found.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ParentPathDoesNotExist" xml:space="preserve">
+    <value>The parent path of the Borg repository does not exist.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PathAlreadyExists" xml:space="preserve">
+    <value>A file or directory already exists at the repository path.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.StorageQuotaExceeded" xml:space="preserve">
+    <value>Borg storage quota has been exceeded.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PathPermissionDenied" xml:space="preserve">
+    <value>Permission denied for the Borg repository path.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.MandatoryFeatureUnsupported" xml:space="preserve">
+    <value>Repository uses unsupported mandatory features. A newer Borg version is required.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NoManifestError" xml:space="preserve">
+    <value>Borg repository has no manifest.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnsupportedManifestError" xml:space="preserve">
+    <value>Unsupported Borg manifest. A newer Borg version is required.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.IncompatibleFilesystemEncodingError" xml:space="preserve">
+    <value>Borg could not encode a filename with the current filesystem encoding.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.KeyfileInvalidError" xml:space="preserve">
+    <value>Borg key file data is invalid.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.KeyfileMismatchError" xml:space="preserve">
+    <value>Borg key file does not match this repository.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.KeyfileNotFoundError" xml:space="preserve">
+    <value>Borg key file was not found.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NotABorgKeyFile" xml:space="preserve">
+    <value>The selected file is not a Borg key backup.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepoKeyNotFoundError" xml:space="preserve">
+    <value>No key entry was found in the Borg repository configuration.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepoIdMismatch" xml:space="preserve">
+    <value>Borg key backup belongs to a different repository.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnencryptedRepo" xml:space="preserve">
+    <value>Borg key management is not available for unencrypted repositories.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnknownKeyType" xml:space="preserve">
+    <value>Borg key type is unknown.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnsupportedPayloadError" xml:space="preserve">
+    <value>Unsupported Borg payload. A newer Borg version is required.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnsupportedKeyFormatError" xml:space="preserve">
+    <value>Unsupported Borg key format. A newer Borg version is required.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NoPassphraseFailure" xml:space="preserve">
+    <value>Borg could not acquire a passphrase.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PasscommandFailure" xml:space="preserve">
+    <value>Borg passcommand failed.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PassphraseWrong" xml:space="preserve">
+    <value>Wrong Borg repository passphrase.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PasswordRetriesExceeded" xml:space="preserve">
+    <value>Borg password retry limit was exceeded.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.CacheInitAbortedError" xml:space="preserve">
+    <value>Borg cache initialization was aborted.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.EncryptionMethodMismatch" xml:space="preserve">
+    <value>Borg repository encryption method changed since last access.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryAccessAborted" xml:space="preserve">
+    <value>Borg repository access was aborted.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryIDNotUnique" xml:space="preserve">
+    <value>Borg cache is newer than the repository, possibly due to duplicate repository IDs.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryReplay" xml:space="preserve">
+    <value>Borg detected repository replay or unsafe repository state.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.LockError" xml:space="preserve">
+    <value>Borg repository is locked.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.LockErrorT" xml:space="preserve">
+    <value>Borg repository lock could not be acquired.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.LockFailed" xml:space="preserve">
+    <value>Borg repository lock failed.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.LockTimeout" xml:space="preserve">
+    <value>Borg repository lock timed out.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NotLocked" xml:space="preserve">
+    <value>Borg repository was not locked.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NotMyLock" xml:space="preserve">
+    <value>Borg repository lock belongs to another process.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ConnectionClosed" xml:space="preserve">
+    <value>Borg remote connection was closed.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ConnectionClosedWithHint" xml:space="preserve">
+    <value>Borg remote connection was closed.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InvalidRPCMethod" xml:space="preserve">
+    <value>Borg remote RPC method is invalid.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PathNotAllowed" xml:space="preserve">
+    <value>Borg remote repository path is not allowed.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RPCServerOutdated" xml:space="preserve">
+    <value>Borg remote server is too old for this command.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnexpectedRPCDataFormatFromClient" xml:space="preserve">
+    <value>Borg remote server received unexpected client data.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnexpectedRPCDataFormatFromServer" xml:space="preserve">
+    <value>Borg received unexpected data from the remote server.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ConnectionBrokenWithHint" xml:space="preserve">
+    <value>Borg remote connection is broken.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.IntegrityError" xml:space="preserve">
+    <value>Borg data integrity error.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.FileIntegrityError" xml:space="preserve">
+    <value>Borg file integrity check failed.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.DecompressionError" xml:space="preserve">
+    <value>Borg decompression error.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ArchiveTAMInvalid" xml:space="preserve">
+    <value>Borg archive TAM is invalid.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ArchiveTAMRequiredError" xml:space="preserve">
+    <value>Borg archive TAM is required.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.TAMInvalid" xml:space="preserve">
+    <value>Borg manifest TAM is invalid.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.TAMRequiredError" xml:space="preserve">
+    <value>Borg manifest TAM is required.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.TAMUnsupportedSuiteError" xml:space="preserve">
+    <value>Borg TAM suite is unsupported. A newer Borg version is required.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.FileChangedWarning" xml:space="preserve">
+    <value>A file changed while Borg backed it up.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.IncludePatternNeverMatchedWarning" xml:space="preserve">
+    <value>A Borg include pattern never matched.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupError" xml:space="preserve">
+    <value>Borg backup error.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupRaceConditionError" xml:space="preserve">
+    <value>Borg skipped a file because it changed while being backed up.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupOSError" xml:space="preserve">
+    <value>Borg encountered an operating system error while backing up.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupPermissionError" xml:space="preserve">
+    <value>Borg did not have permission to read a file during backup.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupIOError" xml:space="preserve">
+    <value>Borg encountered an I/O error during backup.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupFileNotFoundError" xml:space="preserve">
+    <value>Borg could not find a file during backup.</value>
+  </data>
+    <data name="TrayJobsRunning" xml:space="preserve">
     <value>{0} running</value>
   </data>
-  <data name="Retry" xml:space="preserve">
+    <data name="Retry" xml:space="preserve">
     <value>Retry</value>
   </data>
 </root>

@@ -1,0 +1,56 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:BorgMate.Presentation.Controls">
+
+    <Styles.Resources>
+        <ControlTheme x:Key="{x:Type controls:SidebarButton}" TargetType="controls:SidebarButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Padding" Value="10,11" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="controls:SidebarButton">
+                    <Border Name="PART_Root" CornerRadius="{TemplateBinding CornerRadius}"
+                            Background="Transparent" Padding="{TemplateBinding Padding}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Grid>
+                                <controls:BootstrapIcon Kind="{TemplateBinding Icon}" Width="18" Height="18" />
+                                <Border Name="PART_Badge" Background="{DynamicResource AccentBrush}" CornerRadius="7"
+                                        MinWidth="14" Height="14"
+                                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                                        Margin="0,-4,-6,0" Padding="3,0"
+                                        IsVisible="False">
+                                    <TextBlock Name="PART_BadgeText"
+                                               Foreground="White" FontSize="9" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="{TemplateBinding Label}"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{TemplateBinding IsExpanded}" />
+                        </StackPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#PART_Root">
+                <Setter Property="Background" Value="{DynamicResource HoverOverlayColor}" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border#PART_Root">
+                <Setter Property="Background" Value="{DynamicResource PressedOverlayColor}" />
+            </Style>
+            <Style Selector="^:active-page /template/ Border#PART_Root">
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            </Style>
+            <Style Selector="^:active-page">
+                <Setter Property="Foreground" Value="White" />
+            </Style>
+            <Style Selector="^:active-page:pointerover /template/ Border#PART_Root">
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+            </Style>
+        </ControlTheme>
+    </Styles.Resources>
+
+</Styles>

@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:BorgMate.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:BorgMate.Presentation.ViewModels"
+             xmlns:controls="clr-namespace:BorgMate.Presentation.Controls"
+             xmlns:settings="clr-namespace:BorgMate.Domain.Settings"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="600"
+             x:Class="BorgMate.Presentation.Views.SidebarView"
+             x:DataType="viewModels:MainWindowViewModel">
+
+    <Design.DataContext>
+        <x:Static Member="viewModels:DesignData.MainWindow" />
+    </Design.DataContext>
+
+    <Border Width="{Binding SidebarWidth}" ClipToBounds="True"
+            Background="{DynamicResource SidebarBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+        <Border.Transitions>
+            <Transitions>
+                <DoubleTransition Property="Width" Duration="0:0:0.15" Easing="CubicEaseOut" />
+            </Transitions>
+        </Border.Transitions>
+        <DockPanel Classes="sidebar">
+            <!-- Nav buttons -->
+            <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="4,4,4,0">
+                <!-- Expand/collapse toggle -->
+                <Button Command="{Binding ToggleSidebarCommand}"
+                        Padding="10,11" Background="Transparent" BorderThickness="0"
+                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <controls:BootstrapIcon Kind="List" Width="18" Height="18" />
+                        <TextBlock Text="BorgMate" FontWeight="SemiBold" VerticalAlignment="Center"
+                                   IsVisible="{Binding IsSidebarExpanded}" />
+                    </StackPanel>
+                </Button>
+
+                <controls:SidebarButton Icon="Database"
+                                        Label="{Binding [Repositories], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding NavigateToCommand}"
+                                        CommandParameter="{x:Static settings:AppPage.Repositories}"
+                                        Page="{x:Static settings:AppPage.Repositories}"
+                                        ActivePage="{Binding ActivePage}"
+                                        IsExpanded="{Binding IsSidebarExpanded}" />
+
+                <controls:SidebarButton Icon="Bell"
+                                        Label="{Binding [Notifications], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding NavigateToCommand}"
+                                        CommandParameter="{x:Static settings:AppPage.Notifications}"
+                                        Page="{x:Static settings:AppPage.Notifications}"
+                                        ActivePage="{Binding ActivePage}"
+                                        BadgeCount="{Binding Notifications.SqliteJournalStore.UnreadCount}"
+                                        IsExpanded="{Binding IsSidebarExpanded}" />
+            </StackPanel>
+
+            <!-- Settings & About at bottom -->
+            <StackPanel DockPanel.Dock="Bottom" Spacing="2" Margin="4,0,4,4">
+                <controls:SidebarButton Icon="GearWideConnected"
+                                        Label="{Binding [AppSettings], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding OpenAppSettingsCommand}"
+                                        IsExpanded="{Binding IsSidebarExpanded}" />
+
+                <controls:SidebarButton Icon="InfoCircle"
+                                        Label="{Binding [About], Source={x:Static loc:Strings.Instance}}"
+                                        Command="{Binding OpenAboutCommand}"
+                                        IsExpanded="{Binding IsSidebarExpanded}" />
+            </StackPanel>
+
+            <!-- Fill remaining space -->
+            <Panel />
+        </DockPanel>
+    </Border>
+</UserControl>

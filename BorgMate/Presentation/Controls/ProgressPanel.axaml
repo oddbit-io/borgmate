@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:BorgMate.Presentation.ViewModels"
+             xmlns:controls="clr-namespace:BorgMate.Presentation.Controls"
+             mc:Ignorable="d"
+             x:Class="BorgMate.Presentation.Controls.ProgressPanel"
+             x:DataType="viewModels:JobProgressTracker"
+             IsVisible="{Binding HasActiveJob}">
+
+    <DockPanel>
+        <Button DockPanel.Dock="Right" Command="{Binding CancelActiveJobCommand}"
+                Margin="8,0,0,0"
+                Background="Transparent" Foreground="{DynamicResource ValidationErrorBrush}"
+                CornerRadius="10" Width="20" Height="20"
+                MinWidth="0" MinHeight="0" Padding="0" BorderThickness="0"
+                VerticalAlignment="Center">
+            <controls:BootstrapIcon Kind="StopFill" Width="16" Height="16" />
+        </Button>
+        <StackPanel Spacing="2">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right" Classes="secondary"
+                           Text="{Binding ActiveElapsed}" Margin="8,0,0,0" />
+                <TextBlock Classes="secondary"
+                           Text="{Binding ActiveStatusMessage}"
+                           TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+            <Panel Height="5" VerticalAlignment="Center">
+                <ProgressBar Minimum="0" Maximum="100"
+                             Value="{Binding ActiveProgress, FallbackValue=0}"
+                             IsIndeterminate="{Binding ActiveProgress, Converter={x:Static ObjectConverters.IsNull}}"
+                             MinHeight="5" Height="5" CornerRadius="2.5" Padding="0" />
+            </Panel>
+            <TextBlock Classes="secondary" Text="{Binding ActiveProgressDisplay}" Margin="0,2,0,0" />
+        </StackPanel>
+    </DockPanel>
+</UserControl>

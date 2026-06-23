@@ -1,0 +1,226 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:BorgMate.Localization"
+        xmlns:viewModels="clr-namespace:BorgMate.Presentation.ViewModels"
+        xmlns:conv="clr-namespace:BorgMate.Presentation.Converters"
+        x:Class="BorgMate.Presentation.Views.AppSettingsWindow"
+        x:DataType="viewModels:AppSettingsViewModel"
+        Title="{Binding [AppSettings], Source={x:Static loc:Strings.Instance}}"
+        Width="460"
+        Height="530"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="TextBlock:disabled">
+            <Setter Property="Opacity" Value="0.35" />
+        </Style>
+    </Window.Styles>
+
+    <Design.DataContext>
+        <viewModels:AppSettingsViewModel />
+    </Design.DataContext>
+
+    <DockPanel Margin="{StaticResource ModalPadding}">
+        <StackPanel Classes="dialog-buttons">
+            <Button Content="{Binding [Close], Source={x:Static loc:Strings.Instance}}" Name="CloseButton" />
+            <Button Content="{Binding [Save], Source={x:Static loc:Strings.Instance}}" Command="{Binding SaveCommand}"
+                    Classes="accent" />
+        </StackPanel>
+
+        <TabControl>
+            <!-- General: app-level preferences -->
+            <TabItem Header="{Binding [General], Source={x:Static loc:Strings.Instance}}">
+                <ScrollViewer>
+                    <StackPanel Spacing="{StaticResource FormSpacing}" Margin="0,12,0,0">
+                        <Grid ColumnDefinitions="*,12,*">
+                            <StackPanel Grid.Column="0" Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [Language], Source={x:Static loc:Strings.Instance}}" />
+                                <ComboBox ItemsSource="{Binding Languages}"
+                                          SelectedItem="{Binding SelectedLanguage}"
+                                          HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [Theme], Source={x:Static loc:Strings.Instance}}" />
+                                <ComboBox ItemsSource="{Binding Themes}"
+                                          SelectedItem="{Binding SelectedTheme}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Text="{Binding Converter={x:Static conv:ThemeConverter.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+
+                        <GroupBox
+                            Header="{Binding [AppSettings.Group.Startup], Source={x:Static loc:Strings.Instance}}">
+                            <StackPanel Spacing="10">
+                                <CheckBox IsChecked="{Binding StartAtLogin}"
+                                          Content="{Binding [StartAtLogin], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding StartMinimized}"
+                                          Content="{Binding [StartMinimized], Source={x:Static loc:Strings.Instance}}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox
+                            Header="{Binding [AppSettings.Group.Notifications], Source={x:Static loc:Strings.Instance}}">
+                            <StackPanel Spacing="10">
+                                <CheckBox IsChecked="{Binding CheckForUpdates}"
+                                          Content="{Binding [CheckForUpdates], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding ShowNotifications}"
+                                          Content="{Binding [ShowNotifications], Source={x:Static loc:Strings.Instance}}" />
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Data: how backups load, how long history is kept, restore defaults, units -->
+            <TabItem Header="{Binding [AppSettings.Tab.Data], Source={x:Static loc:Strings.Instance}}">
+                <ScrollViewer>
+                    <StackPanel Spacing="{StaticResource FormSpacing}" Margin="0,12,0,0">
+                        <GroupBox
+                            Header="{Binding [AppSettings.Group.AutoLoad], Source={x:Static loc:Strings.Instance}}">
+                            <StackPanel Spacing="10">
+                                <CheckBox IsChecked="{Binding AutoLoadArchives}"
+                                          Content="{Binding [AppSettings.AutoLoadArchives], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding AutoLoadStats}"
+                                          Content="{Binding [AppSettings.AutoLoadStats], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding AutoLoadArchiveDetails}"
+                                          Content="{Binding [AppSettings.AutoLoadArchiveDetails], Source={x:Static loc:Strings.Instance}}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox
+                            Header="{Binding [AppSettings.Group.Journal], Source={x:Static loc:Strings.Instance}}">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <CheckBox IsChecked="{Binding IsJournalRetentionEnabled}"
+                                          Content="{Binding [JournalRetention], Source={x:Static loc:Strings.Instance}}" />
+                                <ComboBox ItemsSource="{Binding RetentionPeriods}"
+                                          SelectedItem="{Binding JournalRetention}"
+                                          IsEnabled="{Binding IsJournalRetentionEnabled}"
+                                          Width="140">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Text="{Binding Converter={x:Static conv:RetentionPeriodConverter.Instance}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox
+                            Header="{Binding [AppSettings.Group.Restore], Source={x:Static loc:Strings.Instance}}">
+                            <StackPanel Spacing="10">
+                                <CheckBox IsChecked="{Binding NoFlags}"
+                                          Content="{Binding [RestoreOptions.NoFlags], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding NoAcls}"
+                                          Content="{Binding [RestoreOptions.NoAcls], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding NoXattrs}"
+                                          Content="{Binding [RestoreOptions.NoXattrs], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding Sparse}"
+                                          Content="{Binding [RestoreOptions.Sparse], Source={x:Static loc:Strings.Instance}}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox
+                            Header="{Binding [AppSettings.Group.Display], Source={x:Static loc:Strings.Instance}}">
+                            <CheckBox IsChecked="{Binding BinaryUnits}"
+                                      Content="{Binding [BinaryUnits], Source={x:Static loc:Strings.Instance}}" />
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Advanced: binaries, SSH tuning, diagnostics -->
+            <TabItem Header="{Binding [Advanced], Source={x:Static loc:Strings.Instance}}">
+                <ScrollViewer>
+                    <StackPanel Spacing="{StaticResource FormSpacing}" Margin="0,12,0,0">
+                        <GroupBox
+                            Header="{Binding [BorgPathOverride], Source={x:Static loc:Strings.Instance}}">
+                            <StackPanel Spacing="{StaticResource FieldSpacing}">
+                                <TextBlock Text="{Binding [Borg1BinaryPath], Source={x:Static loc:Strings.Instance}}"
+                                           Classes="secondary" FontSize="11" />
+                                <TextBox Text="{Binding Borg1BinaryPath}" PlaceholderText="{Binding DetectedBorg1Path}" />
+                                <TextBlock Text="{Binding DetectedBorg1PathDisplay}" Classes="secondary" FontSize="12" />
+                                <CheckBox IsChecked="{Binding ExperimentalBorg2Support}"
+                                          Content="{Binding [AppSettings.ExperimentalBorg2Support], Source={x:Static loc:Strings.Instance}}"
+                                          Margin="0,6,0,0" />
+                                <StackPanel Spacing="{StaticResource FieldSpacing}"
+                                            IsVisible="{Binding ExperimentalBorg2Support}">
+                                    <TextBlock Text="{Binding [Borg2BinaryPath], Source={x:Static loc:Strings.Instance}}"
+                                               Classes="secondary" FontSize="11" Margin="0,6,0,0" />
+                                    <TextBox Text="{Binding Borg2BinaryPath}" PlaceholderText="{Binding DetectedBorg2Path}" />
+                                    <TextBlock Text="{Binding DetectedBorg2PathDisplay}" Classes="secondary" FontSize="12" />
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox
+                            Header="{Binding [SshKeepAlive], Source={x:Static loc:Strings.Instance}}">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        Text="{Binding [SshKeepAliveInterval], Source={x:Static loc:Strings.Instance}}"
+                                        Classes="secondary" FontSize="11" />
+                                    <NumericUpDown Value="{Binding SshKeepAliveInterval}" Minimum="0" Maximum="600"
+                                                   Increment="5" Width="140" FormatString="0" />
+                                </StackPanel>
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        Text="{Binding [SshKeepAliveCountMax], Source={x:Static loc:Strings.Instance}}"
+                                        Classes="secondary" FontSize="11" />
+                                    <NumericUpDown Value="{Binding SshKeepAliveCountMax}" Minimum="1" Maximum="30"
+                                                   Increment="1" Width="140" FormatString="0" />
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox
+                            Header="{Binding [AppSettings.Group.Logging], Source={x:Static loc:Strings.Instance}}">
+                            <StackPanel Spacing="10">
+                                <CheckBox IsChecked="{Binding LoggingEnabled}"
+                                          Content="{Binding [EnableLogging], Source={x:Static loc:Strings.Instance}}" />
+                                <StackPanel Orientation="Horizontal" Spacing="12" IsEnabled="{Binding LoggingEnabled}">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding [LogLevel], Source={x:Static loc:Strings.Instance}}"
+                                                   Classes="secondary" FontSize="11" />
+                                        <ComboBox ItemsSource="{Binding LogLevels}"
+                                                  SelectedItem="{Binding LogLevel}"
+                                                  Width="140">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock
+                                                        Text="{Binding Converter={x:Static conv:LogLevelConverter.Instance}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            Text="{Binding [LogRetentionPeriod], Source={x:Static loc:Strings.Instance}}"
+                                            Classes="secondary" FontSize="11" />
+                                        <ComboBox ItemsSource="{Binding RetentionPeriods}"
+                                                  SelectedItem="{Binding LogRetention}"
+                                                  Width="140">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock
+                                                        Text="{Binding Converter={x:Static conv:RetentionPeriodConverter.Instance}}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

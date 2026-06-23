@@ -6,21 +6,21 @@
              Name="BorgMate">
 
     <Application.DataTemplates>
-        <local:ViewLocator/>
+        <local:ViewLocator />
     </Application.DataTemplates>
 
     <Application.Styles>
-        <SimpleTheme/>
-        <StyleInclude Source="avares://BorgMate/Themes/BorgTheme.axaml"/>
-        <StyleInclude Source="avares://BorgMate/Views/Controls/SidebarButton.axaml"/>
-        <StyleInclude Source="avares://BorgMate/Views/Controls/ToolbarButton.axaml"/>
-        <StyleInclude Source="avares://BorgMate/Views/Controls/DetailPanel.axaml"/>
+        <SimpleTheme />
+        <StyleInclude Source="avares://BorgMate/Themes/BorgTheme.axaml" />
+        <StyleInclude Source="avares://BorgMate/Presentation/Controls/SidebarButton.axaml" />
+        <StyleInclude Source="avares://BorgMate/Presentation/Controls/ToolbarButton.axaml" />
+        <StyleInclude Source="avares://BorgMate/Presentation/Controls/DetailPanel.axaml" />
     </Application.Styles>
 
     <NativeMenu.Menu>
         <NativeMenu>
-            <NativeMenuItem Header="About BorgMate" Click="OnAboutClicked"/>
-            <NativeMenuItemSeparator/>
+            <NativeMenuItem Header="About BorgMate" Click="OnAboutClicked" />
+            <NativeMenuItemSeparator />
         </NativeMenu>
     </NativeMenu.Menu>
 </Application>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -8,44 +9,55 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using BorgMate.Localization;
-using BorgMate.Models;
-using BorgMate.Services.Journal;
-using BorgMate.Services.Power;
-using BorgMate.Services.Queue;
-using BorgMate.ViewModels;
-using BorgMate.Views;
+using Avalonia.Platform;
+using Avalonia.Threading;
+using BorgMate.Composition;
+using BorgMate.Domain.Settings;
+using BorgMate.Infrastructure.Borg;
+using BorgMate.Infrastructure.Platform;
+using BorgMate.Infrastructure.Updates;
+using BorgMate.Persistence.Configuration;
+using BorgMate.Persistence.Journal;
+using BorgMate.Presentation.Dialogs;
+using BorgMate.Presentation.State;
+using BorgMate.Runtime.Jobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using AboutWindow = BorgMate.Presentation.Views.AboutWindow;
+using MainWindow = BorgMate.Presentation.Views.MainWindow;
+using MainWindowViewModel = BorgMate.Presentation.ViewModels.MainWindowViewModel;
+using UpdateChangelogWindow = BorgMate.Presentation.Views.UpdateChangelogWindow;
 
 namespace BorgMate;
 
-public partial class App : Application
+public class App : Application
 {
-    public static IServiceProvider Services { get; private set; } = null!;
-    public static string AppVersion { get; private set; } = "dev";
     private static App? _instance;
-    private TrayIcon? _trayIcon;
-    private MainWindow? _mainWindow;
-    private MainWindowViewModel? _mainVm;
-    private AppSettings _settings = null!;
-    private JobQueueService _jobQueue = null!;
     private BorgCacheService _cache = null!;
-    private StatusService _status = null!;
-    private UpdateService _updateService = null!;
-    private ISleepInhibitor _sleepInhibitor = null!;
-    private ILogger<App> _logger = null!;
     private bool _hadRunningJobs;
-    private bool _sleepInhibited;
-    private PosixSignalRegistration? _sigTermRegistration;
+    private volatile bool _isShuttingDown;
+    private BorgJobQueue _jobQueue = null!;
+    private ILogger<App> _logger = null!;
+    private MainWindowViewModel? _mainVm;
+    private MainWindow? _mainWindow;
+    private AppSettings _settings = null!;
+    private bool _shutdownPrepared;
+    private Task? _shutdownPreparationTask;
     private PosixSignalRegistration? _sigHupRegistration;
     private PosixSignalRegistration? _sigIntRegistration;
-    private volatile bool _isShuttingDown;
+    private PosixSignalRegistration? _sigTermRegistration;
+    private bool _sleepInhibited;
+    private ISleepInhibitor _sleepInhibitor = null!;
+    private UpdateStatusState _status = null!;
+    private TrayIcon? _trayIcon;
+    private UpdateService _updateService = null!;
+    public static IServiceProvider Services { get; private set; } = null!;
+    public static string AppVersion { get; private set; } = "dev";
 
     public override void Initialize()
     {
         if (!Design.IsDesignMode)
-            Strings.ApplyLanguageCode(new ConfigService().Load().Settings.Language);
+            Strings.ApplyLanguageCode(new JsonAppConfigStore().Load().Settings.Language);
 
         AvaloniaXamlLoader.Load(this);
     }
@@ -61,33 +73,29 @@ public partial class App : Application
             AppVersion = version is not null ? $"{version.Major}.{version.Minor}.{version.Build}" : "dev";
 
             _settings = Services.GetRequiredService<AppSettings>();
-            _jobQueue = Services.GetRequiredService<JobQueueService>();
+            _jobQueue = Services.GetRequiredService<BorgJobQueue>();
             _cache = Services.GetRequiredService<BorgCacheService>();
-            _status = Services.GetRequiredService<StatusService>();
+            _status = Services.GetRequiredService<UpdateStatusState>();
             _updateService = Services.GetRequiredService<UpdateService>();
             _sleepInhibitor = Services.GetRequiredService<ISleepInhibitor>();
             _mainVm = Services.GetRequiredService<MainWindowViewModel>();
             _logger = Services.GetRequiredService<ILogger<App>>();
 
             _logger.LogInformation("BorgMate v{Version} starting on {OS} {Arch}",
-                AppVersion, System.Runtime.InteropServices.RuntimeInformation.OSDescription,
-                System.Runtime.InteropServices.RuntimeInformation.OSArchitecture);
-            var journal = Services.GetRequiredService<IJournalService>();
+                AppVersion, RuntimeInformation.OSDescription,
+                RuntimeInformation.OSArchitecture);
+            var journal = Services.GetRequiredService<IJournalStore>();
             journal.Load();
 
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            desktop.ShutdownRequested += (_, _) =>
+            desktop.ShutdownRequested += async (_, e) =>
             {
-                _logger.LogInformation("BorgMate v{Version} shutting down", AppVersion);
-                _isShuttingDown = true;
-                CaptureWindowState();
-                _mainVm.SaveConfig();
-                _jobQueue.Dispose();
-                _sleepInhibitor.Release();
-                _sigTermRegistration?.Dispose();
-                _sigHupRegistration?.Dispose();
-                _sigIntRegistration?.Dispose();
-                (Services as IDisposable)?.Dispose();
+                if (_shutdownPrepared)
+                    return;
+
+                e.Cancel = true;
+                await PrepareShutdownAsync();
+                desktop.TryShutdown();
             };
 
             // Handle POSIX shutdown signals so session managers (KDE ksmserver,
@@ -99,7 +107,7 @@ public partial class App : Application
             _sigIntRegistration = PosixSignalRegistration.Create(PosixSignal.SIGINT, HandlePosixShutdown);
 
             // Load icon for macOS dock
-            MacOsDockHelper.LoadIcon(Avalonia.Platform.AssetLoader.Open(
+            MacOsDockHelper.LoadIcon(AssetLoader.Open(
                 new Uri("avares://BorgMate/Assets/borgmate-256.png")));
 
             SetupTrayIcon(desktop);
@@ -107,7 +115,7 @@ public partial class App : Application
             // Single-instance: bring window to front when second instance signals
             if (Program.InstanceGuard is not null)
                 Program.InstanceGuard.ActivationRequested += () =>
-                    Avalonia.Threading.Dispatcher.UIThread.Post(ShowMainWindow);
+                    Dispatcher.UIThread.Post(ShowMainWindow);
 
 #if DEBUG
             if (Program.DemoMode)
@@ -148,7 +156,7 @@ public partial class App : Application
                 _status.UpdateProgress = 0;
                 _status.UpdateMessage = Strings.Get("DownloadingUpdate");
                 var downloaded = await _updateService.DownloadUpdateAsync(pct =>
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    Dispatcher.UIThread.Post(() =>
                     {
                         _status.UpdateProgress = pct;
                         _status.UpdateMessage = $"{Strings.Get("DownloadingUpdate")} {pct}%";
@@ -163,7 +171,7 @@ public partial class App : Application
 
                 _status.UpdateMessage = null;
                 if (await DialogHelper.ConfirmAsync(Strings.Get("RestartToUpdate")))
-                    _updateService.ApplyAndRestart();
+                    await _updateService.ApplyAndRestartAsync();
             });
     }
 
@@ -173,7 +181,7 @@ public partial class App : Application
         var window = DialogHelper.GetMainWindow();
         if (window is null) return false;
 
-        var dialog = new Views.UpdateChangelogWindow(version, changelog);
+        var dialog = new UpdateChangelogWindow(version, changelog);
         await dialog.ShowDialog(window);
         return dialog.Confirmed;
     }
@@ -186,7 +194,7 @@ public partial class App : Application
 
         RestoreWindowState();
 
-        _mainWindow.Closing += (_, e) =>
+        _mainWindow.Closing += async (_, e) =>
         {
             // Let the close proceed when the OS session is shutting down, when the
             // Avalonia app lifetime is shutting down, or when our SIGTERM handler
@@ -198,7 +206,7 @@ public partial class App : Application
 
             e.Cancel = true;
             CaptureWindowState();
-            _mainVm?.SaveConfig();
+            await SaveConfigSafelyAsync("window close");
             HideMainWindow();
         };
 
@@ -254,12 +262,12 @@ public partial class App : Application
             _mainWindow.WindowState = WindowState.Maximized;
     }
 
-    private async void OnAboutClicked(object? sender, System.EventArgs e)
+    private async void OnAboutClicked(object? sender, EventArgs e)
     {
-        if (ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             && desktop.MainWindow is not null)
         {
-            var about = new Views.AboutWindow();
+            var about = new AboutWindow();
             await about.ShowDialog(desktop.MainWindow);
         }
     }
@@ -275,40 +283,86 @@ public partial class App : Application
 
     private async Task TryQuitAsync(IClassicDesktopStyleApplicationLifetime desktop, bool forceQuit = false)
     {
-        if (_jobQueue.HasRunningJobs)
-        {
-            if (!forceQuit && _jobQueue.HasPendingCommand)
-            {
-                ShowMainWindow();
-                if (!await DialogHelper.ConfirmAsync(Strings.Get("ConfirmQuitWithRunningTasks")))
-                    return;
-            }
+        if (!await CancelRunningJobsForShutdownAsync(forceQuit))
+            return;
 
-            // Mark shutdown early so any concurrent Closing events (from SIGTERM
-            // races or desktop.Shutdown closing the window) don't re-hide to tray.
-            _isShuttingDown = true;
-
-            // Cancel running jobs and wait for their completion handlers
-            // (journal writes). Cap the wait so a hung borg process — e.g.
-            // stuck on SSH I/O — can't stall system shutdown indefinitely.
-            var runningJobs = _jobQueue.Jobs
-                .Where(j => j.Status is BorgJobStatus.Pending or BorgJobStatus.Running)
-                .ToList();
-            foreach (var job in runningJobs)
-                job.Cts.Cancel();
-            var waitAll = Task.WhenAll(runningJobs.Select(j => j.Completion.Task));
-            await Task.WhenAny(waitAll, Task.Delay(TimeSpan.FromSeconds(5)));
-        }
-
-        _isShuttingDown = true;
+        await PrepareShutdownAsync();
         desktop.TryShutdown();
     }
 
+    private async Task<bool> CancelRunningJobsForShutdownAsync(bool forceQuit)
+    {
+        if (!_jobQueue.HasRunningJobs)
+            return true;
+
+        if (!forceQuit && _jobQueue.HasPendingCommand)
+        {
+            ShowMainWindow();
+            if (!await DialogHelper.ConfirmAsync(Strings.Get("ConfirmQuitWithRunningTasks")))
+                return false;
+        }
+
+        // Mark shutdown early so any concurrent Closing events (from SIGTERM
+        // races or desktop.Shutdown closing the window) don't re-hide to tray.
+        _isShuttingDown = true;
+
+        // Cancel running jobs and wait for their completion handlers
+        // (journal writes). Cap the wait so a hung borg process — e.g.
+        // stuck on SSH I/O — can't stall system shutdown indefinitely.
+        var runningJobs = _jobQueue.Jobs
+            .Where(j => j.Status is BorgJobStatus.Pending or BorgJobStatus.Running)
+            .ToList();
+        foreach (var job in runningJobs)
+            job.Cts.Cancel();
+        var waitAll = Task.WhenAll(runningJobs.Select(j => j.Completion.Task));
+        await Task.WhenAny(waitAll, Task.Delay(TimeSpan.FromSeconds(5)));
+        return true;
+    }
+
+    private Task PrepareShutdownAsync()
+    {
+        if (_shutdownPrepared)
+            return Task.CompletedTask;
+
+        _shutdownPreparationTask ??= PrepareShutdownCoreAsync();
+        return _shutdownPreparationTask;
+    }
+
+    private async Task PrepareShutdownCoreAsync()
+    {
+        _logger.LogInformation("BorgMate v{Version} shutting down", AppVersion);
+        _isShuttingDown = true;
+        CaptureWindowState();
+        await SaveConfigSafelyAsync("shutdown");
+        _jobQueue.Dispose();
+        _sleepInhibitor.Release();
+        _sigTermRegistration?.Dispose();
+        _sigHupRegistration?.Dispose();
+        _sigIntRegistration?.Dispose();
+        _shutdownPrepared = true;
+        (Services as IDisposable)?.Dispose();
+    }
+
+    private async Task SaveConfigSafelyAsync(string operation)
+    {
+        if (_mainVm is null)
+            return;
+
+        try
+        {
+            await _mainVm.SaveConfigAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save config during {Operation}", operation);
+        }
+    }
+
     /// <summary>
-    /// Handles POSIX shutdown signals (SIGTERM/SIGHUP/SIGINT). Cancels the
-    /// default termination, marks shutdown state synchronously (so any racing
-    /// Closing events let the window close), and dispatches to the UI thread
-    /// to run the normal quit path with forceQuit=true (skips confirm dialog).
+    ///     Handles POSIX shutdown signals (SIGTERM/SIGHUP/SIGINT). Cancels the
+    ///     default termination, marks shutdown state synchronously (so any racing
+    ///     Closing events let the window close), and dispatches to the UI thread
+    ///     to run the normal quit path with forceQuit=true (skips confirm dialog).
     /// </summary>
     private void HandlePosixShutdown(PosixSignalContext context)
     {
@@ -317,18 +371,18 @@ public partial class App : Application
         _isShuttingDown = true;
         _logger.LogInformation("Received {Signal}, initiating graceful shutdown", context.Signal);
 
-        Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+        Dispatcher.UIThread.Post(async () =>
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                await TryQuitAsync(desktop, forceQuit: true);
+                await TryQuitAsync(desktop, true);
         });
     }
 
     /// <summary>
-    /// Updates tray icon tooltip, dock progress bar, taskbar, and sleep inhibit state
-    /// based on running job state. Called from MainWindowViewModel's timer on the UI thread.
-    /// Sleep inhibit keys off HasPendingCommand so quick query jobs (archive lists, stats)
-    /// don't keep the machine awake — only backup/restore/prune/check/compact do.
+    ///     Updates tray icon tooltip, dock progress bar, taskbar, and sleep inhibit state
+    ///     based on running job state. Called from MainWindowViewModel's timer on the UI thread.
+    ///     Sleep inhibit keys off HasPendingCommand so quick query jobs (archive lists, stats)
+    ///     don't keep the machine awake — only backup/restore/prune/check/compact do.
     /// </summary>
     public static void UpdateRunningIndicator(bool hasRunningJobs, int count, double? progress)
     {
@@ -363,7 +417,7 @@ public partial class App : Application
             UpdateWindowsTaskbar(app, hasRunningJobs);
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
+    [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
     private static void UpdateWindowsTaskbar(App app, bool hasRunningJobs)
     {
         var hwnd = app._mainWindow?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
@@ -390,7 +444,7 @@ public partial class App : Application
         {
             ToolTipText = "BorgMate",
             Menu = menu,
-            Icon = new WindowIcon(Avalonia.Platform.AssetLoader.Open(
+            Icon = new WindowIcon(AssetLoader.Open(
                 new Uri("avares://BorgMate/Assets/borgmate.ico")))
         };
 
@@ -409,13 +463,14 @@ public partial class App : Application
     private void LoadDemoData()
     {
         if (_mainVm is not null)
-            BorgMate.Services.Mocks.DemoDataLoader.Load(_mainVm,
-                Services.GetRequiredService<IJournalService>(),
+            DemoDataLoader.Load(_mainVm,
+                Services.GetRequiredService<IJournalStore>(),
                 _status, ShowUpdateChangelogAsync);
     }
 #endif
 
-    private static ServiceProvider ConfigureServices() =>
-        new ServiceCollection().ConfigureBorgMateServices();
-
+    private static ServiceProvider ConfigureServices()
+    {
+        return new ServiceCollection().ConfigureBorgMateServices();
+    }
 }

@@ -1,7 +1,12 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using BorgMate.ViewModels;
-using BorgMate.Views;
+using BorgMate.Presentation.ViewModels;
+using MainWindow = BorgMate.Presentation.Views.MainWindow;
+using MainWindowViewModel = BorgMate.Presentation.ViewModels.MainWindowViewModel;
+using NotificationsView = BorgMate.Presentation.Views.NotificationsView;
+using NotificationsViewModel = BorgMate.Presentation.ViewModels.NotificationsViewModel;
+using RepositoriesPageViewModel = BorgMate.Presentation.ViewModels.RepositoriesPageViewModel;
+using RepositoryListView = BorgMate.Presentation.Views.RepositoryListView;
 
 namespace BorgMate;
 
