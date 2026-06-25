@@ -53,6 +53,18 @@
         <Style Selector="ListBox.file-tree ListBoxItem:selected:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent" />
         </Style>
+        <Style Selector="Button.toolbar-btn.active controls|BootstrapIcon.show-changes-icon">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        </Style>
+        <Style Selector="Button.toolbar-btn.active TextBlock.show-changes-label">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        </Style>
+        <Style Selector="TextBlock.file-name">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}" />
+        </Style>
+        <Style Selector="TextBlock.file-name.added">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        </Style>
     </Window.Styles>
 
     <DockPanel>
@@ -66,27 +78,21 @@
                                         IsEnabled="{Binding HasSelection}" />
                 <Button Command="{Binding ToggleShowChangesCommand}"
                         IsEnabled="{Binding HasPreviousArchive}"
-                        Classes="toolbar-btn">
+                        Classes="toolbar-btn"
+                        Classes.active="{Binding IsShowingChanges}">
                     <StackPanel Spacing="3" HorizontalAlignment="Center">
                         <Panel>
-                            <controls:BootstrapIcon Kind="FileDiff" Width="16" Height="16"
+                            <controls:BootstrapIcon Kind="FileDiff" Classes="show-changes-icon"
+                                                    Width="16" Height="16"
                                                     HorizontalAlignment="Center"
-                                                    IsVisible="{Binding !IsLoadingDiff}"
-                                                    Foreground="{Binding IsShowingChanges, Converter={x:Static conv:BrowseArchiveConverters.ToggleActiveForeground}}" />
+                                                    IsVisible="{Binding !IsLoadingDiff}" />
                             <controls:SpinnerControl Width="16" Height="16"
                                                      Foreground="{DynamicResource SecondaryTextBrush}"
                                                      IsVisible="{Binding IsLoadingDiff}" />
                         </Panel>
                         <TextBlock Text="{Binding [BrowseArchive.ShowChanges], Source={x:Static loc:Strings.Instance}}"
-                                   FontSize="10" HorizontalAlignment="Center">
-                            <TextBlock.Foreground>
-                                <Binding Path="IsShowingChanges">
-                                    <Binding.Converter>
-                                        <x:Static Member="conv:BrowseArchiveConverters.ToggleActiveForeground" />
-                                    </Binding.Converter>
-                                </Binding>
-                            </TextBlock.Foreground>
-                        </TextBlock>
+                                   Classes="show-changes-label"
+                                   FontSize="10" HorizontalAlignment="Center" />
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -183,10 +189,11 @@
                                     </controls:BootstrapIcon.Kind>
                                 </controls:BootstrapIcon>
                                 <!-- File name -->
-                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                <TextBlock Text="{Binding Name}" Classes="file-name"
+                                           Classes.added="{Binding ChangeKind, Converter={x:Static conv:BrowseArchiveConverters.ChangeAdded}}"
+                                           VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis"
-                                           FontWeight="{Binding ChangeKind, Converter={x:Static conv:BrowseArchiveConverters.ChangeFontWeight}}"
-                                           Foreground="{Binding ChangeKind, Converter={x:Static conv:BrowseArchiveConverters.ChangeForeground}}" />
+                                           FontWeight="{Binding ChangeKind, Converter={x:Static conv:BrowseArchiveConverters.ChangeFontWeight}}" />
                             </DockPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
