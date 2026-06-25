@@ -22,7 +22,7 @@ public sealed class RepositoryOperationRunner(
     BorgServiceFactory borgServiceFactory,
     BorgJobQueue jobQueue,
     IJournalStore journalStore,
-    IBorgOperationOrchestrator orchestrator,
+    BorgOperationOrchestrator orchestrator,
     DirectorySizeCalculator sizeCalculator,
     BorgCacheService cache,
     IRepositoryConfigStore repositoryStore,
@@ -30,7 +30,7 @@ public sealed class RepositoryOperationRunner(
     ICredentialStore credentialStore,
     PromptingPassphraseProvider passphrasePrompt) : IRepositoryOperationRunner
 {
-    public async Task<OneOf<BackupResult, OperationError>> BackupAsync(
+    public async Task<OneOf<OperationOk, OperationError>> BackupAsync(
         BackupOperationOptions options, CancellationToken ct = default)
     {
         var repo = options.Repository;
@@ -87,7 +87,7 @@ public sealed class RepositoryOperationRunner(
         repo.LastBackupAt = DateTime.Now;
         await repositoryStore.UpdateAsync(repo, ct);
         settingsStore.RequestSave();
-        return new BackupResult(archiveName, DateTimeOffset.Now);
+        return OperationOk.Instance;
     }
 
     public async Task<OneOf<PruneResult, OperationError>> PruneAsync(
@@ -117,7 +117,7 @@ public sealed class RepositoryOperationRunner(
             : new PruneResult(DateTimeOffset.Now, options.CompactAfterPrune || repo.PruneOptions.CompactAfterPrune);
     }
 
-    public async Task<OneOf<CheckResult, OperationError>> CheckAsync(
+    public async Task<OneOf<OperationOk, OperationError>> CheckAsync(
         CheckOperationOptions options, CancellationToken ct = default)
     {
         var repo = options.Repository;
@@ -143,10 +143,10 @@ public sealed class RepositoryOperationRunner(
             false,
             ct);
 
-        return result.IsT1 ? result.AsT1 : new CheckResult(DateTimeOffset.Now);
+        return result.IsT1 ? result.AsT1 : OperationOk.Instance;
     }
 
-    public async Task<OneOf<CompactResult, OperationError>> CompactAsync(
+    public async Task<OneOf<OperationOk, OperationError>> CompactAsync(
         CompactOperationOptions options, CancellationToken ct = default)
     {
         var repo = options.Repository;
@@ -172,10 +172,10 @@ public sealed class RepositoryOperationRunner(
             true,
             ct);
 
-        return result.IsT1 ? result.AsT1 : new CompactResult(DateTimeOffset.Now);
+        return result.IsT1 ? result.AsT1 : OperationOk.Instance;
     }
 
-    public async Task<OneOf<RestoreResult, OperationError>> RestoreAsync(
+    public async Task<OneOf<OperationOk, OperationError>> RestoreAsync(
         RestoreOperationOptions options, CancellationToken ct = default)
     {
         var repo = options.Repository;
@@ -205,12 +205,10 @@ public sealed class RepositoryOperationRunner(
             false,
             ct);
 
-        return result.IsT1
-            ? result.AsT1
-            : new RestoreResult(options.ArchiveName, options.DestinationPath, options.Paths, DateTimeOffset.Now);
+        return result.IsT1 ? result.AsT1 : OperationOk.Instance;
     }
 
-    public async Task<OneOf<DeleteArchiveResult, OperationError>> DeleteArchiveAsync(
+    public async Task<OneOf<OperationOk, OperationError>> DeleteArchiveAsync(
         DeleteArchiveOperationOptions options, CancellationToken ct = default)
     {
         var repo = options.Repository;
@@ -228,12 +226,10 @@ public sealed class RepositoryOperationRunner(
             true,
             ct);
 
-        return result.IsT1
-            ? result.AsT1
-            : new DeleteArchiveResult(options.ArchiveName, DateTimeOffset.Now);
+        return result.IsT1 ? result.AsT1 : OperationOk.Instance;
     }
 
-    public async Task<OneOf<ChangePassphraseResult, OperationError>> ChangePassphraseAsync(
+    public async Task<OneOf<OperationOk, OperationError>> ChangePassphraseAsync(
         ChangePassphraseOperationOptions options, CancellationToken ct = default)
     {
         var repo = options.Repository;
@@ -264,12 +260,7 @@ public sealed class RepositoryOperationRunner(
         else
             await credentialStore.DeletePassphraseAsync(repo.Path);
 
-        return new ChangePassphraseResult(DateTimeOffset.Now, options.SaveToCredentialStore);
-    }
-
-    public void ClearRepositoryError(ClearRepositoryErrorOptions options)
-    {
-        cache.InvalidateRepo(options.Repository.Path);
+        return OperationOk.Instance;
     }
 
     private async Task<OneOf<BorgExecutionResult, OperationError>> RunCommandAsync(

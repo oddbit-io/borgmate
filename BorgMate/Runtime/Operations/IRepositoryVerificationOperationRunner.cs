@@ -13,18 +13,18 @@ public interface IRepositoryVerificationOperationRunner
         VersionDetectionOperationOptions options, CancellationToken ct = default);
 
     /// <summary>Initializes and verifies a new repository candidate.</summary>
-    Task<OneOf<RepositoryVerificationResult, OperationError>> VerifyNewRepositoryAsync(
+    Task<OneOf<OperationOk, OperationError>> VerifyNewRepositoryAsync(
         RepositoryVerificationOperationOptions options, CancellationToken ct = default);
 
     /// <summary>Verifies reachability and credentials for an existing repository.</summary>
-    Task<OneOf<RepositoryVerificationResult, OperationError>> VerifyExistingRepositoryAsync(
+    Task<OneOf<OperationOk, OperationError>> VerifyExistingRepositoryAsync(
         RepositoryVerificationOperationOptions options, CancellationToken ct = default);
 
     /// <summary>Checks a remote borg binary path.</summary>
-    Task<OneOf<RemotePathCheckResult, OperationError>> CheckRemotePathAsync(
+    Task<OneOf<OperationOk, OperationError>> CheckRemotePathAsync(
         RemotePathCheckOperationOptions options, CancellationToken ct = default);
 
     /// <summary>Prepares an SSH key for runtime use when the platform requires it.</summary>
-    Task<OneOf<SshKeyPreparationResult, OperationError>> PrepareSshKeyAsync(
+    Task<OneOf<OperationOk, OperationError>> PrepareSshKeyAsync(
         SshKeyPreparationOperationOptions options, CancellationToken ct = default);
 }

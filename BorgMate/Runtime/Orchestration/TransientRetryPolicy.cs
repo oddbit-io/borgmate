@@ -10,11 +10,10 @@ using OneOf;
 namespace BorgMate.Runtime.Orchestration;
 
 /// <summary>Default retry policy for transient borg and SSH failures.</summary>
-public sealed class TransientRetryPolicy(ILogger<TransientRetryPolicy> logger) : ITransientRetryPolicy
+public sealed class TransientRetryPolicy(ILogger<TransientRetryPolicy> logger)
 {
     private static readonly int[] RetryDelays = [5, 10, 30, 60, 300];
 
-    /// <inheritdoc />
     public async Task<OneOf<BorgExecutionResult, OperationError>> ExecuteAsync(
         Func<CancellationToken, Task<BorgResult>> operation,
         IOperationProgressSink progressSink,

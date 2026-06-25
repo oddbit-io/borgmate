@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using BorgMate.Domain.Repositories;
 using BorgMate.Runtime.Orchestration;
 using OneOf;
 
@@ -29,5 +30,5 @@ public interface IArchiveOperationRunner
         ArchiveDiffOperationOptions options, CancellationToken ct = default);
 
     /// <summary>Invalidates cache entries for a repository.</summary>
-    void InvalidateRepositoryCache(CacheInvalidationOptions options);
+    void InvalidateRepositoryCache(BorgRepository repository);
 }

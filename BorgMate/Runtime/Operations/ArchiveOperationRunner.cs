@@ -16,7 +16,7 @@ public sealed class ArchiveOperationRunner(
     BorgServiceFactory borgServiceFactory,
     BorgJobQueue jobQueue,
     BorgCacheService cache,
-    IBorgOperationOrchestrator orchestrator) : IArchiveOperationRunner
+    BorgOperationOrchestrator orchestrator) : IArchiveOperationRunner
 {
     public async Task<OneOf<ArchiveListResult, OperationError>> ListArchivesAsync(
         ArchiveListOperationOptions options, CancellationToken ct = default)
@@ -145,9 +145,9 @@ public sealed class ArchiveOperationRunner(
         return new ArchiveDiffResult(diff);
     }
 
-    public void InvalidateRepositoryCache(CacheInvalidationOptions options)
+    public void InvalidateRepositoryCache(BorgRepository repository)
     {
-        cache.InvalidateRepo(options.Repository.Path);
+        cache.InvalidateRepo(repository.Path);
     }
 
     private async Task<OneOf<BorgExecutionResult, OperationError>> RunQueryAsync(

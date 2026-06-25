@@ -19,13 +19,12 @@ namespace BorgMate.Runtime.Orchestration;
 public sealed class BorgOperationOrchestrator(
     ILogger<BorgOperationOrchestrator> logger,
     IPassphraseProvider passphraseProvider,
-    ITransientRetryPolicy transientRetryPolicy,
+    TransientRetryPolicy transientRetryPolicy,
     BorgJobQueue jobQueue,
-    IJournalStore journalStore) : IBorgOperationOrchestrator
+    IJournalStore journalStore)
 {
     private const int MaxPassphraseAttempts = 3;
 
-    /// <inheritdoc />
     public async Task<OneOf<BorgExecutionResult, OperationError>> ExecuteAsync(
         BorgOperationRequest request,
         Func<BorgOperationContext, CancellationToken, Task<BorgResult>> operation,

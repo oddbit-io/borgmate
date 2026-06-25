@@ -17,6 +17,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
     private readonly string _configDirectory;
     private readonly string _configFilePath;
     private readonly ILogger<JsonAppConfigStore>? _logger;
+    private readonly bool _persistChanges;
     private AppConfigDocument _data = new();
     private bool _loadedExistingConfig;
     private int _loadedRepositoryCount;
@@ -28,9 +29,16 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
     {
     }
 
-    internal JsonAppConfigStore(string configFilePath, ILogger<JsonAppConfigStore>? logger = null)
+    public JsonAppConfigStore(bool persistChanges, ILogger<JsonAppConfigStore>? logger = null)
+        : this(DefaultConfigFilePath, logger, persistChanges)
+    {
+    }
+
+    internal JsonAppConfigStore(string configFilePath, ILogger<JsonAppConfigStore>? logger = null,
+        bool persistChanges = true)
     {
         _logger = logger;
+        _persistChanges = persistChanges;
         _configFilePath = configFilePath;
         _configDirectory = Path.GetDirectoryName(configFilePath) ?? string.Empty;
     }
@@ -266,6 +274,9 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
         try
         {
             ct.ThrowIfCancellationRequested();
+            if (!_persistChanges)
+                return StoreOk.Instance;
+
             if (_loadError is not null)
             {
                 _logger?.LogError("Refusing to save config because loading {Path} failed", _configFilePath);

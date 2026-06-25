@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using BorgMate.Presentation.ViewModels;
 using BorgMate.Runtime.Operations;
 using BorgMate.Runtime.Orchestration;
-using NetArchTest.Rules;
 
 namespace BorgMate.Tests.Persistence;
 
@@ -15,14 +14,14 @@ public class ArchitectureBoundaryTests
         RegexOptions.Compiled | RegexOptions.Multiline);
 
     [Theory]
-    [InlineData("BorgMate.Services.Config")]
-    [InlineData("BorgMate.Services.Journal")]
-    [InlineData("BorgMate.Services.Keychain")]
+    [InlineData("BorgMate.Persistence.Configuration")]
+    [InlineData("BorgMate.Persistence.Journal")]
+    [InlineData("BorgMate.Persistence.Keychain")]
     public void Stores_DoNotDependOnRuntimeOrPresentation(string namespacePrefix)
     {
         AssertNoDependency(namespacePrefix, "BorgMate.Runtime");
-        AssertNoDependency(namespacePrefix, "BorgMate.ViewModels");
-        AssertNoDependency(namespacePrefix, "BorgMate.Views");
+        AssertNoDependency(namespacePrefix, "BorgMate.Presentation.ViewModels");
+        AssertNoDependency(namespacePrefix, "BorgMate.Presentation.Views");
     }
 
     [Fact]
@@ -35,42 +34,41 @@ public class ArchitectureBoundaryTests
             .Select(p => p.ParameterType.FullName)
             .ToArray();
 
-        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.Models.BorgJob"));
-        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.Services.Queue"));
-        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.Services.Journal"));
-        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.Services.UI.PromptingPassphraseProvider"));
-        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.ViewModels"));
+        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.Runtime.Jobs"));
+        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.Persistence.Journal"));
+        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.Runtime.Security.PromptingPassphraseProvider"));
+        Assert.DoesNotContain(constructorParameterTypes, n => n is not null && n.Contains("BorgMate.Presentation.ViewModels"));
 
         AssertNoDependency(type, "Avalonia");
         AssertNoDependency(type, "BorgMate.Localization");
-        AssertNoDependency(type, "BorgMate.Services.Queue");
-        AssertNoDependency(type, "BorgMate.Services.Journal");
-        AssertNoDependency(type, "BorgMate.Services.UI.PromptingPassphraseProvider");
-        AssertNoDependency(type, "BorgMate.ViewModels");
+        AssertNoDependency(type, "BorgMate.Runtime.Jobs");
+        AssertNoDependency(type, "BorgMate.Persistence.Journal");
+        AssertNoDependency(type, "BorgMate.Runtime.Security.PromptingPassphraseProvider");
+        AssertNoDependency(type, "BorgMate.Presentation.ViewModels");
     }
 
     [Fact]
     public void ViewModels_DoNotDependOnForbiddenRuntimeImplementationServices()
     {
         var viewModelTypes = AppAssembly.GetTypes()
-            .Where(t => t.Namespace == "BorgMate.ViewModels" && t.IsClass && t != typeof(ViewModelBase))
+            .Where(t => t.Namespace == "BorgMate.Presentation.ViewModels" && t.IsClass && t != typeof(ViewModelBase))
             .ToArray();
 
         var forbiddenTypes = new[]
         {
-            "BorgMate.Services.Borg.BorgServiceFactory",
-            "BorgMate.Services.Borg.IBorgService",
-            "BorgMate.Services.Borg.BorgProgressParser",
-            "BorgMate.Services.Borg.BorgDiffParser",
-            "BorgMate.Services.Borg.ArchiveJsonParser",
-            "BorgMate.Services.Borg.ArchiveFileTreeBuilder",
-            "BorgMate.Services.Borg.BorgJobProgressSink",
-            "BorgMate.Services.BorgCacheService",
-            "BorgMate.Services.Queue.BorgJobQueue",
-            "BorgMate.Services.Keychain.ICredentialStore",
-            "BorgMate.Services.WslHelper",
-            "BorgMate.Runtime.IBorgOperationOrchestrator",
-            "BorgMate.Runtime.ITransientRetryPolicy"
+            "BorgMate.Infrastructure.Borg.BorgServiceFactory",
+            "BorgMate.Infrastructure.Borg.IBorgService",
+            "BorgMate.Infrastructure.Borg.BorgProgressParser",
+            "BorgMate.Infrastructure.Borg.BorgDiffParser",
+            "BorgMate.Infrastructure.Borg.ArchiveJsonParser",
+            "BorgMate.Infrastructure.Borg.ArchiveFileTreeBuilder",
+            "BorgMate.Infrastructure.Borg.BorgJobProgressSink",
+            "BorgMate.Infrastructure.Borg.BorgCacheService",
+            "BorgMate.Runtime.Jobs.BorgJobQueue",
+            "BorgMate.Persistence.Keychain.ICredentialStore",
+            "BorgMate.Infrastructure.Platform.WslHelper",
+            typeof(BorgOperationOrchestrator).FullName!,
+            typeof(TransientRetryPolicy).FullName!
         };
 
         var violations = viewModelTypes
@@ -84,14 +82,16 @@ public class ArchitectureBoundaryTests
     public void RuntimeInterfaces_DoNotDependOnPresentation()
     {
         var runtimeInterfaceTypes = AppAssembly.GetTypes()
-            .Where(t => t.Namespace == "BorgMate.Runtime" && t.IsInterface)
+            .Where(t => t.Namespace is not null &&
+                        t.Namespace.StartsWith("BorgMate.Runtime", StringComparison.Ordinal) &&
+                        t.IsInterface)
             .ToArray();
 
         var violations = runtimeInterfaceTypes
             .SelectMany(t => GetReferencedTypes(t)
                 .Where(r => r.Namespace is not null &&
-                    (r.Namespace.StartsWith("BorgMate.ViewModels", StringComparison.Ordinal) ||
-                     r.Namespace.StartsWith("BorgMate.Views", StringComparison.Ordinal)))
+                    (r.Namespace.StartsWith("BorgMate.Presentation.ViewModels", StringComparison.Ordinal) ||
+                     r.Namespace.StartsWith("BorgMate.Presentation.Views", StringComparison.Ordinal)))
                 .Select(r => (RuntimeType: t, PresentationType: r)))
             .ToArray();
 
@@ -104,8 +104,8 @@ public class ArchitectureBoundaryTests
     [InlineData(typeof(RepositoryVerificationOperationRunner))]
     public void OperationRunnerImplementations_DoNotDependOnPresentation(Type runnerType)
     {
-        AssertNoDependency(runnerType, "BorgMate.ViewModels");
-        AssertNoDependency(runnerType, "BorgMate.Views");
+        AssertNoDependency(runnerType, "BorgMate.Presentation.ViewModels");
+        AssertNoDependency(runnerType, "BorgMate.Presentation.Views");
     }
 
     [Fact]
@@ -170,34 +170,32 @@ public class ArchitectureBoundaryTests
 
     private static void AssertNoDependency(string namespacePrefix, string dependency)
     {
-        var result = Types.InAssembly(AppAssembly)
-            .That()
-            .ResideInNamespaceStartingWith(namespacePrefix)
-            .Should()
-            .NotHaveDependencyOn(dependency)
-            .GetResult();
+        var violations = AppAssembly.GetTypes()
+            .Where(t => t.Namespace is not null && t.Namespace.StartsWith(namespacePrefix, StringComparison.Ordinal))
+            .Where(t => GetReferencedTypes(t).Any(r => IsDependency(r, dependency)))
+            .Select(t => t.FullName)
+            .Order()
+            .ToArray();
 
-        Assert.True(result.IsSuccessful, FormatFailure(namespacePrefix, dependency, result));
+        Assert.Empty(violations.Select(t => $"{t} must not depend on {dependency}"));
     }
 
     private static void AssertNoDependency(Type type, string dependency)
     {
-        var result = Types.InAssembly(AppAssembly)
-            .That()
-            .HaveName(type.Name)
-            .Should()
-            .NotHaveDependencyOn(dependency)
-            .GetResult();
+        var violations = GetReferencedTypes(type)
+            .Where(r => IsDependency(r, dependency))
+            .Select(t => t.FullName)
+            .Order()
+            .ToArray();
 
-        Assert.True(result.IsSuccessful, FormatFailure(type.FullName!, dependency, result));
+        Assert.Empty(violations.Select(t => $"{type.FullName} must not depend on {dependency}: {t}"));
     }
 
-    private static string FormatFailure(string subject, string dependency, TestResult result)
+    private static bool IsDependency(Type type, string dependency)
     {
-        var failingTypes = result.FailingTypeNames is null
-            ? string.Empty
-            : string.Join(", ", result.FailingTypeNames);
-        return $"{subject} must not depend on {dependency}. Failing types: {failingTypes}";
+        var fullName = type.FullName;
+        return fullName == dependency ||
+               fullName is not null && fullName.StartsWith(dependency + ".", StringComparison.Ordinal);
     }
 
     private static string GetAppProjectRoot()

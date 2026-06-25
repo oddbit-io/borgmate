@@ -18,7 +18,7 @@ public sealed class RepositoryVerificationOperationRunner(
     BorgServiceFactory borgServiceFactory,
     BorgJobQueue jobQueue,
     IJournalStore journalStore,
-    IBorgOperationOrchestrator orchestrator,
+    BorgOperationOrchestrator orchestrator,
     PromptingPassphraseProvider passphrasePrompt,
     WslHelper wsl) : IRepositoryVerificationOperationRunner
 {
@@ -43,7 +43,7 @@ public sealed class RepositoryVerificationOperationRunner(
         }
     }
 
-    public async Task<OneOf<RepositoryVerificationResult, OperationError>> VerifyNewRepositoryAsync(
+    public async Task<OneOf<OperationOk, OperationError>> VerifyNewRepositoryAsync(
         RepositoryVerificationOperationOptions options, CancellationToken ct = default)
     {
         var repo = options.Repository;
@@ -76,7 +76,7 @@ public sealed class RepositoryVerificationOperationRunner(
         if (result.Success)
         {
             journalStore.Complete(journalEntry, JournalResult.Completed);
-            return new RepositoryVerificationResult(repo, true);
+            return OperationOk.Instance;
         }
 
         if (result.WasCancelled)
@@ -90,7 +90,7 @@ public sealed class RepositoryVerificationOperationRunner(
         return result.ToOperationError();
     }
 
-    public async Task<OneOf<RepositoryVerificationResult, OperationError>> VerifyExistingRepositoryAsync(
+    public async Task<OneOf<OperationOk, OperationError>> VerifyExistingRepositoryAsync(
         RepositoryVerificationOperationOptions options, CancellationToken ct = default)
     {
         var repo = options.Repository;
@@ -118,7 +118,7 @@ public sealed class RepositoryVerificationOperationRunner(
         var result = await job.Completion.Task;
 
         if (result.Success)
-            return new RepositoryVerificationResult(repo, false);
+            return OperationOk.Instance;
 
         passphrasePrompt.Clear(repo);
         return result.WasCancelled
@@ -126,7 +126,7 @@ public sealed class RepositoryVerificationOperationRunner(
             : result.ToOperationError();
     }
 
-    public async Task<OneOf<RemotePathCheckResult, OperationError>> CheckRemotePathAsync(
+    public async Task<OneOf<OperationOk, OperationError>> CheckRemotePathAsync(
         RemotePathCheckOperationOptions options, CancellationToken ct = default)
     {
         try
@@ -137,9 +137,7 @@ public sealed class RepositoryVerificationOperationRunner(
                 options.RemotePath,
                 options.SshKeyPath,
                 ct);
-            return result.Success
-                ? new RemotePathCheckResult(options.RemotePath)
-                : result.ToOperationError();
+            return result.Success ? OperationOk.Instance : result.ToOperationError();
         }
         catch (OperationCanceledException)
         {
@@ -151,7 +149,7 @@ public sealed class RepositoryVerificationOperationRunner(
         }
     }
 
-    public async Task<OneOf<SshKeyPreparationResult, OperationError>> PrepareSshKeyAsync(
+    public async Task<OneOf<OperationOk, OperationError>> PrepareSshKeyAsync(
         SshKeyPreparationOperationOptions options, CancellationToken ct = default)
     {
         try
@@ -161,7 +159,7 @@ public sealed class RepositoryVerificationOperationRunner(
             if (WslHelper.IsRequired && service.UsesSshTransport(options.Repository) &&
                 !string.IsNullOrWhiteSpace(options.SshKeyPath))
                 await wsl.CopySshKeyAsync(options.SshKeyPath, ct);
-            return new SshKeyPreparationResult(options.SshKeyPath, null);
+            return OperationOk.Instance;
         }
         catch (OperationCanceledException)
         {

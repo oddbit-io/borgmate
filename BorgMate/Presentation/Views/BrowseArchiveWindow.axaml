@@ -138,7 +138,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="archives:ArchiveFileNode">
                             <DockPanel
-                                Margin="{Binding Depth, Converter={x:Static conv:BrowseArchiveConverters.DepthToMargin}}"
+                                Margin="{Binding Depth, Converter={x:Static conv:DepthToMarginConverter.Instance}}"
                                 Height="24">
                                 <!-- Modified date (right-aligned) -->
                                 <TextBlock DockPanel.Dock="Right" Classes="secondary"
@@ -183,17 +183,17 @@
                                     <controls:BootstrapIcon.Kind>
                                         <Binding Path=".">
                                             <Binding.Converter>
-                                                <x:Static Member="conv:BrowseArchiveConverters.FileIcon" />
+                                                <x:Static Member="conv:FileIconConverter.Instance" />
                                             </Binding.Converter>
                                         </Binding>
                                     </controls:BootstrapIcon.Kind>
                                 </controls:BootstrapIcon>
                                 <!-- File name -->
                                 <TextBlock Text="{Binding Name}" Classes="file-name"
-                                           Classes.added="{Binding ChangeKind, Converter={x:Static conv:BrowseArchiveConverters.ChangeAdded}}"
+                                           Classes.added="{Binding ChangeKind, Converter={x:Static conv:FileChangeAddedConverter.Instance}}"
                                            VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis"
-                                           FontWeight="{Binding ChangeKind, Converter={x:Static conv:BrowseArchiveConverters.ChangeFontWeight}}" />
+                                           FontWeight="{Binding ChangeKind, Converter={x:Static conv:FileChangeFontWeightConverter.Instance}}" />
                             </DockPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

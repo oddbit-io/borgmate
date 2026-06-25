@@ -28,7 +28,11 @@ public static class ServiceCollectionExtensions
 {
     public static ServiceProvider ConfigureBorgMateServices(this ServiceCollection services)
     {
+#if DEBUG
+        var configStore = new JsonAppConfigStore(!Program.DemoMode);
+#else
         var configStore = new JsonAppConfigStore();
+#endif
         var config = configStore.Load();
         var settings = config.Settings;
 
@@ -66,21 +70,18 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(settings);
         services.AddSingleton<BorgServiceFactory>();
+        services.AddSingleton(configStore);
+        services.AddSingleton<ISettingsStore>(sp => sp.GetRequiredService<JsonAppConfigStore>());
+        services.AddSingleton<IRepositoryConfigStore>(sp => sp.GetRequiredService<JsonAppConfigStore>());
 #if DEBUG
         if (Program.DemoMode)
         {
-            services.AddSingleton<MockAppConfigStore>();
-            services.AddSingleton<ISettingsStore>(sp => sp.GetRequiredService<MockAppConfigStore>());
-            services.AddSingleton<IRepositoryConfigStore>(sp => sp.GetRequiredService<MockAppConfigStore>());
             services.AddSingleton<IJournalStore, MockJournalStore>();
             services.AddSingleton<IBackupScheduler, MockBackupScheduler>();
         }
         else
 #endif
         {
-            services.AddSingleton(configStore);
-            services.AddSingleton<ISettingsStore>(sp => sp.GetRequiredService<JsonAppConfigStore>());
-            services.AddSingleton<IRepositoryConfigStore>(sp => sp.GetRequiredService<JsonAppConfigStore>());
             services.AddSingleton<IJournalStore, SqliteJournalStore>();
             services.AddSingleton<IBackupScheduler, BackupScheduler>();
         }
@@ -128,8 +129,8 @@ public static class ServiceCollectionExtensions
                 WslHelper.IsRequired));
         services.AddSingleton<PromptingPassphraseProvider>();
         services.AddSingleton<IPassphraseProvider>(sp => sp.GetRequiredService<PromptingPassphraseProvider>());
-        services.AddSingleton<ITransientRetryPolicy, TransientRetryPolicy>();
-        services.AddSingleton<IBorgOperationOrchestrator, BorgOperationOrchestrator>();
+        services.AddSingleton<TransientRetryPolicy>();
+        services.AddSingleton<BorgOperationOrchestrator>();
         services.AddSingleton<IRepositoryOperationRunner, RepositoryOperationRunner>();
         services.AddSingleton<IArchiveOperationRunner, ArchiveOperationRunner>();
         services.AddSingleton<IRepositoryVerificationOperationRunner, RepositoryVerificationOperationRunner>();

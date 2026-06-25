@@ -341,8 +341,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         if (_store.SelectedRepository is { } repo)
         {
             repo.LoadedArchives = null;
-            _archiveOperations.InvalidateRepositoryCache(
-                new CacheInvalidationOptions(repo, NullOperationProgressSink.Instance));
+            _archiveOperations.InvalidateRepositoryCache(repo);
         }
 
         Archives.Clear();
@@ -999,8 +998,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         var archive = SelectedArchive;
 
         Archives.Remove(archive);
-        _archiveOperations.InvalidateRepositoryCache(
-            new CacheInvalidationOptions(repo, NullOperationProgressSink.Instance));
+        _archiveOperations.InvalidateRepositoryCache(repo);
 
         IsDeletingArchive = true;
         try

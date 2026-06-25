@@ -117,6 +117,11 @@ public class RuntimeContractTests
 
     private static string? ValidateOperationRunnerMethod(Type runnerType, MethodInfo method)
     {
+        // Synchronous void helpers (e.g. cache invalidation) are not borg operations;
+        // the options contract only governs Task-returning operation methods.
+        if (method.ReturnType == typeof(void))
+            return null;
+
         var parameters = method.GetParameters();
         if (parameters.Length is < 1 or > 2)
             return $"{runnerType.Name}.{method.Name} must accept options plus optional CancellationToken.";
@@ -131,13 +136,10 @@ public class RuntimeContractTests
         if (parameters.Length == 2 && parameters[1].ParameterType != typeof(CancellationToken))
             return $"{runnerType.Name}.{method.Name} second parameter must be CancellationToken.";
 
-        if (method.ReturnType == typeof(void))
-            return null;
-
         if (!method.ReturnType.IsGenericType ||
             method.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
         {
-            return $"{runnerType.Name}.{method.Name} must return Task<OneOf<*, OperationError>> or void.";
+            return $"{runnerType.Name}.{method.Name} must return Task<OneOf<*, OperationError>>.";
         }
 
         var taskResultType = method.ReturnType.GetGenericArguments()[0];
