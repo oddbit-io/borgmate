@@ -20,7 +20,7 @@ public partial class ArchiveFileNode : ObservableObject
     public required string Name { get; init; }
     public required string FullPath { get; init; }
     public bool IsDirectory { get; init; }
-    public long Size { get; init; }
+    public long Size { get; internal set; }
     public DateTime? ModifiedAt { get; init; }
     public int Depth { get; init; }
     public ArchiveFileNode? Parent { get; set; }

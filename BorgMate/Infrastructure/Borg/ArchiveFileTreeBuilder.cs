@@ -47,6 +47,7 @@ public static class ArchiveFileTreeBuilder
                 // Skip malformed lines
             }
 
+        SetDirectorySizes(rootChildren);
         SortChildren(rootChildren);
         return rootChildren;
     }
@@ -98,5 +99,20 @@ public static class ArchiveFileTreeBuilder
                 child.Children.Sort(NodeComparison);
                 SortChildren(child.Children);
             }
+    }
+
+    private static long SetDirectorySizes(IEnumerable<ArchiveFileNode> nodes)
+    {
+        var total = 0L;
+
+        foreach (var node in nodes)
+        {
+            if (node.IsDirectory)
+                node.Size = SetDirectorySizes(node.Children);
+
+            total += node.Size;
+        }
+
+        return total;
     }
 }

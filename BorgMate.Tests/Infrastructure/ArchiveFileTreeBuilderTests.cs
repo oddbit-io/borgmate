@@ -31,18 +31,21 @@ public class ArchiveFileTreeBuilderTests
         var home = roots[0];
         Assert.Equal("home", home.Name);
         Assert.True(home.IsDirectory);
+        Assert.Equal(50, home.Size);
         Assert.Equal(0, home.Depth);
 
         Assert.Single(home.Children);
         var user = home.Children[0];
         Assert.Equal("user", user.Name);
         Assert.True(user.IsDirectory);
+        Assert.Equal(50, user.Size);
         Assert.Equal(1, user.Depth);
         Assert.Equal(home, user.Parent);
 
         Assert.Single(user.Children);
         var file = user.Children[0];
         Assert.Equal("file.txt", file.Name);
+        Assert.Equal(50, file.Size);
         Assert.Equal(2, file.Depth);
         Assert.Equal(user, file.Parent);
     }
@@ -76,9 +79,39 @@ public class ArchiveFileTreeBuilderTests
         var roots = ArchiveFileTreeBuilder.Build(json);
         Assert.Single(roots);
         var docs = roots[0];
+        Assert.Equal(30, docs.Size);
         Assert.Equal(2, docs.Children.Count);
         Assert.Equal("a.txt", docs.Children[0].Name); // sorted
         Assert.Equal("b.txt", docs.Children[1].Name);
+    }
+
+    [Fact]
+    public void Build_NestedDirectories_UseRecursiveSize()
+    {
+        var json = string.Join("\n",
+            MakeJsonLine("root/a.txt", size: 10),
+            MakeJsonLine("root/nested/b.txt", size: 20),
+            MakeJsonLine("root/nested/deeper/c.txt", size: 30));
+
+        var roots = ArchiveFileTreeBuilder.Build(json);
+
+        var root = roots[0];
+        var nested = root.Children[0];
+        var deeper = nested.Children[0];
+
+        Assert.Equal(60, root.Size);
+        Assert.Equal(50, nested.Size);
+        Assert.Equal(30, deeper.Size);
+    }
+
+    [Fact]
+    public void Build_EmptyDirectory_SizeIsZero()
+    {
+        var roots = ArchiveFileTreeBuilder.Build(MakeJsonLine("empty", "d"));
+
+        Assert.Single(roots);
+        Assert.True(roots[0].IsDirectory);
+        Assert.Equal(0, roots[0].Size);
     }
 
     [Fact]
