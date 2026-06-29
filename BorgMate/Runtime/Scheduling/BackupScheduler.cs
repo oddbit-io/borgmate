@@ -1,9 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
+using BorgMate.Domain.Journal;
 using BorgMate.Domain.Repositories;
+using BorgMate.Domain.Settings;
+using BorgMate.Infrastructure.Platform;
 using BorgMate.Persistence.Configuration;
+using BorgMate.Persistence.Journal;
+using BorgMate.Presentation.ViewModels;
 using BorgMate.Runtime.Operations;
 using BorgMate.Runtime.Progress;
 using Microsoft.Extensions.Logging;
@@ -16,30 +23,60 @@ namespace BorgMate.Runtime.Scheduling;
 /// </summary>
 public class BackupScheduler : IBackupScheduler
 {
+    /// <summary>
+    ///     A due run that is only recently past (wake latency, timer granularity) is "now",
+    ///     not "missed" — without this grace, RunMissed=false repositories can never fire.
+    /// </summary>
+    internal static readonly TimeSpan MissedRunGrace = TimeSpan.FromMinutes(10);
+
     private readonly ILogger<BackupScheduler> _logger;
     private readonly IRepositoryOperationRunner _repositoryRunner;
+    private readonly AppSettings _settings;
     private readonly ISettingsStore _settingsStore;
     private readonly RepositoryPresentationState _store;
     private readonly DispatcherTimer _timer;
+    private readonly SemaphoreSlim _wakeRefreshGate = new(1, 1);
+    private readonly IWakeScheduler _wakeScheduler;
+    private readonly IPowerSource _powerSource;
+    private readonly IJournalStore _journal;
     private bool _isChecking;
+    private bool _batteryDeferralReported;
+
+    // Wake-state cache. _wakeSynced=false → OS state unknown, next refresh always applies.
+    // _appliedWake is meaningful only while synced; null = cleared. The AC-only flag is part
+    // of the key so toggling it re-applies the OS artifacts even when the time is unchanged.
+    private bool _wakeSynced;
+    private (DateTime WakeAt, bool AcOnly)? _appliedWake;
+    private bool _lastWakeAttemptFailed;
+    private (DateTime WakeAt, bool AcOnly)? _lastWakeTarget;
 
     public BackupScheduler(
         ILogger<BackupScheduler> logger,
         RepositoryPresentationState store,
         IRepositoryOperationRunner repositoryRunner,
-        ISettingsStore settingsStore)
+        ISettingsStore settingsStore,
+        AppSettings settings,
+        IWakeScheduler wakeScheduler,
+        IPowerSource powerSource,
+        IJournalStore journal)
     {
         _logger = logger;
         _store = store;
         _repositoryRunner = repositoryRunner;
         _settingsStore = settingsStore;
+        _settings = settings;
+        _wakeScheduler = wakeScheduler;
+        _powerSource = powerSource;
+        _journal = journal;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
         _timer.Tick += (_, _) => _ = CheckSchedulesGuardedAsync();
+        _settingsStore.Changed += snapshot => _ = RefreshWakeScheduleAsync(false, false);
     }
 
     public void Start()
     {
         _timer.Start();
+        _ = RefreshWakeScheduleAsync(true, false);
         // Check immediately for missed backups on startup
         _ = CheckSchedulesGuardedAsync();
     }
@@ -49,7 +86,17 @@ public class BackupScheduler : IBackupScheduler
         _timer.Stop();
     }
 
-    private async Task CheckSchedulesGuardedAsync()
+    public void RequestImmediateCheck()
+    {
+        _ = CheckSchedulesGuardedAsync();
+    }
+
+    public Task RefreshWakeScheduleAsync(bool interactive)
+    {
+        return RefreshWakeScheduleAsync(true, interactive);
+    }
+
+    internal async Task CheckSchedulesGuardedAsync()
     {
         if (_isChecking) return;
         _isChecking = true;
@@ -64,6 +111,7 @@ public class BackupScheduler : IBackupScheduler
         finally
         {
             _isChecking = false;
+            _ = RefreshWakeScheduleAsync(false, false);
         }
     }
 
@@ -71,11 +119,29 @@ public class BackupScheduler : IBackupScheduler
     {
         var now = DateTime.Now;
 
-        foreach (var repo in _store.Repositories.Where(r => r.IsScheduled && !r.IsBusy))
-        {
-            var nextRun = ComputeNextRun(repo);
-            if (nextRun is null || nextRun > now) continue;
+        var due = _store.Repositories
+            .Where(r => r.IsScheduled && !r.IsBusy)
+            .Select(r => (Repo: r, PlannedAt: ComputeNextRun(r)))
+            .Where(d => d.PlannedAt is not null && d.PlannedAt <= now)
+            .Select(d => (d.Repo, PlannedAt: d.PlannedAt!.Value))
+            .ToList();
 
+        if (due.Count == 0)
+            return;
+
+        // Probed lazily — only when a run is actually due (on macOS the probe spawns
+        // pmset; don't pay that every minute). Deferred runs execute under the normal
+        // missed-run rules once AC power returns.
+        if (_settings.ScheduledBackupsOnlyOnAcPower && await _powerSource.IsOnBatteryAsync())
+        {
+            ReportBatteryDeferral(due);
+            return;
+        }
+
+        _batteryDeferralReported = false;
+
+        foreach (var (repo, _) in due)
+        {
             try
             {
                 _logger.LogInformation("Scheduled backup triggered for '{Name}'", repo.Name);
@@ -113,6 +179,100 @@ public class BackupScheduler : IBackupScheduler
     }
 
     /// <summary>
+    ///     Journal + OS notification, once per continuous battery episode — the check runs
+    ///     every minute and must not spam. The flag resets when a due run proceeds on AC.
+    /// </summary>
+    private void ReportBatteryDeferral(IReadOnlyList<(RepositoryViewModel Repo, DateTime PlannedAt)> due)
+    {
+        _logger.LogInformation("Deferring scheduled backups: on battery with AC-only backups enabled");
+        if (_batteryDeferralReported)
+            return;
+
+        _batteryDeferralReported = true;
+        var lines = due.Select(d => string.Format(
+            Strings.Get("BackupDeferred.Item"),
+            d.Repo.Name,
+            d.PlannedAt.ToString("g", Strings.Culture)));
+        var detail = string.Join(Environment.NewLine, lines.Append(Strings.Get("BackupDeferred.Detail")));
+
+        var entry = _journal.Add(
+            JournalEventKind.BackupDeferred,
+            repositoryName: due.Count == 1 ? due[0].Repo.Name : null);
+        // Complete triggers the OS notification (honoring the ShowNotifications setting).
+        _journal.Complete(entry, JournalResult.Deferred, detail);
+    }
+
+    internal async Task RefreshWakeScheduleAsync(bool force, bool interactive)
+    {
+        // Compute the target on the caller thread — _store is UI-thread-owned.
+        var enabled = _settings.WakeForScheduledBackups && _wakeScheduler.IsSupported;
+        var nextWake = enabled
+            ? ComputeNextWakeRun(_store.Repositories.Select(r => r.Model), DateTime.Now)
+            : null;
+        (DateTime WakeAt, bool AcOnly)? target = nextWake is null
+            ? null
+            : (nextWake.Value, _settings.ScheduledBackupsOnlyOnAcPower);
+
+        // Process work happens off the caller thread; the semaphore serializes refreshes.
+        await _wakeRefreshGate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await ApplyWakeTargetAsync(target, force, interactive).ConfigureAwait(false);
+        }
+        finally
+        {
+            _wakeRefreshGate.Release();
+        }
+    }
+
+    private async Task ApplyWakeTargetAsync((DateTime WakeAt, bool AcOnly)? target, bool force, bool interactive)
+    {
+        if (_wakeSynced && _appliedWake == target)
+            return;
+        if (_lastWakeAttemptFailed && _lastWakeTarget == target && !force)
+            return;
+
+        _lastWakeTarget = target;
+
+        var result = target is null
+            ? await _wakeScheduler.ClearAsync(interactive).ConfigureAwait(false)
+            : await _wakeScheduler.ScheduleAsync(target.Value.WakeAt, interactive, target.Value.AcOnly)
+                .ConfigureAwait(false);
+
+        if (result.IsSuccess)
+        {
+            _wakeSynced = true;
+            _appliedWake = target;
+            _lastWakeAttemptFailed = false;
+            return;
+        }
+
+        _lastWakeAttemptFailed = true;
+        if (target is null)
+        {
+            _wakeSynced = false;
+            _logger.LogWarning("Failed to clear system wake schedule: {Error}", result.ErrorMessage);
+            return;
+        }
+
+        _logger.LogWarning("Failed to schedule system wake for {WakeAt}: {Error}",
+            target.Value.WakeAt, result.ErrorMessage);
+
+        // A stale OS wake may remain (previous target, or a partial apply) — try to leave
+        // a clean state so the machine doesn't wake at the wrong moment.
+        var clear = await _wakeScheduler.ClearAsync(interactive).ConfigureAwait(false);
+        if (clear.IsSuccess)
+        {
+            _wakeSynced = true;
+            _appliedWake = null;
+        }
+        else
+        {
+            _wakeSynced = false;
+        }
+    }
+
+    /// <summary>
     ///     Computes the next run time based on the schedule and last backup.
     ///     Returns null if the schedule is invalid.
     /// </summary>
@@ -142,8 +302,9 @@ public class BackupScheduler : IBackupScheduler
             _ => (DateTime?)null
         };
 
-        // When RunMissed is disabled, advance past-due times to the next future occurrence
-        if (next is not null && !schedule.RunMissed && next < DateTime.Now && lastRun != DateTime.MinValue)
+        // When RunMissed is disabled, advance past-due times to the next future occurrence.
+        // The grace window keeps a just-due run (wake latency, timer granularity) eligible.
+        if (next is not null && !schedule.RunMissed && next < DateTime.Now - MissedRunGrace && lastRun != DateTime.MinValue)
             next = schedule.Frequency switch
             {
                 ScheduleFrequency.EveryNHours =>
@@ -155,6 +316,27 @@ public class BackupScheduler : IBackupScheduler
             };
 
         return next;
+    }
+
+    internal static DateTime? ComputeNextWakeRun(IEnumerable<BorgRepository> repositories, DateTime now)
+    {
+        DateTime? nextWake = null;
+        foreach (var repo in repositories)
+        {
+            var nextRun = ComputeNextRun(repo);
+            if (nextRun is null || nextRun <= now) continue;
+            var wakeAt = TrimToSecond(nextRun.Value);
+            if (wakeAt <= now) continue;
+            if (nextWake is null || wakeAt < nextWake)
+                nextWake = wakeAt;
+        }
+
+        return nextWake;
+    }
+
+    internal static DateTime TrimToSecond(DateTime value)
+    {
+        return value.AddTicks(-(value.Ticks % TimeSpan.TicksPerSecond));
     }
 
     private static DateTime AdvanceToFuture(DateTime time, TimeSpan interval)

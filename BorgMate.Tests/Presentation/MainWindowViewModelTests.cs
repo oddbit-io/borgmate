@@ -31,6 +31,7 @@ public class MainWindowViewModelTests : IDisposable
     private readonly RepositoryPresentationState _store;
     private readonly IBackupScheduler _scheduler = Substitute.For<IBackupScheduler>();
     private readonly IAutoStartService _autoStart = Substitute.For<IAutoStartService>();
+    private readonly IWakeScheduler _wakeScheduler = Substitute.For<IWakeScheduler>();
 
     public MainWindowViewModelTests()
     {
@@ -96,7 +97,8 @@ public class MainWindowViewModelTests : IDisposable
         var page = CreatePageVm();
         var notifications = new NotificationsViewModel(_journalService);
         var vm = new MainWindowViewModel(_settingsStore, _repositoryConfigStore, _settings, page,
-            notifications, _journalService, new UpdateStatusState(), _jobQueue, _store, _autoStart, _scheduler);
+            notifications, _journalService, new UpdateStatusState(), _jobQueue, _store, _autoStart, _wakeScheduler,
+            _scheduler);
 
         vm.NavigateToCommand.Execute(AppPage.Notifications);
 
@@ -162,7 +164,8 @@ public class MainWindowViewModelTests : IDisposable
         var notifications = new NotificationsViewModel(_journalService);
 
         var vm = new MainWindowViewModel(_settingsStore, _repositoryConfigStore, _settings, page,
-            notifications, _journalService, new UpdateStatusState(), _jobQueue, _store, _autoStart, _scheduler);
+            notifications, _journalService, new UpdateStatusState(), _jobQueue, _store, _autoStart, _wakeScheduler,
+            _scheduler);
 
         vm.IsSidebarExpanded = true;
         await vm.SaveConfigAsync();
@@ -182,7 +185,8 @@ public class MainWindowViewModelTests : IDisposable
         var notifications = new NotificationsViewModel(_journalService);
 
         var vm = new MainWindowViewModel(_settingsStore, _repositoryConfigStore, _settings, page,
-            notifications, _journalService, new UpdateStatusState(), _jobQueue, _store, _autoStart, _scheduler);
+            notifications, _journalService, new UpdateStatusState(), _jobQueue, _store, _autoStart, _wakeScheduler,
+            _scheduler);
 
         Assert.Equal(2, _store.Repositories.Count);
         Assert.Equal("repo1", _store.Repositories[0].Name);

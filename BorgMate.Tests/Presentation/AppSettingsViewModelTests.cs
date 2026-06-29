@@ -12,8 +12,9 @@ public class AppSettingsViewModelTests
     private readonly AppSettings _settings = new();
     private readonly ISettingsStore _settingsStore = Substitute.For<ISettingsStore>();
     private readonly IAutoStartService _autoStart = Substitute.For<IAutoStartService>();
+    private readonly IWakeScheduler _wakeScheduler = Substitute.For<IWakeScheduler>();
 
-    private AppSettingsViewModel CreateVm() => new(_settings, _settingsStore, _autoStart);
+    private AppSettingsViewModel CreateVm() => new(_settings, _settingsStore, _autoStart, _wakeScheduler);
 
     [Fact]
     public void Reload_PopulatesFromSettings()
@@ -23,6 +24,8 @@ public class AppSettingsViewModelTests
         _settings.ShowNotifications = false;
         _settings.ExperimentalBorg2Support = true;
         _settings.StartMinimized = true;
+        _settings.WakeForScheduledBackups = true;
+        _settings.ScheduledBackupsOnlyOnAcPower = false;
         _settings.LoggingEnabled = false;
         _settings.LogLevel = AppLogLevel.Warning;
         _settings.BinaryUnits = false;
@@ -43,6 +46,8 @@ public class AppSettingsViewModelTests
         Assert.False(vm.ShowNotifications);
         Assert.True(vm.ExperimentalBorg2Support);
         Assert.True(vm.StartMinimized);
+        Assert.True(vm.WakeForScheduledBackups);
+        Assert.False(vm.ScheduledBackupsOnlyOnAcPower);
         Assert.False(vm.LoggingEnabled);
         Assert.Equal(AppLogLevel.Warning, vm.LogLevel);
         Assert.False(vm.BinaryUnits);
@@ -63,6 +68,8 @@ public class AppSettingsViewModelTests
         vm.ShowNotifications = false;
         vm.ExperimentalBorg2Support = true;
         vm.StartMinimized = true;
+        vm.WakeForScheduledBackups = true;
+        vm.ScheduledBackupsOnlyOnAcPower = false;
         vm.BinaryUnits = false;
         vm.SshKeepAliveInterval = 15;
         vm.SshKeepAliveCountMax = 8;
@@ -79,6 +86,8 @@ public class AppSettingsViewModelTests
         Assert.False(_settings.ShowNotifications);
         Assert.True(_settings.ExperimentalBorg2Support);
         Assert.True(_settings.StartMinimized);
+        Assert.True(_settings.WakeForScheduledBackups);
+        Assert.False(_settings.ScheduledBackupsOnlyOnAcPower);
         Assert.False(_settings.BinaryUnits);
         Assert.Equal(15, _settings.SshKeepAliveInterval);
         Assert.Equal(8, _settings.SshKeepAliveCountMax);
@@ -151,10 +160,40 @@ public class AppSettingsViewModelTests
         var settings = new AppSettings(
             new BorgPathDetectionResult("borg", "borg"),
             new BorgPathDetectionResult("borg2", null));
-        var vm = new AppSettingsViewModel(settings, _settingsStore, _autoStart);
+        var vm = new AppSettingsViewModel(settings, _settingsStore, _autoStart, _wakeScheduler);
 
         Assert.Equal("borg2", vm.DetectedBorg2Path);
         Assert.Equal("Auto-detected: not found", vm.DetectedBorg2PathDisplay);
+    }
+
+    [Fact]
+    public void WakeSchedulerStatusChanged_RaisesMessagePropertyChanged()
+    {
+        _wakeScheduler.IsSupported.Returns(true);
+        _wakeScheduler.LastError.Returns("boom");
+        var vm = CreateVm();
+        vm.DispatchToUi = action => action();
+        var raised = new List<string?>();
+        vm.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+
+        _wakeScheduler.StatusChanged += Raise.Event<Action>();
+
+        Assert.Contains(nameof(vm.WakeSchedulerMessage), raised);
+        Assert.Contains(nameof(vm.HasWakeSchedulerMessage), raised);
+    }
+
+    [Fact]
+    public void Detach_StopsWakeStatusUpdates()
+    {
+        var vm = CreateVm();
+        vm.DispatchToUi = action => action();
+        var raised = new List<string?>();
+        vm.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
+
+        vm.Detach();
+        _wakeScheduler.StatusChanged += Raise.Event<Action>();
+
+        Assert.DoesNotContain(nameof(vm.WakeSchedulerMessage), raised);
     }
 
     [Fact]

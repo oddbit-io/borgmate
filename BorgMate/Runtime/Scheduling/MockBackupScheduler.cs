@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace BorgMate.Runtime.Scheduling;
 
 public class MockBackupScheduler : IBackupScheduler
@@ -8,5 +10,14 @@ public class MockBackupScheduler : IBackupScheduler
 
     public void Stop()
     {
+    }
+
+    public void RequestImmediateCheck()
+    {
+    }
+
+    public Task RefreshWakeScheduleAsync(bool interactive)
+    {
+        return Task.CompletedTask;
     }
 }

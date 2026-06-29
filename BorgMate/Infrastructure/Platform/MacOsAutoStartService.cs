@@ -49,7 +49,7 @@ internal class MacOsAutoStartService : IAutoStartService
         return reader.ReadToEnd();
     }
 
-    private static string GetAppPath()
+    internal static string GetAppPath()
     {
         var mainModule = Environment.ProcessPath;
         if (mainModule is not null)

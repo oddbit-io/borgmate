@@ -68,6 +68,8 @@ public class AppSettings
     public bool ShowNotifications { get; set; } = true;
     public bool StartAtLogin { get; set; }
     public bool StartMinimized { get; set; }
+    public bool WakeForScheduledBackups { get; set; }
+    public bool ScheduledBackupsOnlyOnAcPower { get; set; } = true;
     public string Language { get; set; } = "auto";
     public bool LoggingEnabled { get; set; } = true;
     public AppLogLevel LogLevel { get; set; } = AppLogLevel.Info;

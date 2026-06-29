@@ -13,6 +13,7 @@ namespace BorgMate;
 internal sealed class Program
 {
     internal static SingleInstanceGuard? InstanceGuard;
+    internal static bool ScheduledWakeMode;
 #if DEBUG
     internal static bool DemoMode;
 #endif
@@ -20,6 +21,7 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        ScheduledWakeMode = ParseScheduledWakeMode(args);
 #if DEBUG
         DemoMode = Array.Exists(args, a => a == "--demo");
 
@@ -42,8 +44,8 @@ internal sealed class Program
         VelopackApp.Build().Run();
 
         InstanceGuard = new SingleInstanceGuard();
-        if (!InstanceGuard.TryAcquire())
-            // Another instance is running and was signaled to activate
+        if (!InstanceGuard.TryAcquire(activateExisting: !ScheduledWakeMode))
+            // Another instance is running and was signaled (activate or wake check)
             return;
 
         try
@@ -54,6 +56,11 @@ internal sealed class Program
         {
             InstanceGuard.Dispose();
         }
+    }
+
+    internal static bool ParseScheduledWakeMode(string[] args)
+    {
+        return Array.Exists(args, a => string.Equals(a, "--scheduled-wake", StringComparison.Ordinal));
     }
 
     private static void LogCrash(string message)

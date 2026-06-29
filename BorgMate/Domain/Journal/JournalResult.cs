@@ -6,5 +6,8 @@ public enum JournalResult
     Running,
     Completed,
     Failed,
-    Cancelled
+    Cancelled,
+
+    /// <summary>Postponed (e.g. on battery with AC-only backups); will run under missed-run rules.</summary>
+    Deferred
 }

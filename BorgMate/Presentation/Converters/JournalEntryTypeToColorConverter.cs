@@ -14,6 +14,7 @@ public class JournalEntryTypeToColorConverter : IValueConverter
     private static readonly ISolidColorBrush Red = new SolidColorBrush(Color.Parse("#FF3B30"));
     private static readonly ISolidColorBrush Blue = ConverterColors.AccentBrush;
     private static readonly ISolidColorBrush Gray = new SolidColorBrush(Color.Parse("#8E8E93"));
+    private static readonly ISolidColorBrush Orange = new SolidColorBrush(Color.Parse("#FF9500"));
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -23,6 +24,7 @@ public class JournalEntryTypeToColorConverter : IValueConverter
                 JournalResult.Completed => Green,
                 JournalResult.Failed => Red,
                 JournalResult.Cancelled => Gray,
+                JournalResult.Deferred => Orange,
                 JournalResult.Running => Blue,
                 _ => Blue
             }

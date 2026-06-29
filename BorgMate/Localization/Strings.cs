@@ -31,7 +31,7 @@ public class Strings : INotifyPropertyChanged
     [
         "Notif.Backup", "Notif.Prune", "Notif.Check", "Notif.Compact",
         "Notif.Delete", "Notif.Create", "Notif.PassphraseFailed", "Notif.Restore",
-        "Notif.ChangePassphrase"
+        "Notif.ChangePassphrase", "Notif.BackupDeferred"
     ];
 
     public static Strings Instance { get; } = new();
@@ -167,6 +167,7 @@ public class Strings : INotifyPropertyChanged
             JournalResult.Completed => Get("Job.Completed"),
             JournalResult.Failed => Get("Job.Failed"),
             JournalResult.Cancelled => Get("Job.Cancelled"),
+            JournalResult.Deferred => Get("Job.Deferred"),
             _ => ""
         };
     }

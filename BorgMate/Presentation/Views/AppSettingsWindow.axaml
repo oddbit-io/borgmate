@@ -62,6 +62,16 @@
                                           Content="{Binding [StartAtLogin], Source={x:Static loc:Strings.Instance}}" />
                                 <CheckBox IsChecked="{Binding StartMinimized}"
                                           Content="{Binding [StartMinimized], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding WakeForScheduledBackups}"
+                                          IsEnabled="{Binding IsWakeSchedulingSupported}"
+                                          Content="{Binding [WakeForScheduledBackups], Source={x:Static loc:Strings.Instance}}" />
+                                <CheckBox IsChecked="{Binding ScheduledBackupsOnlyOnAcPower}"
+                                          Content="{Binding [ScheduledBackupsOnlyOnAcPower], Source={x:Static loc:Strings.Instance}}" />
+                                <TextBlock Text="{Binding WakeSchedulerMessage}"
+                                           IsVisible="{Binding HasWakeSchedulerMessage}"
+                                           Classes="secondary"
+                                           FontSize="12"
+                                           TextWrapping="Wrap" />
                             </StackPanel>
                         </GroupBox>
 

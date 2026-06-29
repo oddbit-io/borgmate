@@ -1,7 +1,7 @@
 <p align="center">
   <img src="BorgMate/Assets/borgmate-256.png" width="128" height="128" alt="BorgMate">
   <h1 align="center">BorgMate</h1>
-  <p align="center">A cross-platform desktop GUI for <a href="https://www.borgbackup.org/">BorgBackup</a> 1.4, built with .NET 10 and <a href="https://avaloniaui.net/">Avalonia UI</a> 12</p>
+  <p align="center">A cross-platform desktop GUI for <a href="https://www.borgbackup.org/">BorgBackup</a> 1.4 (and 2, experimental), built with .NET 10 and <a href="https://avaloniaui.net/">Avalonia UI</a> 12</p>
 </p>
 
 <p align="center">
@@ -10,7 +10,8 @@
 
 ## Features
 
-- Manage borg repositories (local and SSH remote)
+- Manage borg repositories (local and SSH remote, plus raw Borg 2 URLs such as `sftp://`, `rest://`, `rclone:`, `s3:`, `b2:`)
+- Experimental support for Borg 2.0.0b21+ repositories alongside Borg 1.4.x
 - Create and schedule backups with real-time progress, speed, and ETA
 - Browse, compare, restore, and delete archives
 - Repository maintenance (check, compact)
@@ -23,7 +24,7 @@
 ## Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) (for building)
-- [BorgBackup 1.4.x](https://www.borgbackup.org/releases/)
+- [BorgBackup 1.4.x](https://www.borgbackup.org/releases/) (Borg 2.0.0b21+ optional, for experimental Borg 2 repositories — requires a separate `borg2` binary on PATH or a custom path set in Settings)
 - [OpenSSH](https://www.openssh.com/) (for remote repositories)
 - **Windows:** [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) with borg installed inside it
 

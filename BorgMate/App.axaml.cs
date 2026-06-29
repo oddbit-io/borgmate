@@ -21,6 +21,7 @@ using BorgMate.Persistence.Journal;
 using BorgMate.Presentation.Dialogs;
 using BorgMate.Presentation.State;
 using BorgMate.Runtime.Jobs;
+using BorgMate.Runtime.Scheduling;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using AboutWindow = BorgMate.Presentation.Views.AboutWindow;
@@ -73,6 +74,20 @@ public class App : Application
             AppVersion = version is not null ? $"{version.Major}.{version.Minor}.{version.Build}" : "dev";
 
             _settings = Services.GetRequiredService<AppSettings>();
+
+            // AC-only backups gate: pmset can't condition the wake itself, so a scheduled-wake
+            // launch on battery exits right away and lets the machine go back to sleep.
+            // Windows/Linux don't need this — the task/service is conditioned by the OS.
+            if (Program.ScheduledWakeMode && OperatingSystem.IsMacOS() &&
+                _settings.ScheduledBackupsOnlyOnAcPower &&
+                Task.Run(Services.GetRequiredService<IPowerSource>().IsOnBatteryAsync).GetAwaiter().GetResult())
+            {
+                _shutdownPrepared = true;
+                desktop.Shutdown();
+                base.OnFrameworkInitializationCompleted();
+                return;
+            }
+
             _jobQueue = Services.GetRequiredService<BorgJobQueue>();
             _cache = Services.GetRequiredService<BorgCacheService>();
             _status = Services.GetRequiredService<UpdateStatusState>();
@@ -114,8 +129,17 @@ public class App : Application
 
             // Single-instance: bring window to front when second instance signals
             if (Program.InstanceGuard is not null)
+            {
                 Program.InstanceGuard.ActivationRequested += () =>
                     Dispatcher.UIThread.Post(ShowMainWindow);
+
+                // A --scheduled-wake launch deferred to us: check schedules right away
+                // instead of waiting up to a minute — the machine may re-sleep sooner.
+                // The AC-only battery gate lives inside the scheduler's check itself.
+                var scheduler = Services.GetRequiredService<IBackupScheduler>();
+                Program.InstanceGuard.WakeRequested += () =>
+                    Dispatcher.UIThread.Post(scheduler.RequestImmediateCheck);
+            }
 
 #if DEBUG
             if (Program.DemoMode)
@@ -126,6 +150,9 @@ public class App : Application
 #if DEBUG
             startMinimized = false;
 #endif
+            // A scheduled-wake launch always stays in the tray, in any configuration.
+            if (Program.ScheduledWakeMode)
+                startMinimized = true;
             if (!startMinimized)
                 ShowMainWindow();
 

@@ -26,7 +26,7 @@ public static class ProcessRunner
     ///     and races stream reads against a cancellation TCS to avoid blocked pipe reads on macOS.
     /// </summary>
     /// <param name="onKill">Optional callback before process kill, e.g. for WSL pkill cleanup.</param>
-    public static async Task<BorgResult> RunAsync(
+    public static Task<BorgResult> RunAsync(
         string fileName,
         string arguments,
         Dictionary<string, string>? environment,
@@ -36,15 +36,8 @@ public static class ProcessRunner
         Action<string>? onStdoutLine = null,
         Action<Process>? onKill = null)
     {
-        var psi = new ProcessStartInfo
-        {
-            FileName = fileName,
-            Arguments = arguments,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        var psi = CreateStartInfo(fileName);
+        psi.Arguments = arguments;
 
         if (workingDirectory is not null)
             psi.WorkingDirectory = workingDirectory;
@@ -53,6 +46,42 @@ public static class ProcessRunner
             foreach (var (key, value) in environment)
                 psi.Environment[key] = value;
 
+        return RunCoreAsync(psi, fileName, onStderrLine, ct, onStdoutLine, onKill);
+    }
+
+    /// <summary>Runs a process with argv-style arguments — no shell quoting involved.</summary>
+    public static Task<BorgResult> RunAsync(
+        string fileName,
+        IReadOnlyList<string> argumentList,
+        CancellationToken ct = default)
+    {
+        var psi = CreateStartInfo(fileName);
+        foreach (var argument in argumentList)
+            psi.ArgumentList.Add(argument);
+
+        return RunCoreAsync(psi, fileName, null, ct, null, null);
+    }
+
+    private static ProcessStartInfo CreateStartInfo(string fileName)
+    {
+        return new ProcessStartInfo
+        {
+            FileName = fileName,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+    }
+
+    private static async Task<BorgResult> RunCoreAsync(
+        ProcessStartInfo psi,
+        string fileName,
+        Action<string>? onStderrLine,
+        CancellationToken ct,
+        Action<string>? onStdoutLine,
+        Action<Process>? onKill)
+    {
         try
         {
             using var process = Process.Start(psi)!;

@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using BorgMate.Domain.Settings;
 using BorgMate.Infrastructure.Platform;
 using BorgMate.Persistence.Configuration;
@@ -15,6 +16,7 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
 
     private readonly AppSettings _settings;
     private readonly ISettingsStore _settingsStore;
+    private readonly IWakeScheduler? _wakeScheduler;
 
     [ObservableProperty]
     private bool _autoLoadArchiveDetails = true;
@@ -94,22 +96,80 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
     [ObservableProperty]
     private bool _startMinimized;
 
-    public AppSettingsViewModel() : this(new AppSettings(), null!, null!)
+    [ObservableProperty]
+    private bool _wakeForScheduledBackups;
+
+    [ObservableProperty]
+    private bool _scheduledBackupsOnlyOnAcPower = true;
+
+    public AppSettingsViewModel() : this(new AppSettings(), null!, null!, null)
     {
     }
 
-    public AppSettingsViewModel(AppSettings settings, ISettingsStore settingsStore, IAutoStartService autoStartService)
+    public AppSettingsViewModel(
+        AppSettings settings,
+        ISettingsStore settingsStore,
+        IAutoStartService autoStartService,
+        IWakeScheduler? wakeScheduler)
     {
         _settings = settings;
         _settingsStore = settingsStore;
         _autoStartService = autoStartService;
+        _wakeScheduler = wakeScheduler;
+        if (_wakeScheduler is not null)
+            _wakeScheduler.StatusChanged += OnWakeSchedulerStatusChanged;
         Reload();
+    }
+
+    /// <summary>
+    ///     Unsubscribes from the singleton wake scheduler; the dialog owner must call this
+    ///     when the window closes, otherwise every dialog open leaks a VM instance.
+    /// </summary>
+    public void Detach()
+    {
+        if (_wakeScheduler is not null)
+            _wakeScheduler.StatusChanged -= OnWakeSchedulerStatusChanged;
+    }
+
+    // Wake schedulers report status from background threads; bindings need the UI thread.
+    // Internal test seam: unit tests replace this with a synchronous invoke.
+    internal Action<Action> DispatchToUi = action =>
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            action();
+        else
+            Dispatcher.UIThread.Post(action);
+    };
+
+    private void OnWakeSchedulerStatusChanged()
+    {
+        DispatchToUi(RaiseWakeMessageChanged);
+    }
+
+    private void RaiseWakeMessageChanged()
+    {
+        OnPropertyChanged(nameof(WakeSchedulerMessage));
+        OnPropertyChanged(nameof(HasWakeSchedulerMessage));
     }
 
     public string DetectedBorg1Path => _settings.DefaultBorg1Path;
     public string DetectedBorg2Path => _settings.DefaultBorg2Path;
     public string DetectedBorg1PathDisplay => FormatDetectedBorgPath(_settings.DetectedBorg1Path);
     public string DetectedBorg2PathDisplay => FormatDetectedBorgPath(_settings.DetectedBorg2Path);
+    public bool IsWakeSchedulingSupported => _wakeScheduler?.IsSupported ?? false;
+    public bool HasWakeSchedulerMessage => !string.IsNullOrWhiteSpace(WakeSchedulerMessage);
+
+    public string WakeSchedulerMessage
+    {
+        get
+        {
+            if (_wakeScheduler is null)
+                return string.Empty;
+            if (!_wakeScheduler.IsSupported)
+                return Strings.Get("WakeForScheduledBackups.Unsupported");
+            return _wakeScheduler.LastError ?? string.Empty;
+        }
+    }
 
     public AppTheme[] Themes { get; } = Enum.GetValues<AppTheme>();
     public string[] Languages { get; } = ["Auto", "English", "Русский"];
@@ -151,6 +211,8 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
         ShowNotifications = _settings.ShowNotifications;
         StartAtLogin = _settings.StartAtLogin;
         StartMinimized = _settings.StartMinimized;
+        WakeForScheduledBackups = _settings.WakeForScheduledBackups;
+        ScheduledBackupsOnlyOnAcPower = _settings.ScheduledBackupsOnlyOnAcPower;
         LoggingEnabled = _settings.LoggingEnabled;
         LogLevel = _settings.LogLevel;
         IsLogRetentionEnabled = _settings.LogRetention.HasValue;
@@ -184,6 +246,8 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
         if (_autoStartService is not null && _autoStartService.IsEnabled() != StartAtLogin)
             _autoStartService.SetEnabled(StartAtLogin);
         _settings.StartMinimized = StartMinimized;
+        _settings.WakeForScheduledBackups = WakeForScheduledBackups;
+        _settings.ScheduledBackupsOnlyOnAcPower = ScheduledBackupsOnlyOnAcPower;
         _settings.LoggingEnabled = LoggingEnabled;
         _settings.LogLevel = LogLevel;
         var langCode = SelectedLanguage == "Auto" ? "auto" : Strings.DisplayToCode(SelectedLanguage);

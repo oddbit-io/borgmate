@@ -102,6 +102,8 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IAutoStartService, MacOsAutoStartService>();
             services.AddSingleton<INotificationService, MacOsNotificationService>();
             services.AddSingleton<ISleepInhibitor, MacOsSleepInhibitor>();
+            services.AddSingleton<IWakeScheduler, MacOsWakeScheduler>();
+            services.AddSingleton<IPowerSource, MacOsPowerSource>();
         }
         else if (OperatingSystem.IsLinux())
         {
@@ -109,6 +111,8 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IAutoStartService, LinuxAutoStartService>();
             services.AddSingleton<INotificationService, LinuxNotificationService>();
             services.AddSingleton<ISleepInhibitor, LinuxSleepInhibitor>();
+            services.AddSingleton<IWakeScheduler, LinuxWakeScheduler>();
+            services.AddSingleton<IPowerSource, LinuxPowerSource>();
         }
         else if (OperatingSystem.IsWindows())
         {
@@ -117,6 +121,8 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IAutoStartService, WindowsAutoStartService>();
             services.AddSingleton<INotificationService, WindowsNotificationService>();
             services.AddSingleton<ISleepInhibitor, WindowsSleepInhibitor>();
+            services.AddSingleton<IWakeScheduler, WindowsWakeScheduler>();
+            services.AddSingleton<IPowerSource, WindowsPowerSource>();
 #pragma warning restore CA1416
         }
 

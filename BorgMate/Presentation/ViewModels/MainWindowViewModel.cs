@@ -28,6 +28,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly AppSettings _settings = null!;
     private readonly ISettingsStore _settingsStore = null!;
     private readonly RepositoryPresentationState _store = null!;
+    private readonly IWakeScheduler _wakeScheduler = null!;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsRepositoriesPage))]
@@ -62,6 +63,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IJobController jobController,
         RepositoryPresentationState store,
         IAutoStartService autoStartService,
+        IWakeScheduler wakeScheduler,
         IBackupScheduler scheduler)
     {
         _settingsStore = settingsStore;
@@ -70,6 +72,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _autoStartService = autoStartService;
         _journalService = journalService;
         _store = store;
+        _wakeScheduler = wakeScheduler;
         RepositoriesPage = repositoriesPage;
         Notifications = notifications;
         Status = status;
@@ -150,11 +153,23 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task OpenAppSettings()
     {
-        var vm = new AppSettingsViewModel(_settings, _settingsStore, _autoStartService);
-        var window = new AppSettingsWindow { DataContext = vm };
-        var parent = DialogHelper.GetMainWindow();
-        if (parent is not null)
-            await window.ShowDialog(parent);
+        var vm = new AppSettingsViewModel(_settings, _settingsStore, _autoStartService, _wakeScheduler);
+        try
+        {
+            var window = new AppSettingsWindow { DataContext = vm };
+            var parent = DialogHelper.GetMainWindow();
+            if (parent is not null)
+                await window.ShowDialog(parent);
+        }
+        finally
+        {
+            vm.Detach();
+        }
+
+        // The user just saved settings and is present — interactive refresh may show
+        // the one-time macOS admin prompt. Closing without saving must not touch wake.
+        if (vm.IsSaved)
+            await _scheduler.RefreshWakeScheduleAsync(true);
     }
 
     [RelayCommand]

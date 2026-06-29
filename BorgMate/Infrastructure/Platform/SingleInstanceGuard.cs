@@ -40,16 +40,19 @@ public class SingleInstanceGuard : IDisposable
 
     public event Action? ActivationRequested;
 
+    /// <summary>Raised when a --scheduled-wake launch defers to this running instance.</summary>
+    public event Action? WakeRequested;
+
     /// <summary>
     ///     Returns true if this is the first instance (caller should proceed).
     ///     Returns false if another instance is running (caller should exit).
     /// </summary>
-    public bool TryAcquire()
+    public bool TryAcquire(bool activateExisting = true)
     {
         // Check if another instance is running
         if (File.Exists(LockFilePath))
             if (int.TryParse(File.ReadAllText(LockFilePath).Trim(), out var port) && port > 0)
-                if (TrySignalExisting(port))
+                if (TrySignalExisting(port, activateExisting))
                     return false; // Other instance responded, exit
 
         // Stale lock file — other instance crashed
@@ -58,14 +61,14 @@ public class SingleInstanceGuard : IDisposable
         return true;
     }
 
-    private static bool TrySignalExisting(int port)
+    private static bool TrySignalExisting(int port, bool activateExisting)
     {
         try
         {
             using var client = new TcpClient();
             client.Connect(IPAddress.Loopback, port);
             using var writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
-            writer.WriteLine("ACTIVATE");
+            writer.WriteLine(activateExisting ? "ACTIVATE" : "WAKE");
             return true;
         }
         catch
@@ -99,6 +102,8 @@ public class SingleInstanceGuard : IDisposable
                     var line = await reader.ReadLineAsync(ct);
                     if (line == "ACTIVATE")
                         ActivationRequested?.Invoke();
+                    else if (line == "WAKE")
+                        WakeRequested?.Invoke();
                 }
             }
             catch (OperationCanceledException)

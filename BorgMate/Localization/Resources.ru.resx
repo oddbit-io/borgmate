@@ -171,6 +171,18 @@
     <data name="Job.Cancelled" xml:space="preserve">
     <value>Отменено</value>
   </data>
+    <data name="Job.Deferred" xml:space="preserve">
+    <value>Отложено</value>
+  </data>
+    <data name="Notif.BackupDeferred" xml:space="preserve">
+    <value>Плановые бэкапы отложены: питание от батареи</value>
+  </data>
+    <data name="BackupDeferred.Detail" xml:space="preserve">
+    <value>Плановые бэкапы выполнятся при подключении питания от сети.</value>
+  </data>
+    <data name="BackupDeferred.Item" xml:space="preserve">
+    <value>«{0}» — планировалось на {1}</value>
+  </data>
     <data name="Job.Backup" xml:space="preserve">
     <value>Резервное копирование</value>
   </data>
@@ -485,6 +497,21 @@
   </data>
     <data name="StartMinimized" xml:space="preserve">
     <value>Запускать свёрнутым</value>
+  </data>
+    <data name="WakeForScheduledBackups" xml:space="preserve">
+    <value>Будить компьютер для резервных копий по расписанию</value>
+  </data>
+    <data name="ScheduledBackupsOnlyOnAcPower" xml:space="preserve">
+    <value>Запускать плановые бэкапы только при питании от сети</value>
+  </data>
+    <data name="WakeForScheduledBackups.Unsupported" xml:space="preserve">
+    <value>Пробуждение по расписанию не поддерживается на этой платформе.</value>
+  </data>
+    <data name="WakeForScheduledBackups.PermissionRequired" xml:space="preserve">
+    <value>BorgMate требуется одноразовое разрешение администратора для планирования пробуждения. Откройте настройки и сохраните их с включённой опцией, чтобы выдать его.</value>
+  </data>
+    <data name="WakeForScheduledBackups.LinuxWakeHint" xml:space="preserve">
+    <value>Пробуждение системы из пользовательской сессии требует systemd 254 или новее (CAP_WAKE_ALARM).</value>
   </data>
     <data name="BinaryUnits" xml:space="preserve">
     <value>Двоичные единицы размера (КиБ, МиБ, ГиБ)</value>

@@ -30,16 +30,23 @@ internal class LinuxAutoStartService : IAutoStartService
         return File.Exists(AutoStartPath);
     }
 
+    /// <summary>
+    ///     AppImage: ProcessPath points to a FUSE temp mount; $APPIMAGE is the stable path.
+    /// </summary>
+    internal static string GetLauncherPath()
+    {
+        return Environment.GetEnvironmentVariable("APPIMAGE")
+               ?? Environment.ProcessPath
+               ?? StringHelpers.AppName;
+    }
+
     private static void WriteDesktopEntry()
     {
         // Flatpak: ProcessPath points inside the sandbox; the host launcher is `flatpak run <id>`.
-        // AppImage: ProcessPath points to a FUSE temp mount; $APPIMAGE is the stable path.
         var flatpakId = Environment.GetEnvironmentVariable("FLATPAK_ID");
         var appPath = flatpakId is not null
             ? $"flatpak run {flatpakId}"
-            : Environment.GetEnvironmentVariable("APPIMAGE")
-              ?? Environment.ProcessPath
-              ?? "BorgMate";
+            : GetLauncherPath();
 
         using var stream = Assembly.GetExecutingAssembly()
                                .GetManifestResourceStream("BorgMate.Resources.Platform.borgmate-autostart.desktop")

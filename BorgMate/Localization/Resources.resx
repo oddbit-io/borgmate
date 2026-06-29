@@ -198,6 +198,18 @@
     <data name="Job.Cancelled" xml:space="preserve">
     <value>Cancelled</value>
   </data>
+    <data name="Job.Deferred" xml:space="preserve">
+    <value>Deferred</value>
+  </data>
+    <data name="Notif.BackupDeferred" xml:space="preserve">
+    <value>Scheduled backups deferred: on battery power</value>
+  </data>
+    <data name="BackupDeferred.Detail" xml:space="preserve">
+    <value>Scheduled backups will run when AC power is restored.</value>
+  </data>
+    <data name="BackupDeferred.Item" xml:space="preserve">
+    <value>'{0}' — planned for {1}</value>
+  </data>
     <data name="Job.Backup" xml:space="preserve">
     <value>Backup</value>
   </data>
@@ -485,6 +497,21 @@
   </data>
     <data name="StartMinimized" xml:space="preserve">
     <value>Start minimized</value>
+  </data>
+    <data name="WakeForScheduledBackups" xml:space="preserve">
+    <value>Wake computer for scheduled backups</value>
+  </data>
+    <data name="ScheduledBackupsOnlyOnAcPower" xml:space="preserve">
+    <value>Run scheduled backups only on AC power</value>
+  </data>
+    <data name="WakeForScheduledBackups.Unsupported" xml:space="preserve">
+    <value>Wake scheduling is not supported on this platform.</value>
+  </data>
+    <data name="WakeForScheduledBackups.PermissionRequired" xml:space="preserve">
+    <value>BorgMate needs a one-time administrator permission to schedule system wake. Open Settings and save with the option enabled to grant it.</value>
+  </data>
+    <data name="WakeForScheduledBackups.LinuxWakeHint" xml:space="preserve">
+    <value>Waking the system from a user session requires systemd 254 or newer (CAP_WAKE_ALARM).</value>
   </data>
     <data name="BinaryUnits" xml:space="preserve">
     <value>Binary size units (KiB, MiB, GiB)</value>
