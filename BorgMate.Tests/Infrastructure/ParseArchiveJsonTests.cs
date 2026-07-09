@@ -83,4 +83,32 @@ public class ParseArchiveJsonTests
         Assert.Single(archives);
         Assert.Equal(DateTime.MinValue, archives[0].Date);
     }
+
+    [Theory]
+    [InlineData("none")]
+    [InlineData("repokey-blake2")]
+    public void ParseEncryptionMode_ReturnsMode(string mode)
+    {
+        var json = $$"""
+        {
+            "encryption": {"mode": "{{mode}}"},
+            "repository": {"id": "abc", "location": "/repo"},
+            "security_dir": "/home/user/.config/borg/security/abc"
+        }
+        """;
+
+        Assert.Equal(mode, ArchiveJsonParser.ParseEncryptionMode(json));
+    }
+
+    [Fact]
+    public void ParseEncryptionMode_MissingProperty_ReturnsNull()
+    {
+        Assert.Null(ArchiveJsonParser.ParseEncryptionMode("""{"repository": {"id": "abc"}}"""));
+    }
+
+    [Fact]
+    public void ParseEncryptionMode_InvalidJson_ReturnsNull()
+    {
+        Assert.Null(ArchiveJsonParser.ParseEncryptionMode("not json"));
+    }
 }

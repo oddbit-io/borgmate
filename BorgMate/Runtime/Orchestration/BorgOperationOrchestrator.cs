@@ -52,7 +52,8 @@ public sealed class BorgOperationOrchestrator(
 
                 var error = result.AsT1;
                 if (error is not OperationError.BorgFailure failure ||
-                    !BorgModernExitCodeMapper.IsWrongPassphrase(failure.Code))
+                    !BorgModernExitCodeMapper.IsWrongPassphrase(failure.Code) ||
+                    !request.RequiresPassphrase)
                     return error;
 
                 if (attempt >= MaxPassphraseAttempts - 1)

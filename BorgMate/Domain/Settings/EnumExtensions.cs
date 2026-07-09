@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using BorgMate.Domain.Repositories;
 
 namespace BorgMate.Domain.Settings;
@@ -29,5 +31,21 @@ public static class EnumExtensions
             Borg2EncryptionMode.KeyfileBlake2Chacha20Poly1305 => "keyfile-blake2-chacha20-poly1305",
             _ => "repokey-aes-ocb"
         };
+    }
+
+    /// <summary>Maps a borg encryption mode string (from "borg info" JSON) back to the enum; null if unknown.</summary>
+    public static BorgEncryptionMode? BorgEncryptionModeFromBorgString(string? mode)
+    {
+        return Enum.GetValues<BorgEncryptionMode>()
+            .Cast<BorgEncryptionMode?>()
+            .FirstOrDefault(m => m!.Value.ToBorgString() == mode);
+    }
+
+    /// <summary>Maps a borg2 encryption mode string (from "borg repo-info" JSON) back to the enum; null if unknown.</summary>
+    public static Borg2EncryptionMode? Borg2EncryptionModeFromBorgString(string? mode)
+    {
+        return Enum.GetValues<Borg2EncryptionMode>()
+            .Cast<Borg2EncryptionMode?>()
+            .FirstOrDefault(m => m!.Value.ToBorgString() == mode);
     }
 }

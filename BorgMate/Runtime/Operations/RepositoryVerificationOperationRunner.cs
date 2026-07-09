@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BorgMate.Domain.Journal;
 using BorgMate.Domain.Repositories;
+using BorgMate.Domain.Settings;
 using BorgMate.Infrastructure.Borg;
 using BorgMate.Persistence.Journal;
 using BorgMate.Runtime.Jobs;
@@ -105,10 +106,26 @@ public sealed class RepositoryVerificationOperationRunner(
             {
                 progress.Report(Strings.Get("Status.VerifyingRepo"));
                 var sink = new BorgJobProgressSink(j, options.ProgressSink);
+
+                // Probe without prompting first: unencrypted repos must open without a passphrase dialog.
+                var hadPassphrase = !string.IsNullOrWhiteSpace(passphrasePrompt.GetCachedPassphrase(repo));
                 var result = await orchestrator.ExecuteAsync(
-                    new BorgOperationRequest(repo, sink),
+                    new BorgOperationRequest(repo, sink, RequiresPassphrase: false),
                     (_, operationToken) => service.InfoRepoAsync(repo, operationToken),
                     token);
+
+                if (result.IsT1 && result.AsT1 is OperationError.BorgFailure failure &&
+                    BorgModernExitCodeMapper.IsWrongPassphrase(failure.Code))
+                {
+                    hadPassphrase = true;
+                    result = await orchestrator.ExecuteAsync(
+                        new BorgOperationRequest(repo, sink),
+                        (_, operationToken) => service.InfoRepoAsync(repo, operationToken),
+                        token);
+                }
+
+                if (result.IsT0)
+                    ApplyDetectedEncryption(repo, result.AsT0.Result.StandardOutput, hadPassphrase);
                 return result.ToBorgResult();
             },
             BorgJobKind.Query,
@@ -168,6 +185,31 @@ public sealed class RepositoryVerificationOperationRunner(
         catch (Exception ex)
         {
             return new OperationError.Unexpected(ex);
+        }
+    }
+
+    /// <summary>
+    ///     Writes the repository's real encryption mode (from "borg info" JSON) back onto the model,
+    ///     so IsEncrypted reflects the on-disk repo instead of the editor default.
+    /// </summary>
+    private static void ApplyDetectedEncryption(BorgRepository repo, string infoJson, bool usedPassphrase)
+    {
+        var mode = ArchiveJsonParser.ParseEncryptionMode(infoJson);
+
+        if (repo.BorgVersion == BorgVersion.Borg2)
+        {
+            if (EnumExtensions.Borg2EncryptionModeFromBorgString(mode) is { } borg2Mode)
+                repo.Borg2EncryptionMode = borg2Mode;
+            else if (!usedPassphrase)
+                // Info succeeded with no passphrase at all: the repo is provably unencrypted.
+                repo.Borg2EncryptionMode = Borg2EncryptionMode.None;
+        }
+        else
+        {
+            if (EnumExtensions.BorgEncryptionModeFromBorgString(mode) is { } borg1Mode)
+                repo.EncryptionMode = borg1Mode;
+            else if (!usedPassphrase)
+                repo.EncryptionMode = BorgEncryptionMode.None;
         }
     }
 

@@ -140,11 +140,32 @@ public class BorgOperationOrchestratorTests
         provider.Received(1).MarkWrong(repo);
     }
 
+    [Fact]
+    public async Task NoPassphraseRequired_WrongPassphraseError_ReturnsErrorWithoutPrompting()
+    {
+        var (orchestrator, provider) = CreateOrchestrator();
+        var repo = CreateRepo();
+        var attempts = 0;
+
+        var result = await Execute(orchestrator, repo, () =>
+        {
+            attempts++;
+            return WrongPassphraseResult;
+        }, requiresPassphrase: false);
+
+        Assert.True(result.IsT1);
+        Assert.IsType<OperationError.BorgFailure>(result.AsT1);
+        Assert.Equal(1, attempts);
+        await provider.DidNotReceive().EnsureAsync(Arg.Any<BorgRepository>(), Arg.Any<CancellationToken>());
+        await provider.DidNotReceive().RePromptAsync(Arg.Any<BorgRepository>(), Arg.Any<CancellationToken>());
+    }
+
     private static Task<OneOf<BorgExecutionResult, OperationError>> Execute(
         BorgOperationOrchestrator orchestrator,
         BorgRepository repo,
-        Func<BorgResult> operation) =>
+        Func<BorgResult> operation,
+        bool requiresPassphrase = true) =>
         orchestrator.ExecuteAsync(
-            new BorgOperationRequest(repo, NullOperationProgressSink.Instance),
+            new BorgOperationRequest(repo, NullOperationProgressSink.Instance, requiresPassphrase),
             (_, _) => Task.FromResult(operation()));
 }

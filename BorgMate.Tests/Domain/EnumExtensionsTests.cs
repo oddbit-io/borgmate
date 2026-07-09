@@ -24,4 +24,28 @@ public class EnumExtensionsTests
         var invalid = (BorgEncryptionMode)999;
         Assert.Equal("repokey-blake2", invalid.ToBorgString());
     }
+
+    [Fact]
+    public void BorgEncryptionModeFromBorgString_RoundTripsAllValues()
+    {
+        foreach (var mode in Enum.GetValues<BorgEncryptionMode>())
+            Assert.Equal(mode, EnumExtensions.BorgEncryptionModeFromBorgString(mode.ToBorgString()));
+    }
+
+    [Fact]
+    public void Borg2EncryptionModeFromBorgString_RoundTripsAllValues()
+    {
+        foreach (var mode in Enum.GetValues<Borg2EncryptionMode>())
+            Assert.Equal(mode, EnumExtensions.Borg2EncryptionModeFromBorgString(mode.ToBorgString()));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("future-mode")]
+    public void EncryptionModeFromBorgString_UnknownString_ReturnsNull(string? mode)
+    {
+        Assert.Null(EnumExtensions.BorgEncryptionModeFromBorgString(mode));
+        Assert.Null(EnumExtensions.Borg2EncryptionModeFromBorgString(mode));
+    }
 }

@@ -47,6 +47,24 @@ public class PassphraseProviderTests
     }
 
     [Fact]
+    public async Task EnsureAsync_UnencryptedRepo_SucceedsWithoutPrompting()
+    {
+        var repo = new BorgRepository
+        {
+            Name = "repo",
+            Path = "/repo",
+            EncryptionMode = BorgEncryptionMode.None
+        };
+        // Real provider: reaching the prompt would fail without a UI, proving no prompt happens.
+        var provider = new PromptingPassphraseProvider(null);
+
+        var result = await provider.EnsureAsync(repo);
+
+        Assert.True(result.IsT0);
+        Assert.Equal(string.Empty, result.AsT0.Passphrase);
+    }
+
+    [Fact]
     public async Task PromptCancellation_ReturnsCancelledOperationError()
     {
         var repo = CreateEncryptedRepo();

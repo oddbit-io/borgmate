@@ -69,6 +69,23 @@ internal static class ArchiveJsonParser
         return null;
     }
 
+    /// <summary>Parses "borg info --json" / "borg repo-info --json" output. Returns encryption.mode or null.</summary>
+    public static string? ParseEncryptionMode(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty("encryption", out var encryption) &&
+                   encryption.TryGetProperty("mode", out var mode)
+                ? mode.GetString()
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     /// <summary>Parses "borg info --json" output. Returns (unique_csize, total_chunks).</summary>
     public static (long? Size, long? Chunks)? ParseRepoStats(string json)
     {

@@ -269,8 +269,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public bool CanUseBorgUrl => IsBorg2;
     public bool IsBorg2SupportEnabled { get; private set; }
     public bool ShowBorgVersionSelection => IsBorg2SupportEnabled;
-    public bool ShowBorg1EncryptionMode => !IsBorg2;
-    public bool ShowBorg2EncryptionMode => IsBorg2;
+    // Hidden in Open mode: the real mode is detected from `borg info` during verification.
+    public bool ShowBorg1EncryptionMode => !IsBorg2 && !IsOpen;
+    public bool ShowBorg2EncryptionMode => IsBorg2 && !IsOpen;
     public bool IsBorgUrlSshLike => IsBorgUrlLocation && BorgRepositoryUrlValidator.UsesSshTransport(BorgUrl);
     public bool ShowSshKeyOptions => IsSsh || IsBorgUrlSshLike;
     public bool ShowRemoteBorgPathOptions => ShowSshKeyOptions;
@@ -906,6 +907,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
         if (result.IsT0)
         {
+            // Adopt the encryption mode detected from `borg info` so ApplyTo persists it.
+            EncryptionMode = candidate.EncryptionMode;
+            Borg2EncryptionMode = candidate.Borg2EncryptionMode;
             CommitResult(candidate);
             return;
         }
