@@ -18,7 +18,9 @@ public static class BorgErrorMessages
     public static string GetMessage(BorgModernExitCode? code, int exitCode, string detail)
     {
         var headline = code is { } value
-            ? GetMessage(value)
+            ? IsMissingRemoteBorg(value, detail)
+                ? Strings.Get("Error.BorgMissingOnRemote")
+                : GetMessage(value)
             : exitCode > 0
                 ? string.Format(Strings.Get("Error.UnknownBorgExitCode"), exitCode)
                 : string.Empty;
@@ -29,5 +31,15 @@ public static class BorgErrorMessages
         return string.IsNullOrWhiteSpace(detail)
             ? headline
             : $"{headline}{Environment.NewLine}{Environment.NewLine}{detail}";
+    }
+
+    /// <summary>
+    ///     True when the connection was closed because the remote shell could not find borg:
+    ///     "command not found" (bash/zsh) or "borg: not found" (busybox ash on NAS boxes).
+    /// </summary>
+    private static bool IsMissingRemoteBorg(BorgModernExitCode code, string detail)
+    {
+        return code is BorgModernExitCode.ConnectionClosed or BorgModernExitCode.ConnectionClosedWithHint
+               && detail.Contains("not found", StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -54,6 +54,25 @@ public class BorgResultTests
             result.ErrorMessage);
     }
 
+    [Theory]
+    [InlineData("sh: borg: command not found")]
+    [InlineData("sh: borg: not found")]
+    public void ErrorMessage_ReportsMissingRemoteBorg_WhenConnectionClosedWithNotFound(string shellError)
+    {
+        var stderr = $"{shellError}\nConnection closed by remote host. Is borg working on the server?";
+        var result = new BorgResult(81, "", stderr);
+
+        Assert.StartsWith("Borg was not found on the remote server.", result.ErrorMessage);
+        Assert.Contains(shellError, result.ErrorMessage);
+    }
+
+    [Fact]
+    public void ErrorMessage_KeepsConnectionClosedHeadline_WhenStderrLacksNotFound()
+    {
+        var result = new BorgResult(80, "", "Connection reset by peer");
+        Assert.StartsWith("Borg remote connection was closed.", result.ErrorMessage);
+    }
+
     [Fact]
     public void ErrorMessage_RemovesProgressNoise_WhenUnknownType()
     {

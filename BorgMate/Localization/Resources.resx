@@ -1261,6 +1261,9 @@ Install WSL and try again.</value>
     <data name="Error.BorgModernExitCode.ConnectionClosedWithHint" xml:space="preserve">
     <value>Borg remote connection was closed.</value>
   </data>
+    <data name="Error.BorgMissingOnRemote" xml:space="preserve">
+    <value>Borg was not found on the remote server. Install Borg on the server, or make sure it is on PATH for SSH sessions.</value>
+  </data>
     <data name="Error.BorgModernExitCode.InvalidRPCMethod" xml:space="preserve">
     <value>Borg remote RPC method is invalid.</value>
   </data>

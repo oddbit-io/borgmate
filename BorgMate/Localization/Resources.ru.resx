@@ -1111,6 +1111,9 @@ Borg использует контрольные точки — повторны
     <data name="Error.Unknown" xml:space="preserve">
     <value>Произошла неизвестная ошибка.</value>
   </data>
+    <data name="Error.BorgMissingOnRemote" xml:space="preserve">
+    <value>Borg не найден на удалённом сервере. Установите Borg на сервер или убедитесь, что он доступен в PATH для SSH-сессий.</value>
+  </data>
     <data name="TrayJobsRunning" xml:space="preserve">
     <value>{0} выполняется</value>
   </data>
