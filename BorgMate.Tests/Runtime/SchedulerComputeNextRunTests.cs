@@ -6,9 +6,11 @@ using BorgMate.Persistence.Configuration;
 using BorgMate.Persistence.Journal;
 using BorgMate.Presentation.State;
 using BorgMate.Runtime.Operations;
+using BorgMate.Runtime.Orchestration;
 using BorgMate.Runtime.Scheduling;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
+using OneOf;
 using BackupSchedule = BorgMate.Domain.Repositories.BackupSchedule;
 
 namespace BorgMate.Tests.Runtime;
@@ -380,6 +382,30 @@ public class SchedulerComputeNextRunTests
         await runner.Received(1).BackupAsync(Arg.Any<BackupOperationOptions>());
     }
 
+    [Fact]
+    public async Task CheckSchedules_MarksRepoBusyAfterBackupOperationStarts()
+    {
+        var repo = MakeRepo(ScheduleFrequency.EveryNHours, DateTime.Now.AddHours(-3), intervalHours: 1);
+        var store = new RepositoryPresentationState();
+        store.Add(repo);
+        var viewRepo = store.Repositories.Single();
+        var runner = Substitute.For<IRepositoryOperationRunner>();
+        var wasBusyWhenBackupStarted = true;
+        runner.BackupAsync(Arg.Any<BackupOperationOptions>())
+            .Returns(_ =>
+            {
+                wasBusyWhenBackupStarted = viewRepo.IsBusy;
+                return Task.FromResult<OneOf<OperationOk, OperationError>>(OperationOk.Instance);
+            });
+        var settings = new AppSettings { ScheduledBackupsOnlyOnAcPower = false };
+        var scheduler = CreateScheduler(store, settings, MakeWakeScheduler(), runner);
+
+        await scheduler.CheckSchedulesGuardedAsync();
+
+        Assert.False(wasBusyWhenBackupStarted);
+        Assert.False(viewRepo.IsBusy);
+    }
+
     private static IWakeScheduler MakeWakeScheduler(bool supported = true)
     {
         var wakeScheduler = Substitute.For<IWakeScheduler>();
@@ -401,6 +427,17 @@ public class SchedulerComputeNextRunTests
         foreach (var repository in repositories)
             store.Add(repository);
 
+        return CreateScheduler(store, settings, wakeScheduler, repositoryRunner, powerSource, journal);
+    }
+
+    private static BackupScheduler CreateScheduler(
+        RepositoryPresentationState store,
+        AppSettings settings,
+        IWakeScheduler wakeScheduler,
+        IRepositoryOperationRunner? repositoryRunner = null,
+        IPowerSource? powerSource = null,
+        IJournalStore? journal = null)
+    {
         return new BackupScheduler(
             NullLogger<BackupScheduler>.Instance,
             store,

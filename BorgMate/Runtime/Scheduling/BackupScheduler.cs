@@ -12,8 +12,10 @@ using BorgMate.Persistence.Configuration;
 using BorgMate.Persistence.Journal;
 using BorgMate.Presentation.ViewModels;
 using BorgMate.Runtime.Operations;
+using BorgMate.Runtime.Orchestration;
 using BorgMate.Runtime.Progress;
 using Microsoft.Extensions.Logging;
+using OneOf;
 using RepositoryPresentationState = BorgMate.Presentation.State.RepositoryPresentationState;
 
 namespace BorgMate.Runtime.Scheduling;
@@ -146,23 +148,28 @@ public class BackupScheduler : IBackupScheduler
             {
                 _logger.LogInformation("Scheduled backup triggered for '{Name}'", repo.Name);
 
-                repo.IsBusy = true;
-                var backup = await _repositoryRunner.BackupAsync(
-                    new BackupOperationOptions(repo, NullOperationProgressSink.Instance));
+                var backup = await RunScheduledOperationAsync(
+                    repo,
+                    () => _repositoryRunner.BackupAsync(
+                        new BackupOperationOptions(repo, NullOperationProgressSink.Instance)));
 
                 if (backup.IsT0 &&
                     repo.Schedule.RunPruneAfterBackup &&
                     repo.PruneOptions.HasAnyRetention)
                 {
-                    var prune = await _repositoryRunner.PruneAsync(
-                        new PruneOperationOptions(
-                            repo,
-                            NullOperationProgressSink.Instance,
-                            repo.PruneOptions.CompactAfterPrune));
+                    var prune = await RunScheduledOperationAsync(
+                        repo,
+                        () => _repositoryRunner.PruneAsync(
+                            new PruneOperationOptions(
+                                repo,
+                                NullOperationProgressSink.Instance,
+                                repo.PruneOptions.CompactAfterPrune)));
 
                     if (prune.IsT0 && prune.AsT0.ShouldCompact)
-                        await _repositoryRunner.CompactAsync(
-                            new CompactOperationOptions(repo, NullOperationProgressSink.Instance));
+                        await RunScheduledOperationAsync(
+                            repo,
+                            () => _repositoryRunner.CompactAsync(
+                                new CompactOperationOptions(repo, NullOperationProgressSink.Instance)));
                 }
 
                 _settingsStore.RequestSave();
@@ -175,6 +182,23 @@ public class BackupScheduler : IBackupScheduler
             {
                 repo.IsBusy = false;
             }
+        }
+    }
+
+    private static async Task<OneOf<T, OperationError>> RunScheduledOperationAsync<T>(
+        RepositoryViewModel repo,
+        Func<Task<OneOf<T, OperationError>>> operation)
+    {
+        var task = operation();
+        // Enqueue before marking busy so selected-repo progress binding can find the job.
+        repo.IsBusy = true;
+        try
+        {
+            return await task;
+        }
+        finally
+        {
+            repo.IsBusy = false;
         }
     }
 
