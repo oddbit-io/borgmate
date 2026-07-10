@@ -108,9 +108,11 @@ public class SchedulerComputeNextRunTests
     [Fact]
     public void RunMissed_False_AdvancesToFuture()
     {
-        // Last run was 3 days ago, daily at 2am, RunMissed=false
+        // Last run was 3 days ago, daily, RunMissed=false. The schedule hour is
+        // ~12h away from now so today's occurrence never falls inside the
+        // MissedRunGrace window, which would legitimately return a past time.
         var repo = MakeRepo(ScheduleFrequency.Daily, DateTime.Now.AddDays(-3),
-            hour: 2, runMissed: false);
+            hour: (DateTime.Now.Hour + 12) % 24, runMissed: false);
         var next = BackupScheduler.ComputeNextRun(repo);
 
         Assert.NotNull(next);
