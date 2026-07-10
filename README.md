@@ -53,6 +53,25 @@ BorgMate.slnx         Solution file
 | Linux          | x64, arm64  |
 | Windows (WSL)  | x64, arm64  |
 
+## Versioning
+
+BorgMate release numbers follow [Semantic Versioning 2.0.0](https://semver.org/).
+
+Before 1.0.0, BorgMate is under initial development: minor releases (0.9 → 0.10)
+may include incompatible changes, patch releases contain only backward-compatible
+fixes. Pre-release builds carry a suffix such as `0.10.0-beta.1` and are older
+than the final release with the same number.
+
+Released versions are immutable; every change is published as a new version.
+The release version comes from an exact SemVer 2.0.0 Git tag prefixed with `v`,
+for example `v1.0.0-rc.1+build.5`. Other commits append `dev`, the short commit
+ID, and optional `dirty` identifiers to the build metadata of the latest tag.
+Stable and pre-release packages use the same update channel.
+
+Platforms that require numeric versions receive the `MAJOR.MINOR.PATCH` core.
+The macOS bundle build number is the release commit count; the full SemVer
+remains available in the application UI and assembly metadata.
+
 ## License
 
 Licensed under the [GNU General Public License v3.0](COPYING). A commercial license is available for proprietary use cases — contact contact@oddbit.io for details.

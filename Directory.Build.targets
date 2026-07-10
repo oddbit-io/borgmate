@@ -1,0 +1,63 @@
+<Project>
+    <Target Name="SetGitVersion" BeforeTargets="GetAssemblyVersion">
+        <PropertyGroup>
+            <SemVerPattern>^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$</SemVerPattern>
+        </PropertyGroup>
+
+        <Error Condition="'$(BorgMateVersion)' != '' and $([System.Text.RegularExpressions.Regex]::IsMatch('$(BorgMateVersion)', '$(SemVerPattern)')) != 'True'"
+               Text="Provided BorgMate version '$(BorgMateVersion)' is not valid SemVer 2.0.0." />
+        <Exec Command="git describe --tags --match &quot;v[0-9]*&quot; --abbrev=0"
+              Condition="'$(BorgMateVersion)' == ''"
+              WorkingDirectory="$(MSBuildThisFileDirectory)"
+              ConsoleToMSBuild="true"
+              StandardOutputImportance="Low">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitBaseTag" />
+        </Exec>
+        <Exec Command="git tag --points-at HEAD --list &quot;v[0-9]*&quot;"
+              Condition="'$(BorgMateVersion)' == ''"
+              WorkingDirectory="$(MSBuildThisFileDirectory)"
+              ConsoleToMSBuild="true"
+              StandardOutputImportance="Low">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitExactTag" />
+        </Exec>
+        <Exec Command="git rev-parse --short=7 HEAD"
+              Condition="'$(BorgMateVersion)' == ''"
+              WorkingDirectory="$(MSBuildThisFileDirectory)"
+              ConsoleToMSBuild="true"
+              StandardOutputImportance="Low">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitCommit" />
+        </Exec>
+        <Exec Command="git status --porcelain"
+              Condition="'$(BorgMateVersion)' == ''"
+              WorkingDirectory="$(MSBuildThisFileDirectory)"
+              ConsoleToMSBuild="true"
+              StandardOutputImportance="Low">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitStatus" />
+        </Exec>
+
+        <PropertyGroup Condition="'$(BorgMateVersion)' == ''">
+            <ReleaseVersion>$([System.String]::Copy('$(GitBaseTag)').Substring(1))</ReleaseVersion>
+        </PropertyGroup>
+        <PropertyGroup Condition="'$(BorgMateVersion)' != ''">
+            <ReleaseVersion>$(BorgMateVersion)</ReleaseVersion>
+        </PropertyGroup>
+
+        <Error Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(ReleaseVersion)', '$(SemVerPattern)')) != 'True'"
+               Text="BorgMate version '$(ReleaseVersion)' is not valid SemVer 2.0.0." />
+        <Error Condition="'$(GitExactTag)' != '' and '$(GitExactTag)' != 'v$(ReleaseVersion)'"
+               Text="BorgMate HEAD must have exactly one SemVer release tag." />
+
+        <PropertyGroup>
+            <NumericVersion>$([System.Text.RegularExpressions.Regex]::Replace('$(ReleaseVersion)', '^([0-9]+)\.([0-9]+)\.([0-9]+).*$', '$1.$2.$3.0'))</NumericVersion>
+            <DevelopmentMetadata>dev.$(GitCommit)</DevelopmentMetadata>
+            <DevelopmentMetadata Condition="'$(GitStatus)' != ''">$(DevelopmentMetadata).dirty</DevelopmentMetadata>
+            <Version>$(ReleaseVersion)</Version>
+            <Version Condition="'$(BorgMateVersion)' == '' and ('$(GitExactTag)' != '$(GitBaseTag)' or '$(GitStatus)' != '') and $([System.String]::Copy('$(ReleaseVersion)').Contains('+'))">$(ReleaseVersion).$(DevelopmentMetadata)</Version>
+            <Version Condition="'$(BorgMateVersion)' == '' and ('$(GitExactTag)' != '$(GitBaseTag)' or '$(GitStatus)' != '') and $([System.String]::Copy('$(ReleaseVersion)').Contains('+')) != 'True'">$(ReleaseVersion)+$(DevelopmentMetadata)</Version>
+            <AssemblyVersion>$(NumericVersion)</AssemblyVersion>
+            <FileVersion>$(NumericVersion)</FileVersion>
+            <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+            <InformationalVersion>$(Version)</InformationalVersion>
+        </PropertyGroup>
+    </Target>
+</Project>

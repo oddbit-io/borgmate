@@ -52,7 +52,7 @@ public class UpdateService(ILogger<UpdateService> logger)
             if (update is not null)
             {
                 IsUpdateAvailable = true;
-                AvailableVersion = update.TargetFullRelease.Version.ToString();
+                AvailableVersion = update.TargetFullRelease.Version.ToFullString();
                 logger.LogInformation("Update available: {Version}", AvailableVersion);
             }
             else
@@ -97,31 +97,38 @@ public class UpdateService(ILogger<UpdateService> logger)
         {
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
             var json = await http.GetStringAsync("https://borgmate.oddbit.io/changelog.json");
-            using var doc = JsonDocument.Parse(json);
-
-            var current = Version.TryParse(currentVersion, out var cv) ? cv : null;
-            var target = Version.TryParse(targetVersion, out var tv) ? tv : null;
-            if (current is null || target is null) return entries;
-
-            foreach (var item in doc.RootElement.EnumerateArray())
-            {
-                var ver = item.GetProperty("version").GetString();
-                if (ver is null || !Version.TryParse(ver, out var v)) continue;
-                if (v <= current || v > target) continue;
-
-                var date = item.TryGetProperty("date", out var d) ? d.GetString() : null;
-                var changes = new List<string>();
-                if (item.TryGetProperty("changes", out var arr))
-                    foreach (var c in arr.EnumerateArray())
-                        if (c.GetString() is { } s)
-                            changes.Add(s);
-
-                entries.Add(new ChangelogEntry(ver, date, changes));
-            }
+            entries.AddRange(ParseChangelog(json, currentVersion, targetVersion));
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to fetch changelog");
+        }
+
+        return entries;
+    }
+
+    internal static List<ChangelogEntry> ParseChangelog(string json, string currentVersion, string targetVersion)
+    {
+        var current = SemVerParser.Parse(currentVersion);
+        var target = SemVerParser.Parse(targetVersion);
+        using var doc = JsonDocument.Parse(json);
+        var entries = new List<ChangelogEntry>();
+
+        foreach (var item in doc.RootElement.EnumerateArray())
+        {
+            var versionText = item.GetProperty("version").GetString()
+                              ?? throw new JsonException("Changelog version is null.");
+            var version = SemVerParser.Parse(versionText);
+            if (version <= current || version > target) continue;
+
+            var date = item.TryGetProperty("date", out var dateElement) ? dateElement.GetString() : null;
+            var changes = new List<string>();
+            if (item.TryGetProperty("changes", out var changesElement))
+                foreach (var change in changesElement.EnumerateArray())
+                    if (change.GetString() is { } text)
+                        changes.Add(text);
+
+            entries.Add(new ChangelogEntry(versionText, date, changes));
         }
 
         return entries;

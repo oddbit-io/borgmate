@@ -53,7 +53,7 @@ public class App : Application
     private TrayIcon? _trayIcon;
     private UpdateService _updateService = null!;
     public static IServiceProvider Services { get; private set; } = null!;
-    public static string AppVersion { get; private set; } = "dev";
+    internal static AppBuildInfo BuildInfo { get; } = AppBuildInfo.FromAssembly(Assembly.GetExecutingAssembly());
 
     public override void Initialize()
     {
@@ -70,9 +70,6 @@ public class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            AppVersion = version is not null ? $"{version.Major}.{version.Minor}.{version.Build}" : "dev";
-
             _settings = Services.GetRequiredService<AppSettings>();
 
             // AC-only backups gate: pmset can't condition the wake itself, so a scheduled-wake
@@ -97,7 +94,7 @@ public class App : Application
             _logger = Services.GetRequiredService<ILogger<App>>();
 
             _logger.LogInformation("BorgMate v{Version} starting on {OS} {Arch}",
-                AppVersion, RuntimeInformation.OSDescription,
+                BuildInfo.DisplayVersion, RuntimeInformation.OSDescription,
                 RuntimeInformation.OSArchitecture);
             var journal = Services.GetRequiredService<IJournalStore>();
             journal.Load();
@@ -171,7 +168,7 @@ public class App : Application
             return;
 
         var version = _updateService.AvailableVersion;
-        var changelog = await _updateService.FetchChangelogAsync(AppVersion, version);
+        var changelog = await _updateService.FetchChangelogAsync(BuildInfo.CurrentVersion, version);
         _status.SetUpdateAvailable(
             string.Format(Strings.Get("UpdateAvailable"), version),
             async () =>
@@ -217,7 +214,7 @@ public class App : Application
     {
         if (_mainWindow is not null) return;
 
-        _mainWindow = new MainWindow { DataContext = _mainVm, Title = $"BorgMate v{AppVersion}" };
+        _mainWindow = new MainWindow { DataContext = _mainVm, Title = $"BorgMate v{BuildInfo.DisplayVersion}" };
 
         RestoreWindowState();
 
@@ -357,7 +354,7 @@ public class App : Application
 
     private async Task PrepareShutdownCoreAsync()
     {
-        _logger.LogInformation("BorgMate v{Version} shutting down", AppVersion);
+        _logger.LogInformation("BorgMate v{Version} shutting down", BuildInfo.DisplayVersion);
         _isShuttingDown = true;
         CaptureWindowState();
         await SaveConfigSafelyAsync("shutdown");

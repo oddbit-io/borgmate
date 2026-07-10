@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Avalonia.Input;
 
@@ -10,8 +9,7 @@ public partial class AboutWindow : ModalWindow
     public AboutWindow()
     {
         InitializeComponent();
-        var version = Assembly.GetExecutingAssembly().GetName().Version;
-        VersionText.Text = $"Version {version?.Major}.{version?.Minor}.{version?.Build}";
+        VersionText.Text = $"Version {App.BuildInfo.DisplayVersion}";
         WebsiteLink.Click += (_, _) => OpenUrl("https://borgmate.oddbit.io");
         StudioLink.Click += (_, _) => OpenUrl("https://oddbit.io/");
         LicenseLink.Click += async (_, _) => await new LicenseWindow().ShowDialog(this);
