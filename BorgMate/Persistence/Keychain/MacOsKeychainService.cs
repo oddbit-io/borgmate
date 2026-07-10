@@ -32,6 +32,9 @@ public class MacOsKeychainService(ILogger<MacOsKeychainService> logger)
                 "delete-generic-password", "-s", ServiceName, "-a", account);
             var result = await RunAsync("security",
                 "add-generic-password", "-s", ServiceName, "-a", account, "-w", passphrase);
+            if (result.ExitCode != 0)
+                Logger.LogWarning("Failed to store passphrase in keychain for {Account}: {Error}",
+                    account, result.Error.Trim());
             return result.ExitCode == 0;
         }
         catch (Exception ex)

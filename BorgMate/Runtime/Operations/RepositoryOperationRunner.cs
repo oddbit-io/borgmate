@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using BorgMate.Domain.Journal;
 using BorgMate.Domain.Repositories;
 using BorgMate.Infrastructure.Borg;
+using BorgMate.Infrastructure.Notifications;
 using BorgMate.Infrastructure.Platform;
 using BorgMate.Persistence.Configuration;
 using BorgMate.Persistence.Journal;
@@ -28,7 +29,8 @@ public sealed class RepositoryOperationRunner(
     IRepositoryConfigStore repositoryStore,
     ISettingsStore settingsStore,
     ICredentialStore credentialStore,
-    PromptingPassphraseProvider passphrasePrompt) : IRepositoryOperationRunner
+    PromptingPassphraseProvider passphrasePrompt,
+    INotificationService? notifier = null) : IRepositoryOperationRunner
 {
     public async Task<OneOf<OperationOk, OperationError>> BackupAsync(
         BackupOperationOptions options, CancellationToken ct = default)
@@ -256,7 +258,7 @@ public sealed class RepositoryOperationRunner(
 
         passphrasePrompt.Set(repo, options.NewPassphrase);
         if (options.SaveToCredentialStore)
-            await credentialStore.SetPassphraseAsync(repo.Path, options.NewPassphrase);
+            await credentialStore.TrySetPassphraseAsync(notifier, repo.Path, options.NewPassphrase);
         else
             await credentialStore.DeletePassphraseAsync(repo.Path);
 

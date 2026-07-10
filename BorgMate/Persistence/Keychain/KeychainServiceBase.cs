@@ -83,13 +83,14 @@ public abstract class KeychainServiceBase(ILogger logger)
         var stderrTask = process.StandardError.ReadToEndAsync();
         await Task.WhenAll(stdoutTask, stderrTask);
         var output = stdoutTask.Result;
+        var error = stderrTask.Result;
         await process.WaitForExitAsync();
 
         logger.LogDebug("Keychain: {FileName} {Command} -> exit {ExitCode}",
             fileName, RedactArguments(arguments), process.ExitCode);
 
-        return new ProcessResult(process.ExitCode, output);
+        return new ProcessResult(process.ExitCode, output, error);
     }
 
-    protected record ProcessResult(int ExitCode, string Output);
+    protected record ProcessResult(int ExitCode, string Output, string Error);
 }

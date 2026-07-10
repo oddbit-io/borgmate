@@ -65,6 +65,9 @@ public class WindowsKeychainService(ILogger<WindowsKeychainService> logger)
             {
                 Marshal.Copy(bytes, 0, cred.CredentialBlob, bytes.Length);
                 var result = CredWrite(ref cred, 0);
+                if (!result)
+                    Logger.LogWarning("Failed to store passphrase in credential store (Win32 error {Code})",
+                        Marshal.GetLastPInvokeError());
                 return Task.FromResult(result);
             }
             finally

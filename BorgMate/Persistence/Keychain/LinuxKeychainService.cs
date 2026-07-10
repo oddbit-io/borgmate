@@ -32,6 +32,9 @@ public class LinuxKeychainService(ILogger<LinuxKeychainService> logger)
         {
             var result = await RunWithStandardInputAsync("secret-tool", passphrase,
                 "store", $"--label=BorgMate: {account}", "service", ServiceName, "account", account);
+            if (result.ExitCode != 0)
+                Logger.LogWarning("Failed to store passphrase in keychain for {Account}: {Error}",
+                    account, result.Error.Trim());
             return result.ExitCode == 0;
         }
         catch (Exception ex)

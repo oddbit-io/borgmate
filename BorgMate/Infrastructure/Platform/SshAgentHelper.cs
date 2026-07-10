@@ -6,8 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using BorgMate.Domain.Repositories;
+using BorgMate.Infrastructure.Notifications;
 using BorgMate.Persistence.Keychain;
 using BorgMate.Presentation.Dialogs;
+using BorgMate.Runtime.Security;
 using Microsoft.Extensions.Logging;
 
 namespace BorgMate.Infrastructure.Platform;
@@ -15,7 +17,9 @@ namespace BorgMate.Infrastructure.Platform;
 /// <summary>
 ///     Loads SSH keys into ssh-agent, piping passphrases via stdin.
 /// </summary>
-public class SshAgentHelper(ILogger<SshAgentHelper> logger, ICredentialStore? keychain, WslHelper wsl)
+public class SshAgentHelper(
+    ILogger<SshAgentHelper> logger, ICredentialStore? keychain, WslHelper wsl,
+    INotificationService? notifier = null)
 {
     private readonly ConcurrentDictionary<string, string> _wslKeyPassphrases = new(StringComparer.Ordinal);
 
@@ -382,7 +386,7 @@ public class SshAgentHelper(ILogger<SshAgentHelper> logger, ICredentialStore? ke
             return null;
 
         if (saveToKeychain && keychain is not null)
-            await keychain.SetPassphraseAsync(keychainKey, result);
+            await keychain.TrySetPassphraseAsync(notifier, keychainKey, result);
 
         return result;
     }

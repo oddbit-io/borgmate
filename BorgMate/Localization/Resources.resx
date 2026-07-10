@@ -1264,6 +1264,12 @@ Install WSL and try again.</value>
     <data name="Error.BorgMissingOnRemote" xml:space="preserve">
     <value>Borg was not found on the remote server. Install Borg on the server, or make sure it is on PATH for SSH sessions.</value>
   </data>
+    <data name="Error.KeychainSaveFailed" xml:space="preserve">
+    <value>Could not save the passphrase to the system keychain. It will be requested again next time.</value>
+  </data>
+    <data name="Error.KeychainSaveFailedLinuxHint" xml:space="preserve">
+    <value>Make sure a Secret Service (GNOME Keyring or KWallet) is running and unlocked.</value>
+  </data>
     <data name="Error.BorgModernExitCode.InvalidRPCMethod" xml:space="preserve">
     <value>Borg remote RPC method is invalid.</value>
   </data>

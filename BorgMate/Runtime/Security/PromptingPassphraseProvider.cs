@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using BorgMate.Domain.Repositories;
+using BorgMate.Infrastructure.Notifications;
 using BorgMate.Persistence.Keychain;
 using BorgMate.Presentation.Dialogs;
 using BorgMate.Runtime.Operations;
@@ -13,7 +14,8 @@ using OneOf;
 
 namespace BorgMate.Runtime.Security;
 
-public class PromptingPassphraseProvider(ICredentialStore? keychain) : IPassphraseProvider
+public class PromptingPassphraseProvider(ICredentialStore? keychain, INotificationService? notifier = null)
+    : IPassphraseProvider
 {
     private readonly ConcurrentDictionary<string, string> _passphrases = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, byte> _wrongPassphrases = new(StringComparer.Ordinal);
@@ -154,7 +156,7 @@ public class PromptingPassphraseProvider(ICredentialStore? keychain) : IPassphra
         setPassphrase(passphrase);
 
         if (saveToKeychain && keychain is not null)
-            await keychain.SetPassphraseAsync(repoPath, passphrase);
+            await keychain.TrySetPassphraseAsync(notifier, repoPath, passphrase);
 
         return true;
     }
