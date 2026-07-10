@@ -75,6 +75,24 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     [NotifyPropertyChangedFor(nameof(ShowRemoteBorgPathOptions))]
     private bool _isBorgUrlLocation;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSsh))]
+    [NotifyPropertyChangedFor(nameof(ShowSshKeyOptions))]
+    [NotifyPropertyChangedFor(nameof(ShowRemoteBorgPathOptions))]
+    private bool _isSmbLocation;
+
+    // SMB share fields (smb://[user@]host/share). RepoPath is the path inside
+    // the share — combined into a full smb:// URL at commit time.
+
+    [ObservableProperty]
+    private string _smbHost = string.Empty;
+
+    [ObservableProperty]
+    private string _smbShare = string.Empty;
+
+    [ObservableProperty]
+    private string _smbUser = string.Empty;
+
     // --- Mode flags and dialog state ---
 
     [ObservableProperty]
@@ -256,11 +274,12 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
     public bool IsSsh
     {
-        get => !IsLocal && !IsBorgUrlLocation;
+        get => !IsLocal && !IsBorgUrlLocation && !IsSmbLocation;
         set
         {
             if (!value) return;
             IsBorgUrlLocation = false;
+            IsSmbLocation = false;
             IsLocal = false;
         }
     }
@@ -298,7 +317,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     partial void OnIsLocalChanged(bool value)
     {
         if (value)
+        {
             IsBorgUrlLocation = false;
+            IsSmbLocation = false;
+        }
 
         OnPropertyChanged(nameof(IsSsh));
         OnPropertyChanged(nameof(ShowSshKeyOptions));
@@ -308,10 +330,26 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     partial void OnIsBorgUrlLocationChanged(bool value)
     {
         if (value)
+        {
             IsLocal = false;
+            IsSmbLocation = false;
+        }
 
         OnPropertyChanged(nameof(IsSsh));
         OnPropertyChanged(nameof(IsBorgUrlSshLike));
+        OnPropertyChanged(nameof(ShowSshKeyOptions));
+        OnPropertyChanged(nameof(ShowRemoteBorgPathOptions));
+    }
+
+    partial void OnIsSmbLocationChanged(bool value)
+    {
+        if (value)
+        {
+            IsLocal = false;
+            IsBorgUrlLocation = false;
+        }
+
+        OnPropertyChanged(nameof(IsSsh));
         OnPropertyChanged(nameof(ShowSshKeyOptions));
         OnPropertyChanged(nameof(ShowRemoteBorgPathOptions));
     }
@@ -488,6 +526,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
             ? BorgRepositoryLocationKind.SshFields
             : repo.LocationKind;
         IsBorgUrlLocation = locationKind == BorgRepositoryLocationKind.BorgUrl;
+        IsSmbLocation = locationKind == BorgRepositoryLocationKind.SmbShare;
         IsLocal = locationKind == BorgRepositoryLocationKind.LocalPath;
         BorgVersion = repo.BorgVersion;
         EncryptionMode = repo.EncryptionMode;
@@ -589,9 +628,22 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         return repo;
     }
 
-    /// <summary>Splits a "user@host:/path" path (or a local path) into VM fields.</summary>
+    /// <summary>Splits a "user@host:/path", "smb://..." or local path into VM fields.</summary>
     private void DecomposePath(string path)
     {
+        if (IsSmbLocation)
+        {
+            if (SmbLocation.TryParse(path) is { } smb)
+            {
+                SmbHost = smb.Host;
+                SmbShare = smb.Share;
+                SmbUser = smb.Username;
+                RepoPath = smb.PathInShare;
+            }
+
+            return;
+        }
+
         if (IsLocal)
         {
             RepoPath = path;
@@ -627,6 +679,14 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     internal string ComposePath()
     {
         if (IsBorgUrlLocation) return BorgUrl.Trim();
+        if (IsSmbLocation)
+            return new SmbLocation
+            {
+                Host = SmbHost.Trim(),
+                Share = SmbShare.Trim(),
+                PathInShare = RepoPath.Trim().Trim('/'),
+                Username = SmbUser.Trim()
+            }.ToUrl();
         if (IsLocal) return RepoPath;
         var userPart = string.IsNullOrWhiteSpace(SshUser) ? "" : $"{SshUser.Trim()}@";
         return $"{userPart}{SshHost.Trim()}:{RepoPath.Trim()}";
@@ -634,9 +694,11 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
     private BorgRepositoryLocationKind CurrentLocationKind => IsBorgUrlLocation
         ? BorgRepositoryLocationKind.BorgUrl
-        : IsLocal
-            ? BorgRepositoryLocationKind.LocalPath
-            : BorgRepositoryLocationKind.SshFields;
+        : IsSmbLocation
+            ? BorgRepositoryLocationKind.SmbShare
+            : IsLocal
+                ? BorgRepositoryLocationKind.LocalPath
+                : BorgRepositoryLocationKind.SshFields;
 
     // --- Reachability check (Edit mode: skip borg info when nothing relevant changed) ---
 
@@ -644,6 +706,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     {
         return new ReachabilitySnapshot(
             IsLocal, IsBorgUrlLocation, BorgUrl, SshHost, SshUser, SshPort, SshKeyPath, RepoPath,
+            IsSmbLocation, SmbHost, SmbShare, SmbUser,
             BorgVersion, EncryptionMode, Borg2EncryptionMode, BorgRemotePath);
     }
 
@@ -776,6 +839,19 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
                 PathError = Strings.Get(BorgRepositoryUrlValidator.HasEmbeddedSecret(BorgUrl)
                     ? "Validation.BorgUrlCredentials"
                     : "Validation.BorgUrlUnsupported");
+                valid = false;
+            }
+        }
+        else if (IsSmbLocation)
+        {
+            if (string.IsNullOrWhiteSpace(SmbHost) || string.IsNullOrWhiteSpace(SmbShare))
+            {
+                PathError = Strings.Get("ValidationRequired");
+                valid = false;
+            }
+            else if (SmbLocation.TryParse(ComposePath()) is null)
+            {
+                PathError = Strings.Get("Validation.SmbInvalid");
                 valid = false;
             }
         }
@@ -929,6 +1005,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         int SshPort,
         string SshKeyPath,
         string RepoPath,
+        bool IsSmbLocation,
+        string SmbHost,
+        string SmbShare,
+        string SmbUser,
         BorgVersion BorgVersion,
         BorgEncryptionMode EncryptionMode,
         Borg2EncryptionMode Borg2EncryptionMode,

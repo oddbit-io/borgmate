@@ -99,6 +99,8 @@
                                              IsChecked="{Binding IsLocal}" GroupName="RepoType" />
                                 <RadioButton Content="{Binding [SSH], Source={x:Static loc:Strings.Instance}}"
                                              IsChecked="{Binding IsSsh}" GroupName="RepoType" />
+                                <RadioButton Content="{Binding [Smb], Source={x:Static loc:Strings.Instance}}"
+                                             IsChecked="{Binding IsSmbLocation}" GroupName="RepoType" />
                                 <RadioButton Content="{Binding [BorgUrl], Source={x:Static loc:Strings.Instance}}"
                                              IsChecked="{Binding IsBorgUrlLocation}" GroupName="RepoType"
                                              IsVisible="{Binding CanUseBorgUrl}" />
@@ -142,6 +144,30 @@
                                            Foreground="{StaticResource ValidationErrorBrush}"
                                            IsVisible="{Binding SshKeyError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                             </StackPanel>
+                        </StackPanel>
+
+                        <!-- SMB share fields -->
+                        <StackPanel Spacing="{StaticResource FormSpacing}"
+                                    IsVisible="{Binding IsSmbLocation}">
+                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                <StackPanel Grid.Column="0" Spacing="{StaticResource FieldSpacing}">
+                                    <TextBlock Text="{Binding [SmbHost], Source={x:Static loc:Strings.Instance}}" />
+                                    <TextBox Text="{Binding SmbHost}"
+                                             PlaceholderText="{Binding [WatermarkSmbHost], Source={x:Static loc:Strings.Instance}}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="{StaticResource FieldSpacing}" Margin="8,0,0,0"
+                                            Width="140">
+                                    <TextBlock Text="{Binding [SmbShare], Source={x:Static loc:Strings.Instance}}" />
+                                    <TextBox Text="{Binding SmbShare}"
+                                             PlaceholderText="{Binding [WatermarkSmbShare], Source={x:Static loc:Strings.Instance}}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="{StaticResource FieldSpacing}" Margin="8,0,0,0"
+                                            Width="110">
+                                    <TextBlock Text="{Binding [SmbUser], Source={x:Static loc:Strings.Instance}}" />
+                                    <TextBox Text="{Binding SmbUser}"
+                                             PlaceholderText="{Binding [WatermarkSmbUser], Source={x:Static loc:Strings.Instance}}" />
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
 
                         <!-- Repository path -->

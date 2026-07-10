@@ -615,6 +615,18 @@
     <data name="WatermarkSshKeyPassphrase" xml:space="preserve">
     <value>Пароль SSH-ключа</value>
   </data>
+    <data name="SmbPasswordRequired" xml:space="preserve">
+    <value>Пароль SMB-ресурса</value>
+  </data>
+    <data name="EnterSmbPassword" xml:space="preserve">
+    <value>Введите пароль для {0}:</value>
+  </data>
+    <data name="WrongSmbPassword" xml:space="preserve">
+    <value>Неверный пароль SMB. Попробуйте ещё раз:</value>
+  </data>
+    <data name="WatermarkSmbPassword" xml:space="preserve">
+    <value>Пароль SMB</value>
+  </data>
     <data name="EnterPassword" xml:space="preserve">
     <value>Введите пароль</value>
   </data>
@@ -738,6 +750,27 @@
     <data name="BorgUrl" xml:space="preserve">
     <value>Borg URL</value>
   </data>
+    <data name="Smb" xml:space="preserve">
+    <value>SMB-ресурс</value>
+  </data>
+    <data name="SmbHost" xml:space="preserve">
+    <value>Сервер</value>
+  </data>
+    <data name="SmbShare" xml:space="preserve">
+    <value>Общая папка</value>
+  </data>
+    <data name="SmbUser" xml:space="preserve">
+    <value>Пользователь</value>
+  </data>
+    <data name="WatermarkSmbHost" xml:space="preserve">
+    <value>напр. nas.local</value>
+  </data>
+    <data name="WatermarkSmbShare" xml:space="preserve">
+    <value>напр. backups</value>
+  </data>
+    <data name="WatermarkSmbUser" xml:space="preserve">
+    <value>пусто — гостевой вход</value>
+  </data>
     <data name="WatermarkSshHost" xml:space="preserve">
     <value>напр. backup.example.com</value>
   </data>
@@ -797,6 +830,9 @@
   </data>
     <data name="Validation.BorgUrlUnsupported" xml:space="preserve">
     <value>Используйте поддерживаемый Borg URL: ssh://, sftp://, file://, rest://, rclone:, s3: или b2:</value>
+  </data>
+    <data name="Validation.SmbInvalid" xml:space="preserve">
+    <value>Некорректное имя SMB-сервера или общей папки</value>
   </data>
     <data name="Validation.BorgVersionUnknown" xml:space="preserve">
     <value>Не удалось определить версию borg выбранного бинарного файла</value>
@@ -1104,6 +1140,28 @@ Borg использует контрольные точки — повторны
 
 Для работы borg в Windows требуется подсистема Windows для Linux (WSL).
 Установите WSL и повторите попытку.</value>
+  </data>
+    <data name="Error.SmbInvalidUrl" xml:space="preserve">
+    <value>Настроенное расположение SMB &#x27;{0}&#x27; не является корректным smb:// URL.</value>
+  </data>
+    <data name="Error.SmbMountFailed" xml:space="preserve">
+    <value>Не удалось смонтировать SMB-ресурс {0}: {1}</value>
+  </data>
+    <data name="Error.SmbShareUnreachable" xml:space="preserve">
+    <value>SMB-ресурс {0} недоступен.
+
+Проверьте имя сервера и что на нём включён общий доступ по SMB.</value>
+  </data>
+    <data name="Error.SmbCredentialsRejected" xml:space="preserve">
+    <value>Сервер отклонил учётные данные для {0}.</value>
+  </data>
+    <data name="Error.SmbGvfsMissing" xml:space="preserve">
+    <value>Для монтирования SMB требуется GVFS.
+
+Установите gvfs-backends (Debian/Ubuntu) или gvfs-smb (Fedora) и повторите попытку.</value>
+  </data>
+    <data name="Error.SmbWslMountFailed" xml:space="preserve">
+    <value>Не удалось смонтировать SMB-ресурс {0} внутри WSL: {1}</value>
   </data>
     <data name="Error.OperationCancelled" xml:space="preserve">
     <value>Операция отменена.</value>

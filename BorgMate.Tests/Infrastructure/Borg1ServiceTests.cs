@@ -17,9 +17,11 @@ public class Borg1ServiceTests
 {
     private static readonly WslHelper Wsl = new(Substitute.For<ILogger<WslHelper>>());
     private static readonly SshAgentHelper SshAgent = new(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl);
+    private static readonly INetworkShareMounter Mounter = Substitute.For<INetworkShareMounter>();
 
     private static TestBorg1Service CreateService(AppSettings? settings = null) =>
-        new(Substitute.For<ILogger<Borg1Service>>(), settings ?? new AppSettings(), SshAgent, Wsl, new PromptingPassphraseProvider(null));
+        new(Substitute.For<ILogger<Borg1Service>>(), settings ?? new AppSettings(), SshAgent, Wsl, Mounter,
+            new PromptingPassphraseProvider(null));
 
     private static BorgRepository LocalRepo(string path = "/repo", BorgEncryptionMode enc = BorgEncryptionMode.None) =>
         new() { Name = "test", Path = path, IsLocal = true, EncryptionMode = enc };
@@ -270,8 +272,9 @@ public class Borg1ServiceTests
             AppSettings settings,
             SshAgentHelper sshAgent,
             WslHelper wsl,
+            INetworkShareMounter shareMounter,
             PromptingPassphraseProvider passphrase)
-            : base(logger, settings, sshAgent, wsl, passphrase)
+            : base(logger, settings, sshAgent, wsl, shareMounter, passphrase)
         {
             _passphrase = passphrase;
         }

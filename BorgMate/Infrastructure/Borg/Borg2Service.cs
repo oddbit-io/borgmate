@@ -18,8 +18,9 @@ public class Borg2Service(
     AppSettings settings,
     SshAgentHelper sshAgent,
     WslHelper wsl,
+    INetworkShareMounter shareMounter,
     PromptingPassphraseProvider? passphrase = null) : Borg2ServiceBase(logger, settings, sshAgent, wsl,
-    passphrase ?? new PromptingPassphraseProvider(null))
+    shareMounter, passphrase ?? new PromptingPassphraseProvider(null))
 {
     /// <summary>Detected Borg 2 CLI version used for version-specific command mapping.</summary>
     public BorgCliVersion? DetectedVersion { get; set; }

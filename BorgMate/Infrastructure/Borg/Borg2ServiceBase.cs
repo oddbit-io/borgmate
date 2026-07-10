@@ -14,8 +14,9 @@ public abstract class Borg2ServiceBase(
     AppSettings settings,
     SshAgentHelper sshAgent,
     WslHelper wsl,
+    INetworkShareMounter shareMounter,
     PromptingPassphraseProvider passphrase)
-    : BorgServiceBase(logger, settings, BorgVersion.Borg2, sshAgent, wsl, passphrase)
+    : BorgServiceBase(logger, settings, BorgVersion.Borg2, sshAgent, wsl, shareMounter, passphrase)
 {
     /// <summary>Adds the Borg 2 repository environment variable used by b21 commands.</summary>
     protected void AddRepositoryEnvironment(BorgRepository repo, BorgEnv env)
@@ -30,7 +31,7 @@ public abstract class Borg2ServiceBase(
             return !string.IsNullOrWhiteSpace(repo.BorgUrl) ? repo.BorgUrl : repo.Path;
 
         if (!repo.IsSsh)
-            return P(repo.Path);
+            return Location(repo);
 
         var (host, path) = SplitLegacySshPath(repo.Path);
         var port = repo.SshPort is > 0 and not 22 ? $":{repo.SshPort}" : string.Empty;

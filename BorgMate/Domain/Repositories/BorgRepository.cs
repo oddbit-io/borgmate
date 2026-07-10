@@ -64,7 +64,8 @@ public sealed record BorgRepository
 
     /// <summary>True when this repository uses the structured SSH fields.</summary>
     public bool IsSsh => LocationKind == BorgRepositoryLocationKind.SshFields ||
-                         (!IsLocal && LocationKind != BorgRepositoryLocationKind.BorgUrl);
+                         (!IsLocal && LocationKind is not BorgRepositoryLocationKind.BorgUrl
+                             and not BorgRepositoryLocationKind.SmbShare);
 
     /// <summary>True when this repository requires a borg passphrase.</summary>
     public bool IsEncrypted => BorgVersion == BorgVersion.Borg2

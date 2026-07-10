@@ -11,6 +11,7 @@ using BorgMate.Persistence.Keychain;
 using BorgMate.Presentation.Dialogs;
 using BorgMate.Runtime.Security;
 using Microsoft.Extensions.Logging;
+using OneOf;
 
 namespace BorgMate.Infrastructure.Platform;
 
@@ -71,8 +72,8 @@ public class SshAgentHelper(
 
         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SSH_AUTH_SOCK")))
         {
-            var (result, stderr) = await RunSshAddViaExpect(keyPath, null);
-            logger.LogDebug("ssh-add (unencrypted) result={Result}, stderr={Stderr}", result, stderr);
+            var result = await RunSshAddViaExpect(keyPath, null);
+            logger.LogDebug("ssh-add (unencrypted) result={Result}", result.Value);
         }
 
         return true;
@@ -124,10 +125,10 @@ public class SshAgentHelper(
             var passphrase = await PromptSshKeyPassphraseAsync(sshKeyPath, message);
             if (passphrase is null) return false;
 
-            var (result, stderr) = await RunSshAddViaExpect(keyPath, passphrase);
-            logger.LogDebug("ssh-add result={Result}, stderr={Stderr}", result, stderr);
+            var result = await RunSshAddViaExpect(keyPath, passphrase);
+            logger.LogDebug("ssh-add result={Result}", result.Value);
 
-            if (result == SshAddResult.Success)
+            if (result.IsT0)
             {
                 logger.LogInformation("SSH key loaded into agent: {Key}", sshKeyPath);
                 return true;
@@ -215,7 +216,7 @@ public class SshAgentHelper(
     ///     Adds a key to ssh-agent. On macOS, uses expect (Apple's ssh-add opens /dev/tty).
     ///     On Linux/WSL, pipes passphrase via stdin (standard OpenSSH reads stdin when not tty).
     /// </summary>
-    private static async Task<(SshAddResult result, string stderr)> RunSshAddViaExpect(
+    private static async Task<OneOf<SshKeyAdded, SshAddError>> RunSshAddViaExpect(
         string keyPath, string? passphrase)
     {
         if (passphrase is null)
@@ -223,9 +224,10 @@ public class SshAgentHelper(
             // Unencrypted key — just run ssh-add directly with stdin closed
             var (fn, args) = WrapCommand("ssh-add", Quote(keyPath));
             var directResult = await RunProcessAsync(fn, args);
-            return directResult.ExitCode == 0
-                ? (SshAddResult.Success, directResult.Stderr)
-                : (SshAddResult.OtherError, directResult.Stderr);
+            if (directResult.ExitCode == 0)
+                return new SshKeyAdded(directResult.Stderr);
+
+            return new SshAddError.Failed(directResult.Stderr);
         }
 
         // Linux/WSL: standard OpenSSH reads passphrase from stdin when not a tty
@@ -236,7 +238,7 @@ public class SshAgentHelper(
         return await RunSshAddViaExpectScript(keyPath, passphrase);
     }
 
-    private static async Task<(SshAddResult result, string stderr)> RunSshAddViaStdin(
+    private static async Task<OneOf<SshKeyAdded, SshAddError>> RunSshAddViaStdin(
         string keyPath, string passphrase)
     {
         try
@@ -252,6 +254,7 @@ public class SshAgentHelper(
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            psi.Environment["LC_ALL"] = "C";
 
             using var process = Process.Start(psi)!;
             await process.StandardInput.WriteLineAsync(passphrase);
@@ -260,19 +263,22 @@ public class SshAgentHelper(
             await process.WaitForExitAsync();
 
             if (process.ExitCode == 0)
-                return (SshAddResult.Success, stderr);
+                return new SshKeyAdded(stderr);
 
             var wrong = stderr.Contains("incorrect", StringComparison.OrdinalIgnoreCase)
                         || stderr.Contains("bad", StringComparison.OrdinalIgnoreCase);
-            return (wrong ? SshAddResult.NeedsPassphrase : SshAddResult.OtherError, stderr);
+            if (wrong)
+                return new SshAddError.WrongPassphrase(stderr);
+
+            return new SshAddError.Failed(stderr);
         }
         catch (Exception ex)
         {
-            return (SshAddResult.OtherError, ex.Message);
+            return new SshAddError.Failed(ex.Message);
         }
     }
 
-    private static async Task<(SshAddResult result, string stderr)> RunSshAddViaExpectScript(
+    private static async Task<OneOf<SshKeyAdded, SshAddError>> RunSshAddViaExpectScript(
         string keyPath, string passphrase)
     {
         try
@@ -283,7 +289,7 @@ public class SshAgentHelper(
         }
         catch (Exception ex)
         {
-            return (SshAddResult.OtherError, ex.Message);
+            return new SshAddError.Failed(ex.Message);
         }
     }
 
@@ -322,17 +328,17 @@ public class SshAgentHelper(
             .Replace("[", "\\[").Replace("]", "\\]").Replace("$", "\\$");
     }
 
-    private static (SshAddResult result, string stderr) ParseSshAddResult(ProcessOutput output)
+    private static OneOf<SshKeyAdded, SshAddError> ParseSshAddResult(ProcessOutput output)
     {
         if (output.ExitCode == 0)
-            return (SshAddResult.Success, output.Stderr);
+            return new SshKeyAdded(output.Stderr);
 
         if (output.ExitCode == 1
             || output.Stderr.Contains("incorrect", StringComparison.OrdinalIgnoreCase)
             || output.Stderr.Contains("bad", StringComparison.OrdinalIgnoreCase))
-            return (SshAddResult.NeedsPassphrase, output.Stderr);
+            return new SshAddError.WrongPassphrase(output.Stderr);
 
-        return (SshAddResult.OtherError, output.Stderr);
+        return new SshAddError.Failed(output.Stderr);
     }
 
     private static async Task<ProcessOutput> RunProcessAsync(string fileName, string arguments,
@@ -348,6 +354,7 @@ public class SshAgentHelper(
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        psi.Environment["LC_ALL"] = "C";
 
         using var process = Process.Start(psi)!;
         if (stdinData is not null)
@@ -406,13 +413,6 @@ public class SshAgentHelper(
     private static string Quote(string value)
     {
         return $"\"{value}\"";
-    }
-
-    private enum SshAddResult
-    {
-        Success,
-        NeedsPassphrase,
-        OtherError
     }
 
     private record ProcessOutput(int ExitCode, string Stdout, string Stderr);

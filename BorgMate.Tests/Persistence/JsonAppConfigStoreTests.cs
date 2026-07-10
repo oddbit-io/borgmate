@@ -453,6 +453,25 @@ public class JsonAppConfigStoreTests
         Assert.False(restored.IsLocal);
     }
 
+    [Fact]
+    public void Clone_CopiesSmbShareLocation()
+    {
+        var original = new BorgRepository
+        {
+            Name = "NAS",
+            Path = "smb://bob@nas.local/backups/laptop",
+            LocationKind = BorgRepositoryLocationKind.SmbShare,
+            IsLocal = false
+        };
+
+        var restored = JsonAppConfigStore.Clone(original);
+
+        Assert.Equal(BorgRepositoryLocationKind.SmbShare, restored.LocationKind);
+        Assert.Equal("smb://bob@nas.local/backups/laptop", restored.Path);
+        Assert.False(restored.IsLocal);
+        Assert.False(restored.IsSsh);
+    }
+
     private static string CreateTempConfigPath()
     {
         var directory = Path.Combine(Path.GetTempPath(), "BorgMate.Tests", Guid.NewGuid().ToString("N"));

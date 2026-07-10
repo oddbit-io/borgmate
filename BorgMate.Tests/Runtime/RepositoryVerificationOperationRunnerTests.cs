@@ -20,6 +20,7 @@ public class RepositoryVerificationOperationRunnerTests
 {
     private static readonly WslHelper Wsl = new(Substitute.For<ILogger<WslHelper>>());
     private static readonly SshAgentHelper SshAgent = new(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl);
+    private static readonly INetworkShareMounter Mounter = Substitute.For<INetworkShareMounter>();
 
     [Fact]
     public async Task ValidateConfiguredBorgAsync_AcceptsBorg14ForBorg1Repository()
@@ -150,7 +151,7 @@ public class RepositoryVerificationOperationRunnerTests
     }
 
     private sealed class StubBorgServiceFactory(IBorgService service) : BorgServiceFactory(
-        Substitute.For<ILoggerFactory>(), new AppSettings(), SshAgent, Wsl)
+        Substitute.For<ILoggerFactory>(), new AppSettings(), SshAgent, Wsl, Mounter)
     {
         public override IBorgService GetService(BorgVersion borgVersion) => service;
     }
@@ -163,6 +164,7 @@ public class RepositoryVerificationOperationRunnerTests
             new AppSettings(),
             SshAgent,
             Wsl,
+            Mounter,
             provider)
     {
         private readonly Queue<BorgResult> _infoResults = new(infoResults);
@@ -209,6 +211,7 @@ public class RepositoryVerificationOperationRunnerTests
             new AppSettings(),
             SshAgent,
             Wsl,
+            Mounter,
             new PromptingPassphraseProvider(null))
     {
         protected override Task<BorgResult> RunCommandAsync(
@@ -229,6 +232,7 @@ public class RepositoryVerificationOperationRunnerTests
             new AppSettings(),
             SshAgent,
             Wsl,
+            Mounter,
             new PromptingPassphraseProvider(null))
     {
         protected override Task<BorgResult> RunCommandAsync(

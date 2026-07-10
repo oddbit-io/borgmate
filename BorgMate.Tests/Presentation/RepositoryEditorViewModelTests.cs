@@ -311,6 +311,104 @@ public class RepositoryEditorViewModelTests
         Assert.Equal(BorgRepositoryLocationKind.SshFields, vm.Repository.LocationKind);
     }
 
+    // --- SMB location ---
+
+    [Fact]
+    public void IsSmbLocation_ClearsOtherLocationToggles()
+    {
+        var vm = CreateVm();
+
+        vm.IsSmbLocation = true;
+        Assert.False(vm.IsLocal);
+        Assert.False(vm.IsSsh);
+        Assert.False(vm.IsBorgUrlLocation);
+
+        vm.IsLocal = true;
+        Assert.False(vm.IsSmbLocation);
+
+        vm.IsSsh = true;
+        Assert.False(vm.IsSmbLocation);
+        Assert.False(vm.IsLocal);
+    }
+
+    [Fact]
+    public void ComposePath_Smb_BuildsSmbUrlFromFields()
+    {
+        var vm = CreateVm();
+        vm.IsSmbLocation = true;
+        vm.SmbHost = "nas.local";
+        vm.SmbShare = "backups";
+        vm.SmbUser = "bob";
+        vm.RepoPath = "/laptop/repo";
+
+        Assert.Equal("smb://bob@nas.local/backups/laptop/repo", vm.ComposePath());
+    }
+
+    [Fact]
+    public void ComposePath_Smb_OmitsEmptyUserAndPath()
+    {
+        var vm = CreateVm();
+        vm.IsSmbLocation = true;
+        vm.SmbHost = "nas";
+        vm.SmbShare = "backups";
+
+        Assert.Equal("smb://nas/backups", vm.ComposePath());
+    }
+
+    [Fact]
+    public void ForEdit_SmbRepo_DecomposesUrlIntoFields()
+    {
+        var repo = new BorgRepository
+        {
+            Name = "NAS",
+            Path = "smb://bob@nas.local/backups/laptop",
+            LocationKind = BorgRepositoryLocationKind.SmbShare,
+            IsLocal = false
+        };
+
+        var vm = RepositoryEditorViewModel.ForEdit(new FilePickerService(), repo);
+
+        Assert.True(vm.IsSmbLocation);
+        Assert.False(vm.IsLocal);
+        Assert.Equal("nas.local", vm.SmbHost);
+        Assert.Equal("backups", vm.SmbShare);
+        Assert.Equal("bob", vm.SmbUser);
+        Assert.Equal("laptop", vm.RepoPath);
+    }
+
+    [Fact]
+    public void Save_New_Smb_ProducesSmbShareRepo()
+    {
+        var vm = RepositoryEditorViewModel.ForNew(new FilePickerService());
+        vm.Name = "NAS";
+        vm.IsSmbLocation = true;
+        vm.SmbHost = "nas.local";
+        vm.SmbShare = "backups";
+        vm.RepoPath = "repo";
+
+        vm.SaveCommand.Execute(null);
+
+        Assert.True(vm.IsSaved);
+        Assert.NotNull(vm.Repository);
+        Assert.Equal(BorgRepositoryLocationKind.SmbShare, vm.Repository!.LocationKind);
+        Assert.Equal("smb://nas.local/backups/repo", vm.Repository.Path);
+        Assert.False(vm.Repository.IsLocal);
+    }
+
+    [Fact]
+    public void Save_Smb_WithoutHostOrShare_SetsPathError()
+    {
+        var vm = RepositoryEditorViewModel.ForNew(new FilePickerService());
+        vm.Name = "NAS";
+        vm.IsSmbLocation = true;
+        vm.SmbHost = "nas.local";
+
+        vm.SaveCommand.Execute(null);
+
+        Assert.NotNull(vm.PathError);
+        Assert.False(vm.IsSaved);
+    }
+
     [Fact]
     public void Save_New_Borg2RawUrl_PreservesRawUrlLocation()
     {

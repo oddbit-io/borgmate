@@ -12,6 +12,7 @@ public class BorgServiceFactory(
     AppSettings settings,
     SshAgentHelper sshAgent,
     WslHelper wsl,
+    INetworkShareMounter shareMounter,
     PromptingPassphraseProvider? passphrase = null)
 {
     private Borg1Service? _borg1;
@@ -21,8 +22,8 @@ public class BorgServiceFactory(
     {
         return borgVersion == BorgVersion.Borg2
             ? _borg2 ??= new Borg2Service(loggerFactory.CreateLogger<Borg2Service>(), settings, sshAgent, wsl,
-                passphrase)
+                shareMounter, passphrase)
             : _borg1 ??= new Borg1Service(loggerFactory.CreateLogger<Borg1Service>(), settings, sshAgent, wsl,
-                passphrase);
+                shareMounter, passphrase);
     }
 }

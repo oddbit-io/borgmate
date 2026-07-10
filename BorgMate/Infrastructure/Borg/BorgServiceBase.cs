@@ -20,6 +20,7 @@ public abstract class BorgServiceBase(
     BorgVersion borgVersion,
     SshAgentHelper sshAgent,
     WslHelper wsl,
+    INetworkShareMounter shareMounter,
     PromptingPassphraseProvider passphrase) : IBorgService
 {
     protected string BorgBinary => settings.GetEffectiveBorgPath(borgVersion);
@@ -246,6 +247,9 @@ public abstract class BorgServiceBase(
         if (!string.IsNullOrEmpty(newPassphrase))
             env["BORG_NEW_PASSPHRASE"] = newPassphrase;
 
+        if (repo.LocationKind == BorgRepositoryLocationKind.SmbShare)
+            await shareMounter.EnsureMountedAsync(ParseSmbLocation(repo), ct);
+
         if (UsesSshTransport(repo))
         {
             if (!string.IsNullOrWhiteSpace(repo.SshKeyPath))
@@ -342,6 +346,25 @@ public abstract class BorgServiceBase(
     protected static string P(string path)
     {
         return WslHelper.IsRequired ? WslHelper.ToWslPath(path) : path;
+    }
+
+    /// <summary>
+    ///     Repository location for borg CLI arguments: the configured path (WSL-converted on
+    ///     Windows), or the resolved mountpoint path for SMB repositories, which is already
+    ///     WSL-native on Windows and must not be converted again.
+    /// </summary>
+    protected string Location(BorgRepository repo)
+    {
+        return repo.LocationKind == BorgRepositoryLocationKind.SmbShare
+            ? shareMounter.GetMountedPath(ParseSmbLocation(repo))
+            : P(repo.Path);
+    }
+
+    private static SmbLocation ParseSmbLocation(BorgRepository repo)
+    {
+        return SmbLocation.TryParse(repo.Path)
+               ?? throw new NetworkShareMountException(
+                   string.Format(Strings.Get("Error.SmbInvalidUrl"), repo.Path));
     }
 
     /// <summary>

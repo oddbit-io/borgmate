@@ -65,6 +65,7 @@ public abstract class KeychainServiceBase(ILogger logger)
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        psi.Environment["LC_ALL"] = "C";
 
         foreach (var argument in arguments)
             psi.ArgumentList.Add(argument);

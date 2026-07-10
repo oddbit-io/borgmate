@@ -64,7 +64,7 @@ public static class ProcessRunner
 
     private static ProcessStartInfo CreateStartInfo(string fileName)
     {
-        return new ProcessStartInfo
+        var psi = new ProcessStartInfo
         {
             FileName = fileName,
             RedirectStandardOutput = true,
@@ -72,6 +72,10 @@ public static class ProcessRunner
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        // Output of external tools is parsed programmatically — pin the C locale
+        // so classification never trips over translated messages.
+        psi.Environment["LC_ALL"] = "C";
+        return psi;
     }
 
     private static async Task<BorgResult> RunCoreAsync(

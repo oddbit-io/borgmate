@@ -175,6 +175,7 @@ public static class BorgPathHelper
 
     private static string? RunProcess(ProcessStartInfo psi)
     {
+        psi.Environment["LC_ALL"] = "C";
         try
         {
             using var proc = new Process { StartInfo = psi };

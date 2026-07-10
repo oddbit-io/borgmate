@@ -615,6 +615,18 @@
     <data name="WatermarkSshKeyPassphrase" xml:space="preserve">
     <value>SSH key passphrase</value>
   </data>
+    <data name="SmbPasswordRequired" xml:space="preserve">
+    <value>SMB Share Password</value>
+  </data>
+    <data name="EnterSmbPassword" xml:space="preserve">
+    <value>Enter password for {0}:</value>
+  </data>
+    <data name="WrongSmbPassword" xml:space="preserve">
+    <value>Wrong SMB password. Please try again:</value>
+  </data>
+    <data name="WatermarkSmbPassword" xml:space="preserve">
+    <value>SMB password</value>
+  </data>
     <data name="EnterPassword" xml:space="preserve">
     <value>Enter password</value>
   </data>
@@ -738,6 +750,27 @@
     <data name="BorgUrl" xml:space="preserve">
     <value>Borg URL</value>
   </data>
+    <data name="Smb" xml:space="preserve">
+    <value>SMB Share</value>
+  </data>
+    <data name="SmbHost" xml:space="preserve">
+    <value>Server</value>
+  </data>
+    <data name="SmbShare" xml:space="preserve">
+    <value>Share</value>
+  </data>
+    <data name="SmbUser" xml:space="preserve">
+    <value>User</value>
+  </data>
+    <data name="WatermarkSmbHost" xml:space="preserve">
+    <value>e.g. nas.local</value>
+  </data>
+    <data name="WatermarkSmbShare" xml:space="preserve">
+    <value>e.g. backups</value>
+  </data>
+    <data name="WatermarkSmbUser" xml:space="preserve">
+    <value>empty for guest</value>
+  </data>
     <data name="WatermarkSshHost" xml:space="preserve">
     <value>e.g. backup.example.com</value>
   </data>
@@ -797,6 +830,9 @@
   </data>
     <data name="Validation.BorgUrlUnsupported" xml:space="preserve">
     <value>Use a supported Borg URL: ssh://, sftp://, file://, rest://, rclone:, s3:, or b2:</value>
+  </data>
+    <data name="Validation.SmbInvalid" xml:space="preserve">
+    <value>Invalid SMB server or share name</value>
   </data>
     <data name="Validation.BorgVersionUnknown" xml:space="preserve">
     <value>Could not determine borg version from selected binary</value>
@@ -1104,6 +1140,28 @@ Check application settings for the correct borg binary path.</value>
 
 Windows Subsystem for Linux is required for borg on Windows.
 Install WSL and try again.</value>
+  </data>
+    <data name="Error.SmbInvalidUrl" xml:space="preserve">
+    <value>The configured SMB location &#x27;{0}&#x27; is not a valid smb:// URL.</value>
+  </data>
+    <data name="Error.SmbMountFailed" xml:space="preserve">
+    <value>Failed to mount SMB share {0}: {1}</value>
+  </data>
+    <data name="Error.SmbShareUnreachable" xml:space="preserve">
+    <value>SMB share {0} is unreachable.
+
+Check the server name and that SMB file sharing is enabled on it.</value>
+  </data>
+    <data name="Error.SmbCredentialsRejected" xml:space="preserve">
+    <value>The server rejected the credentials for {0}.</value>
+  </data>
+    <data name="Error.SmbGvfsMissing" xml:space="preserve">
+    <value>SMB mounting requires GVFS.
+
+Install gvfs-backends (Debian/Ubuntu) or gvfs-smb (Fedora) and try again.</value>
+  </data>
+    <data name="Error.SmbWslMountFailed" xml:space="preserve">
+    <value>Failed to mount SMB share {0} inside WSL: {1}</value>
   </data>
     <data name="Error.OperationCancelled" xml:space="preserve">
     <value>Operation was cancelled.</value>

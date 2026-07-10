@@ -12,5 +12,8 @@ public enum BorgRepositoryLocationKind
     SshFields,
 
     [JsonStringEnumMemberName("borgUrl")]
-    BorgUrl
+    BorgUrl,
+
+    [JsonStringEnumMemberName("smbShare")]
+    SmbShare
 }

@@ -99,6 +99,7 @@ public static class ServiceCollectionExtensions
         if (OperatingSystem.IsMacOS())
         {
             services.AddSingleton<ICredentialStore, MacOsKeychainService>();
+            services.AddSingleton<INetworkShareMounter, MacOsNetworkShareMounter>();
             services.AddSingleton<IAutoStartService, MacOsAutoStartService>();
             services.AddSingleton<INotificationService, MacOsNotificationService>();
             services.AddSingleton<ISleepInhibitor, MacOsSleepInhibitor>();
@@ -108,6 +109,7 @@ public static class ServiceCollectionExtensions
         else if (OperatingSystem.IsLinux())
         {
             services.AddSingleton<ICredentialStore, LinuxKeychainService>();
+            services.AddSingleton<INetworkShareMounter, LinuxNetworkShareMounter>();
             services.AddSingleton<IAutoStartService, LinuxAutoStartService>();
             services.AddSingleton<INotificationService, LinuxNotificationService>();
             services.AddSingleton<ISleepInhibitor, LinuxSleepInhibitor>();
@@ -118,6 +120,7 @@ public static class ServiceCollectionExtensions
         {
 #pragma warning disable CA1416 // Platform guard via OperatingSystem.IsWindows()
             services.AddSingleton<ICredentialStore, WindowsKeychainService>();
+            services.AddSingleton<INetworkShareMounter, WindowsWslNetworkShareMounter>();
             services.AddSingleton<IAutoStartService, WindowsAutoStartService>();
             services.AddSingleton<INotificationService, WindowsNotificationService>();
             services.AddSingleton<ISleepInhibitor, WindowsSleepInhibitor>();

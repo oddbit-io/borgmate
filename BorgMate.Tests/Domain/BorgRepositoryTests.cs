@@ -43,6 +43,18 @@ public class BorgRepositoryTests
     }
 
     [Fact]
+    public void IsSsh_False_ForSmbShareLocation()
+    {
+        var repo = new BorgRepository
+        {
+            LocationKind = BorgRepositoryLocationKind.SmbShare,
+            IsLocal = false
+        };
+
+        Assert.False(repo.IsSsh);
+    }
+
+    [Fact]
     public void IsScheduled_False_WhenManual()
     {
         var repo = new BorgRepository { Mode = BackupMode.Manual };
