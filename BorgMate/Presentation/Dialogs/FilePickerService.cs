@@ -9,7 +9,7 @@ using Avalonia.Platform.Storage;
 namespace BorgMate.Presentation.Dialogs;
 
 /// <summary>
-///     File picker using Avalonia's StorageProvider. Used on Windows and Linux.
+///     File picker using Avalonia's StorageProvider.
 /// </summary>
 public class FilePickerService : IFilePickerService
 {

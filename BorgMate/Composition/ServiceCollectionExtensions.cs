@@ -87,10 +87,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddSingleton<UpdateStatusState>();
-        if (OperatingSystem.IsMacOS())
-            services.AddSingleton<IFilePickerService, MacOsFilePickerService>();
-        else
-            services.AddSingleton<IFilePickerService, FilePickerService>();
+        services.AddSingleton<IFilePickerService, FilePickerService>();
         services.AddSingleton<BorgCacheService>();
         services.AddSingleton<BorgJobQueue>(sp =>
             new BorgJobQueue(sp.GetRequiredService<ILogger<BorgJobQueue>>()));
