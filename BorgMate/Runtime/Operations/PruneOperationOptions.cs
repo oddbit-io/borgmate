@@ -7,4 +7,5 @@ namespace BorgMate.Runtime.Operations;
 public sealed record PruneOperationOptions(
     BorgRepository Repository,
     IOperationProgressSink ProgressSink,
-    bool CompactAfterPrune = false) : BorgOperationOptions(Repository, ProgressSink);
+    bool CompactAfterPrune = false,
+    bool Interactive = true) : BorgOperationOptions(Repository, ProgressSink, Interactive);

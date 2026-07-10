@@ -145,6 +145,12 @@ public class PromptingPassphraseProvider(ICredentialStore? keychain, INotificati
             }
         }
 
+        // Scheduled runs have nobody at the screen — fail into the journal instead of
+        // blocking on the dialog.
+        if (!OperationInteractivity.IsInteractive)
+            throw new CredentialsRequiredException(
+                string.Format(Strings.Get("Error.PassphraseRequired.Unattended"), repoName));
+
         var (passphrase, saveToKeychain) = await Dispatcher.UIThread.InvokeAsync(async () =>
         {
             var window = DialogHelper.GetMainWindow();

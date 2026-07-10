@@ -7,4 +7,5 @@ namespace BorgMate.Runtime.Orchestration;
 public sealed record BorgOperationRequest(
     BorgRepository Repository,
     IOperationProgressSink ProgressSink,
-    bool RequiresPassphrase = true);
+    bool RequiresPassphrase = true,
+    bool Interactive = true);

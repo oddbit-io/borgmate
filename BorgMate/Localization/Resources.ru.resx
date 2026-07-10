@@ -1155,6 +1155,15 @@ Borg использует контрольные точки — повторны
     <data name="Error.SmbCredentialsRejected" xml:space="preserve">
     <value>Сервер отклонил учётные данные для {0}.</value>
   </data>
+    <data name="Error.SmbPasswordRequired.Unattended" xml:space="preserve">
+    <value>Для бэкапа по расписанию нужен пароль SMB-ресурса {0}, но он не сохранён в связке ключей. Откройте BorgMate, выполните бэкап вручную и отметьте «Сохранить в связке ключей».</value>
+  </data>
+    <data name="Error.SshKeyPassphraseRequired.Unattended" xml:space="preserve">
+    <value>Для бэкапа по расписанию нужна парольная фраза SSH-ключа {0}, но она не сохранена в связке ключей. Откройте BorgMate, выполните бэкап вручную и отметьте «Сохранить в связке ключей».</value>
+  </data>
+    <data name="Error.PassphraseRequired.Unattended" xml:space="preserve">
+    <value>Для бэкапа по расписанию нужна парольная фраза репозитория {0}, но она не сохранена в связке ключей. Откройте BorgMate, выполните бэкап вручную и отметьте «Сохранить в связке ключей».</value>
+  </data>
     <data name="Error.SmbGvfsMissing" xml:space="preserve">
     <value>Для монтирования SMB требуется GVFS.
 

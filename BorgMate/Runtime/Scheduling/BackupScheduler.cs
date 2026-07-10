@@ -30,6 +30,7 @@ public class BackupScheduler : IBackupScheduler
     ///     not "missed" — without this grace, RunMissed=false repositories can never fire.
     /// </summary>
     internal static readonly TimeSpan MissedRunGrace = TimeSpan.FromMinutes(10);
+    internal static readonly TimeSpan FailedBackupRetryCooldown = TimeSpan.FromMinutes(15);
 
     private readonly ILogger<BackupScheduler> _logger;
     private readonly IRepositoryOperationRunner _repositoryRunner;
@@ -41,6 +42,8 @@ public class BackupScheduler : IBackupScheduler
     private readonly IWakeScheduler _wakeScheduler;
     private readonly IPowerSource _powerSource;
     private readonly IJournalStore _journal;
+    private readonly Func<DateTime> _getCurrentTime;
+    private readonly Dictionary<string, DateTime> _failedBackupAttempts = new(StringComparer.Ordinal);
     private bool _isChecking;
     private bool _batteryDeferralReported;
 
@@ -61,6 +64,21 @@ public class BackupScheduler : IBackupScheduler
         IWakeScheduler wakeScheduler,
         IPowerSource powerSource,
         IJournalStore journal)
+        : this(logger, store, repositoryRunner, settingsStore, settings, wakeScheduler, powerSource, journal,
+            () => DateTime.Now)
+    {
+    }
+
+    internal BackupScheduler(
+        ILogger<BackupScheduler> logger,
+        RepositoryPresentationState store,
+        IRepositoryOperationRunner repositoryRunner,
+        ISettingsStore settingsStore,
+        AppSettings settings,
+        IWakeScheduler wakeScheduler,
+        IPowerSource powerSource,
+        IJournalStore journal,
+        Func<DateTime> getCurrentTime)
     {
         _logger = logger;
         _store = store;
@@ -70,6 +88,7 @@ public class BackupScheduler : IBackupScheduler
         _wakeScheduler = wakeScheduler;
         _powerSource = powerSource;
         _journal = journal;
+        _getCurrentTime = getCurrentTime;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
         _timer.Tick += (_, _) => _ = CheckSchedulesGuardedAsync();
         _settingsStore.Changed += snapshot => _ = RefreshWakeScheduleAsync(false, false);
@@ -119,11 +138,10 @@ public class BackupScheduler : IBackupScheduler
 
     private async Task CheckSchedulesAsync()
     {
-        var now = DateTime.Now;
-
+        var now = _getCurrentTime();
         var due = _store.Repositories
-            .Where(r => r.IsScheduled && !r.IsBusy)
-            .Select(r => (Repo: r, PlannedAt: ComputeNextRun(r)))
+            .Where(r => r.IsScheduled && !r.IsBusy && !IsInFailedBackupCooldown(r, now))
+            .Select(r => (Repo: r, PlannedAt: ComputeNextRun(r, now)))
             .Where(d => d.PlannedAt is not null && d.PlannedAt <= now)
             .Select(d => (d.Repo, PlannedAt: d.PlannedAt!.Value))
             .ToList();
@@ -151,10 +169,18 @@ public class BackupScheduler : IBackupScheduler
                 var backup = await RunScheduledOperationAsync(
                     repo,
                     () => _repositoryRunner.BackupAsync(
-                        new BackupOperationOptions(repo, NullOperationProgressSink.Instance)));
+                        new BackupOperationOptions(repo, NullOperationProgressSink.Instance,
+                            Interactive: false)));
 
-                if (backup.IsT0 &&
-                    repo.Schedule.RunPruneAfterBackup &&
+                if (backup.IsT1)
+                {
+                    _failedBackupAttempts[repo.Path] = _getCurrentTime();
+                    continue;
+                }
+
+                _failedBackupAttempts.Remove(repo.Path);
+
+                if (repo.Schedule.RunPruneAfterBackup &&
                     repo.PruneOptions.HasAnyRetention)
                 {
                     var prune = await RunScheduledOperationAsync(
@@ -163,19 +189,22 @@ public class BackupScheduler : IBackupScheduler
                             new PruneOperationOptions(
                                 repo,
                                 NullOperationProgressSink.Instance,
-                                repo.PruneOptions.CompactAfterPrune)));
+                                repo.PruneOptions.CompactAfterPrune,
+                                Interactive: false)));
 
                     if (prune.IsT0 && prune.AsT0.ShouldCompact)
                         await RunScheduledOperationAsync(
                             repo,
                             () => _repositoryRunner.CompactAsync(
-                                new CompactOperationOptions(repo, NullOperationProgressSink.Instance)));
+                                new CompactOperationOptions(repo, NullOperationProgressSink.Instance,
+                                    Interactive: false)));
                 }
 
                 _settingsStore.RequestSave();
             }
             catch (Exception ex)
             {
+                _failedBackupAttempts[repo.Path] = _getCurrentTime();
                 _logger.LogError(ex, "Scheduled backup failed for '{Name}'", repo.Name);
             }
             finally
@@ -183,6 +212,17 @@ public class BackupScheduler : IBackupScheduler
                 repo.IsBusy = false;
             }
         }
+    }
+
+    private bool IsInFailedBackupCooldown(RepositoryViewModel repo, DateTime now)
+    {
+        if (!_failedBackupAttempts.TryGetValue(repo.Path, out var failedAt))
+            return false;
+        if (now - failedAt < FailedBackupRetryCooldown)
+            return true;
+
+        _failedBackupAttempts.Remove(repo.Path);
+        return false;
     }
 
     private static async Task<OneOf<T, OperationError>> RunScheduledOperationAsync<T>(
@@ -302,6 +342,11 @@ public class BackupScheduler : IBackupScheduler
     /// </summary>
     public static DateTime? ComputeNextRun(BorgRepository repo)
     {
+        return ComputeNextRun(repo, DateTime.Now);
+    }
+
+    internal static DateTime? ComputeNextRun(BorgRepository repo, DateTime now)
+    {
         if (repo.Mode != BackupMode.Scheduled) return null;
 
         var schedule = repo.Schedule;
@@ -311,31 +356,31 @@ public class BackupScheduler : IBackupScheduler
         {
             ScheduleFrequency.EveryNHours =>
                 lastRun == DateTime.MinValue
-                    ? DateTime.Now // Run immediately if never backed up
+                    ? now // Run immediately if never backed up
                     : lastRun.AddHours(schedule.IntervalHours),
 
             ScheduleFrequency.Daily =>
-                NextOccurrence(lastRun, schedule.Hour, schedule.Minute, TimeSpan.FromDays(1)),
+                NextOccurrence(lastRun, schedule.Hour, schedule.Minute, TimeSpan.FromDays(1), now),
 
             ScheduleFrequency.Weekly =>
-                NextWeeklyOccurrence(lastRun, schedule.DayOfWeek, schedule.Hour, schedule.Minute),
+                NextWeeklyOccurrence(lastRun, schedule.DayOfWeek, schedule.Hour, schedule.Minute, now),
 
             ScheduleFrequency.Monthly =>
-                NextMonthlyOccurrence(lastRun, schedule.DayOfMonth, schedule.Hour, schedule.Minute),
+                NextMonthlyOccurrence(lastRun, schedule.DayOfMonth, schedule.Hour, schedule.Minute, now),
 
             _ => (DateTime?)null
         };
 
         // When RunMissed is disabled, advance past-due times to the next future occurrence.
         // The grace window keeps a just-due run (wake latency, timer granularity) eligible.
-        if (next is not null && !schedule.RunMissed && next < DateTime.Now - MissedRunGrace && lastRun != DateTime.MinValue)
+        if (next is not null && !schedule.RunMissed && next < now - MissedRunGrace && lastRun != DateTime.MinValue)
             next = schedule.Frequency switch
             {
                 ScheduleFrequency.EveryNHours =>
-                    AdvanceToFuture(next.Value, TimeSpan.FromHours(schedule.IntervalHours)),
-                ScheduleFrequency.Daily => AdvanceToFuture(next.Value, TimeSpan.FromDays(1)),
-                ScheduleFrequency.Weekly => AdvanceToFuture(next.Value, TimeSpan.FromDays(7)),
-                ScheduleFrequency.Monthly => AdvanceMonthlyToFuture(next.Value),
+                    AdvanceToFuture(next.Value, TimeSpan.FromHours(schedule.IntervalHours), now),
+                ScheduleFrequency.Daily => AdvanceToFuture(next.Value, TimeSpan.FromDays(1), now),
+                ScheduleFrequency.Weekly => AdvanceToFuture(next.Value, TimeSpan.FromDays(7), now),
+                ScheduleFrequency.Monthly => AdvanceMonthlyToFuture(next.Value, now),
                 _ => next
             };
 
@@ -347,7 +392,7 @@ public class BackupScheduler : IBackupScheduler
         DateTime? nextWake = null;
         foreach (var repo in repositories)
         {
-            var nextRun = ComputeNextRun(repo);
+            var nextRun = ComputeNextRun(repo, now);
             if (nextRun is null || nextRun <= now) continue;
             var wakeAt = TrimToSecond(nextRun.Value);
             if (wakeAt <= now) continue;
@@ -363,41 +408,41 @@ public class BackupScheduler : IBackupScheduler
         return value.AddTicks(-(value.Ticks % TimeSpan.TicksPerSecond));
     }
 
-    private static DateTime AdvanceToFuture(DateTime time, TimeSpan interval)
+    private static DateTime AdvanceToFuture(DateTime time, TimeSpan interval, DateTime now)
     {
-        var now = DateTime.Now;
         while (time <= now)
             time += interval;
         return time;
     }
 
-    private static DateTime AdvanceMonthlyToFuture(DateTime time)
+    private static DateTime AdvanceMonthlyToFuture(DateTime time, DateTime now)
     {
-        var now = DateTime.Now;
         while (time <= now)
             time = time.AddMonths(1);
         return time;
     }
 
-    private static DateTime NextOccurrence(DateTime lastRun, int hour, int minute, TimeSpan interval)
+    private static DateTime NextOccurrence(
+        DateTime lastRun, int hour, int minute, TimeSpan interval, DateTime now)
     {
-        var today = DateTime.Today.AddHours(hour).AddMinutes(minute);
+        var today = now.Date.AddHours(hour).AddMinutes(minute);
         if (today > lastRun) return today;
         return today.Add(interval);
     }
 
-    private static DateTime NextWeeklyOccurrence(DateTime lastRun, DayOfWeek dayOfWeek, int hour, int minute)
+    private static DateTime NextWeeklyOccurrence(
+        DateTime lastRun, DayOfWeek dayOfWeek, int hour, int minute, DateTime now)
     {
-        var today = DateTime.Today;
+        var today = now.Date;
         var daysUntil = ((int)dayOfWeek - (int)today.DayOfWeek + 7) % 7;
         var next = today.AddDays(daysUntil).AddHours(hour).AddMinutes(minute);
         if (next <= lastRun) next = next.AddDays(7);
         return next;
     }
 
-    private static DateTime NextMonthlyOccurrence(DateTime lastRun, int dayOfMonth, int hour, int minute)
+    private static DateTime NextMonthlyOccurrence(
+        DateTime lastRun, int dayOfMonth, int hour, int minute, DateTime now)
     {
-        var now = DateTime.Now;
         var day = Math.Min(dayOfMonth, DateTime.DaysInMonth(now.Year, now.Month));
         var next = new DateTime(now.Year, now.Month, day, hour, minute, 0);
         if (next <= lastRun) next = next.AddMonths(1);

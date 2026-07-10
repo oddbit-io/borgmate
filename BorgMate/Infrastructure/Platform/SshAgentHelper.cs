@@ -9,6 +9,7 @@ using BorgMate.Domain.Repositories;
 using BorgMate.Infrastructure.Notifications;
 using BorgMate.Persistence.Keychain;
 using BorgMate.Presentation.Dialogs;
+using BorgMate.Runtime.Orchestration;
 using BorgMate.Runtime.Security;
 using Microsoft.Extensions.Logging;
 using OneOf;
@@ -376,6 +377,14 @@ public class SshAgentHelper(
             if (!string.IsNullOrWhiteSpace(stored))
                 return stored;
         }
+
+        // Scheduled runs must fail loudly here: EnsureKeyLoadedAsync's return value is
+        // ignored by BuildEnvironmentAsync, so returning null would surface as an opaque
+        // SSH failure from borg instead of this message.
+        if (!OperationInteractivity.IsInteractive)
+            throw new CredentialsRequiredException(
+                string.Format(Strings.Get("Error.SshKeyPassphraseRequired.Unattended"),
+                    Path.GetFileName(sshKeyPath)));
 
         // Dialog must be created and shown on the UI thread
         var (result, saveToKeychain) = await Dispatcher.UIThread.InvokeAsync(async () =>

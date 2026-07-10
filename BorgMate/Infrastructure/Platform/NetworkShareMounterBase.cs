@@ -8,6 +8,7 @@ using BorgMate.Domain.Repositories;
 using BorgMate.Infrastructure.Notifications;
 using BorgMate.Persistence.Keychain;
 using BorgMate.Presentation.Dialogs;
+using BorgMate.Runtime.Orchestration;
 using BorgMate.Runtime.Security;
 using Microsoft.Extensions.Logging;
 using OneOf;
@@ -129,6 +130,12 @@ public abstract class NetworkShareMounterBase(
             if (!string.IsNullOrWhiteSpace(stored))
                 return stored;
         }
+
+        // Scheduled runs have nobody at the screen — fail into the journal instead of
+        // blocking on the dialog. Covers the rejected-keychain-password retry too.
+        if (!OperationInteractivity.IsInteractive)
+            throw new CredentialsRequiredException(
+                string.Format(Strings.Get("Error.SmbPasswordRequired.Unattended"), location.DisplayName));
 
         var message = previousRejected
             ? Strings.Get("WrongSmbPassword")

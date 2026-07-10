@@ -7,4 +7,5 @@ namespace BorgMate.Runtime.Operations;
 public sealed record BackupOperationOptions(
     BorgRepository Repository,
     IOperationProgressSink ProgressSink,
-    string? ArchiveName = null) : BorgOperationOptions(Repository, ProgressSink);
+    string? ArchiveName = null,
+    bool Interactive = true) : BorgOperationOptions(Repository, ProgressSink, Interactive);

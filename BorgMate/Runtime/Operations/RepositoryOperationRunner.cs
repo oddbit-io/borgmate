@@ -71,7 +71,7 @@ public sealed class RepositoryOperationRunner(
                 job.TotalFileCount = totalFiles;
 
                 return await orchestrator.ExecuteAsync(
-                    new BorgOperationRequest(repo, sink),
+                    new BorgOperationRequest(repo, sink, Interactive: options.Interactive),
                     (_, operationToken) => service.CreateBackupAsync(
                         repo,
                         archiveName,
@@ -107,7 +107,7 @@ public sealed class RepositoryOperationRunner(
             {
                 job.StatusMessage = string.Format(Strings.Get("Status.Pruning"), repo.Name);
                 return orchestrator.ExecuteAsync(
-                    new BorgOperationRequest(repo, sink),
+                    new BorgOperationRequest(repo, sink, Interactive: options.Interactive),
                     (_, operationToken) => service.PruneAsync(repo, operationToken),
                     token);
             },
@@ -164,7 +164,7 @@ public sealed class RepositoryOperationRunner(
                 job.ProgressLabel = Strings.Get("Status.CompactingProgress");
                 job.StatusMessage = job.ProgressLabel;
                 return orchestrator.ExecuteAsync(
-                    new BorgOperationRequest(repo, sink),
+                    new BorgOperationRequest(repo, sink, Interactive: options.Interactive),
                     (_, operationToken) => service.CompactAsync(
                         repo,
                         operationToken,

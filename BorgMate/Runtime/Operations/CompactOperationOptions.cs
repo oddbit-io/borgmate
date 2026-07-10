@@ -6,4 +6,5 @@ namespace BorgMate.Runtime.Operations;
 /// <summary>Options for compacting repository storage.</summary>
 public sealed record CompactOperationOptions(
     BorgRepository Repository,
-    IOperationProgressSink ProgressSink) : BorgOperationOptions(Repository, ProgressSink);
+    IOperationProgressSink ProgressSink,
+    bool Interactive = true) : BorgOperationOptions(Repository, ProgressSink, Interactive);

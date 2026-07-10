@@ -65,6 +65,16 @@ public class PassphraseProviderTests
     }
 
     [Fact]
+    public async Task EnsureAsync_NonInteractive_WithoutStoredPassphrase_FailsInsteadOfPrompting()
+    {
+        var repo = CreateEncryptedRepo();
+        var provider = new PromptingPassphraseProvider(null);
+        OperationInteractivity.IsInteractive = false;
+
+        await Assert.ThrowsAsync<CredentialsRequiredException>(() => provider.EnsureAsync(repo));
+    }
+
+    [Fact]
     public async Task PromptCancellation_ReturnsCancelledOperationError()
     {
         var repo = CreateEncryptedRepo();

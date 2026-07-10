@@ -32,6 +32,10 @@ public sealed class BorgOperationOrchestrator(
     {
         try
         {
+            // Runs on the job worker flow, so the AsyncLocal reaches every credential
+            // prompt below (mounter, ssh-agent, passphrase provider).
+            OperationInteractivity.IsInteractive = request.Interactive;
+
             if (request.RequiresPassphrase)
             {
                 var ensure = await passphraseProvider.EnsureAsync(request.Repository, ct);

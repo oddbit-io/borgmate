@@ -59,6 +59,15 @@ public class SchedulerComputeNextRunTests
     }
 
     [Fact]
+    public void EveryNHours_NeverRun_ReturnsProvidedCurrentTime()
+    {
+        var now = new DateTime(2026, 7, 12, 10, 30, 0);
+        var repo = MakeRepo(ScheduleFrequency.EveryNHours, intervalHours: 6);
+
+        Assert.Equal(now, BackupScheduler.ComputeNextRun(repo, now));
+    }
+
+    [Fact]
     public void EveryNHours_LastRunRecent_ReturnsLastPlusInterval()
     {
         var lastRun = DateTime.Now.AddHours(-2);
@@ -340,6 +349,58 @@ public class SchedulerComputeNextRunTests
     }
 
     [Fact]
+    public async Task CheckSchedules_NeverRun_RunsBackupImmediately()
+    {
+        var repo = MakeRepo(ScheduleFrequency.EveryNHours, intervalHours: 1);
+        var runner = Substitute.For<IRepositoryOperationRunner>();
+        var settings = new AppSettings { ScheduledBackupsOnlyOnAcPower = false };
+        var scheduler = CreateScheduler([repo], settings, MakeWakeScheduler(), runner);
+
+        await scheduler.CheckSchedulesGuardedAsync();
+
+        await runner.Received(1).BackupAsync(Arg.Any<BackupOperationOptions>());
+    }
+
+    [Fact]
+    public async Task CheckSchedules_FailedBackup_IsSuppressedUntilCooldownExpires()
+    {
+        var now = DateTime.Now;
+        var repo = MakeRepo(ScheduleFrequency.EveryNHours, now.AddHours(-3), intervalHours: 1);
+        var runner = Substitute.For<IRepositoryOperationRunner>();
+        runner.BackupAsync(Arg.Any<BackupOperationOptions>())
+            .Returns(Task.FromResult<OneOf<OperationOk, OperationError>>(
+                new OperationError.Validation("failed")));
+        var scheduler = CreateScheduler([repo],
+            new AppSettings { ScheduledBackupsOnlyOnAcPower = false }, MakeWakeScheduler(), runner,
+            getCurrentTime: () => now);
+
+        await scheduler.CheckSchedulesGuardedAsync();
+        await scheduler.CheckSchedulesGuardedAsync();
+
+        await runner.Received(1).BackupAsync(Arg.Any<BackupOperationOptions>());
+    }
+
+    [Fact]
+    public async Task CheckSchedules_FailedBackup_IsRetriedAfterCooldownExpires()
+    {
+        var now = DateTime.Now;
+        var repo = MakeRepo(ScheduleFrequency.EveryNHours, now.AddHours(-3), intervalHours: 1);
+        var runner = Substitute.For<IRepositoryOperationRunner>();
+        runner.BackupAsync(Arg.Any<BackupOperationOptions>())
+            .Returns(Task.FromResult<OneOf<OperationOk, OperationError>>(
+                new OperationError.Validation("failed")));
+        var scheduler = CreateScheduler([repo],
+            new AppSettings { ScheduledBackupsOnlyOnAcPower = false }, MakeWakeScheduler(), runner,
+            getCurrentTime: () => now);
+
+        await scheduler.CheckSchedulesGuardedAsync();
+        now += BackupScheduler.FailedBackupRetryCooldown;
+        await scheduler.CheckSchedulesGuardedAsync();
+
+        await runner.Received(2).BackupAsync(Arg.Any<BackupOperationOptions>());
+    }
+
+    [Fact]
     public async Task CheckSchedules_BatteryDeferral_JournaledOncePerEpisode()
     {
         var repo = MakeRepo(ScheduleFrequency.EveryNHours, DateTime.Now.AddHours(-3), intervalHours: 1);
@@ -423,13 +484,14 @@ public class SchedulerComputeNextRunTests
         IWakeScheduler wakeScheduler,
         IRepositoryOperationRunner? repositoryRunner = null,
         IPowerSource? powerSource = null,
-        IJournalStore? journal = null)
+        IJournalStore? journal = null,
+        Func<DateTime>? getCurrentTime = null)
     {
         var store = new RepositoryPresentationState();
         foreach (var repository in repositories)
             store.Add(repository);
 
-        return CreateScheduler(store, settings, wakeScheduler, repositoryRunner, powerSource, journal);
+        return CreateScheduler(store, settings, wakeScheduler, repositoryRunner, powerSource, journal, getCurrentTime);
     }
 
     private static BackupScheduler CreateScheduler(
@@ -438,7 +500,8 @@ public class SchedulerComputeNextRunTests
         IWakeScheduler wakeScheduler,
         IRepositoryOperationRunner? repositoryRunner = null,
         IPowerSource? powerSource = null,
-        IJournalStore? journal = null)
+        IJournalStore? journal = null,
+        Func<DateTime>? getCurrentTime = null)
     {
         return new BackupScheduler(
             NullLogger<BackupScheduler>.Instance,
@@ -448,6 +511,7 @@ public class SchedulerComputeNextRunTests
             settings,
             wakeScheduler,
             powerSource ?? Substitute.For<IPowerSource>(),
-            journal ?? Substitute.For<IJournalStore>());
+            journal ?? Substitute.For<IJournalStore>(),
+            getCurrentTime ?? (() => DateTime.Now));
     }
 }

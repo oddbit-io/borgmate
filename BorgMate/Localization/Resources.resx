@@ -1155,6 +1155,15 @@ Check the server name and that SMB file sharing is enabled on it.</value>
     <data name="Error.SmbCredentialsRejected" xml:space="preserve">
     <value>The server rejected the credentials for {0}.</value>
   </data>
+    <data name="Error.SmbPasswordRequired.Unattended" xml:space="preserve">
+    <value>Scheduled backup needs the password for SMB share {0}, but it is not saved in the keychain. Open BorgMate, run a backup manually and check "Save to system keychain".</value>
+  </data>
+    <data name="Error.SshKeyPassphraseRequired.Unattended" xml:space="preserve">
+    <value>Scheduled backup needs the passphrase for SSH key {0}, but it is not saved in the keychain. Open BorgMate, run a backup manually and check "Save to system keychain".</value>
+  </data>
+    <data name="Error.PassphraseRequired.Unattended" xml:space="preserve">
+    <value>Scheduled backup needs the passphrase for repository {0}, but it is not saved in the keychain. Open BorgMate, run a backup manually and check "Save to system keychain".</value>
+  </data>
     <data name="Error.SmbGvfsMissing" xml:space="preserve">
     <value>SMB mounting requires GVFS.
 
