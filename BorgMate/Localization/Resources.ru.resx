@@ -1120,4 +1120,220 @@ Borg использует контрольные точки — повторны
     <data name="Retry" xml:space="preserve">
     <value>Повторить</value>
   </data>
+    <data name="Error.UnknownBorgExitCode" xml:space="preserve">
+    <value>Borg завершился с неизвестным кодом {0}.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.Warning" xml:space="preserve">
+    <value>Borg завершился с предупреждениями.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.Error" xml:space="preserve">
+    <value>Borg завершился с общей ошибкой.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.CancelledByUser" xml:space="preserve">
+    <value>Операция Borg была отменена.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.CommandError" xml:space="preserve">
+    <value>Ошибка команды Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PlaceholderError" xml:space="preserve">
+    <value>Ошибка форматирования плейсхолдера Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InvalidPlaceholder" xml:space="preserve">
+    <value>Недопустимый плейсхолдер Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryAlreadyExists" xml:space="preserve">
+    <value>Репозиторий Borg по этому пути уже существует.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.AtticRepository" xml:space="preserve">
+    <value>Обнаружен репозиторий Attic. Обновите его перед использованием в BorgMate.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.CheckNeeded" xml:space="preserve">
+    <value>Перед продолжением требуется проверка репозитория.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryDoesNotExist" xml:space="preserve">
+    <value>Репозиторий Borg не существует.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InsufficientFreeSpaceError" xml:space="preserve">
+    <value>Недостаточно свободного места для завершения транзакции Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InvalidRepository" xml:space="preserve">
+    <value>Не является корректным репозиторием Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InvalidRepositoryConfig" xml:space="preserve">
+    <value>Некорректная конфигурация репозитория Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ObjectNotFound" xml:space="preserve">
+    <value>Объект в репозитории Borg не найден.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ParentPathDoesNotExist" xml:space="preserve">
+    <value>Родительский путь репозитория Borg не существует.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PathAlreadyExists" xml:space="preserve">
+    <value>По пути репозитория уже существует файл или каталог.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.StorageQuotaExceeded" xml:space="preserve">
+    <value>Превышена квота хранилища Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PathPermissionDenied" xml:space="preserve">
+    <value>Нет доступа к пути репозитория Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.MandatoryFeatureUnsupported" xml:space="preserve">
+    <value>Репозиторий использует неподдерживаемые обязательные возможности. Требуется более новая версия Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NoManifestError" xml:space="preserve">
+    <value>В репозитории Borg отсутствует манифест.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnsupportedManifestError" xml:space="preserve">
+    <value>Неподдерживаемый манифест Borg. Требуется более новая версия Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.IncompatibleFilesystemEncodingError" xml:space="preserve">
+    <value>Borg не смог закодировать имя файла в текущей кодировке файловой системы.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.KeyfileInvalidError" xml:space="preserve">
+    <value>Данные файла ключа Borg некорректны.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.KeyfileMismatchError" xml:space="preserve">
+    <value>Файл ключа Borg не соответствует этому репозиторию.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.KeyfileNotFoundError" xml:space="preserve">
+    <value>Файл ключа Borg не найден.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NotABorgKeyFile" xml:space="preserve">
+    <value>Выбранный файл не является резервной копией ключа Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepoKeyNotFoundError" xml:space="preserve">
+    <value>В конфигурации репозитория Borg не найдена запись ключа.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepoIdMismatch" xml:space="preserve">
+    <value>Резервная копия ключа Borg принадлежит другому репозиторию.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnencryptedRepo" xml:space="preserve">
+    <value>Управление ключами недоступно для незашифрованных репозиториев.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnknownKeyType" xml:space="preserve">
+    <value>Неизвестный тип ключа Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnsupportedPayloadError" xml:space="preserve">
+    <value>Неподдерживаемые данные Borg. Требуется более новая версия Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnsupportedKeyFormatError" xml:space="preserve">
+    <value>Неподдерживаемый формат ключа Borg. Требуется более новая версия Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NoPassphraseFailure" xml:space="preserve">
+    <value>Borg не смог получить парольную фразу.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PasscommandFailure" xml:space="preserve">
+    <value>Команда получения парольной фразы Borg завершилась ошибкой.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PassphraseWrong" xml:space="preserve">
+    <value>Неверная парольная фраза репозитория Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PasswordRetriesExceeded" xml:space="preserve">
+    <value>Превышено число попыток ввода парольной фразы Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.CacheInitAbortedError" xml:space="preserve">
+    <value>Инициализация кэша Borg была прервана.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.EncryptionMethodMismatch" xml:space="preserve">
+    <value>Метод шифрования репозитория Borg изменился с момента последнего доступа.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryAccessAborted" xml:space="preserve">
+    <value>Доступ к репозиторию Borg был прерван.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryIDNotUnique" xml:space="preserve">
+    <value>Кэш Borg новее репозитория — возможно, из-за неуникальных идентификаторов репозиториев.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RepositoryReplay" xml:space="preserve">
+    <value>Borg обнаружил откат репозитория или небезопасное состояние.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.LockError" xml:space="preserve">
+    <value>Репозиторий Borg заблокирован.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.LockErrorT" xml:space="preserve">
+    <value>Не удалось получить блокировку репозитория Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.LockFailed" xml:space="preserve">
+    <value>Не удалось заблокировать репозиторий Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.LockTimeout" xml:space="preserve">
+    <value>Истекло время ожидания блокировки репозитория Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NotLocked" xml:space="preserve">
+    <value>Репозиторий Borg не был заблокирован.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.NotMyLock" xml:space="preserve">
+    <value>Блокировка репозитория Borg принадлежит другому процессу.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ConnectionClosed" xml:space="preserve">
+    <value>Соединение с удалённым сервером Borg было закрыто.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ConnectionClosedWithHint" xml:space="preserve">
+    <value>Соединение с удалённым сервером Borg было закрыто.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.InvalidRPCMethod" xml:space="preserve">
+    <value>Недопустимый метод RPC удалённого сервера Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.PathNotAllowed" xml:space="preserve">
+    <value>Путь удалённого репозитория Borg не разрешён.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.RPCServerOutdated" xml:space="preserve">
+    <value>Удалённый сервер Borg слишком старый для этой команды.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnexpectedRPCDataFormatFromClient" xml:space="preserve">
+    <value>Удалённый сервер Borg получил неожиданные данные от клиента.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.UnexpectedRPCDataFormatFromServer" xml:space="preserve">
+    <value>Borg получил неожиданные данные от удалённого сервера.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ConnectionBrokenWithHint" xml:space="preserve">
+    <value>Соединение с удалённым сервером Borg разорвано.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.IntegrityError" xml:space="preserve">
+    <value>Ошибка целостности данных Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.FileIntegrityError" xml:space="preserve">
+    <value>Проверка целостности файла Borg не пройдена.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.DecompressionError" xml:space="preserve">
+    <value>Ошибка распаковки данных Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ArchiveTAMInvalid" xml:space="preserve">
+    <value>TAM-подпись архива Borg недействительна.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.ArchiveTAMRequiredError" xml:space="preserve">
+    <value>Требуется TAM-подпись архива Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.TAMInvalid" xml:space="preserve">
+    <value>TAM-подпись манифеста Borg недействительна.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.TAMRequiredError" xml:space="preserve">
+    <value>Требуется TAM-подпись манифеста Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.TAMUnsupportedSuiteError" xml:space="preserve">
+    <value>Набор TAM Borg не поддерживается. Требуется более новая версия Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.FileChangedWarning" xml:space="preserve">
+    <value>Файл изменился во время резервного копирования Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.IncludePatternNeverMatchedWarning" xml:space="preserve">
+    <value>Шаблон включения Borg не совпал ни с одним файлом.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupError" xml:space="preserve">
+    <value>Ошибка резервного копирования Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupRaceConditionError" xml:space="preserve">
+    <value>Borg пропустил файл, так как тот изменился во время резервного копирования.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupOSError" xml:space="preserve">
+    <value>Ошибка операционной системы во время резервного копирования Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupPermissionError" xml:space="preserve">
+    <value>У Borg нет прав на чтение файла во время резервного копирования.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupIOError" xml:space="preserve">
+    <value>Ошибка ввода-вывода во время резервного копирования Borg.</value>
+  </data>
+    <data name="Error.BorgModernExitCode.BackupFileNotFoundError" xml:space="preserve">
+    <value>Borg не нашёл файл во время резервного копирования.</value>
+  </data>
 </root>
