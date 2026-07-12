@@ -42,12 +42,6 @@ internal class LinuxAutoStartService : IAutoStartService
 
     private static void WriteDesktopEntry()
     {
-        // Flatpak: ProcessPath points inside the sandbox; the host launcher is `flatpak run <id>`.
-        var flatpakId = Environment.GetEnvironmentVariable("FLATPAK_ID");
-        var appPath = flatpakId is not null
-            ? $"flatpak run {flatpakId}"
-            : GetLauncherPath();
-
         using var stream = Assembly.GetExecutingAssembly()
                                .GetManifestResourceStream("BorgMate.Resources.Platform.borgmate-autostart.desktop")
                            ?? throw new InvalidOperationException(
@@ -55,7 +49,7 @@ internal class LinuxAutoStartService : IAutoStartService
         using var reader = new StreamReader(stream);
         var template = reader.ReadToEnd();
 
-        var content = template.Replace("{{APP_PATH}}", appPath);
+        var content = template.Replace("{{APP_PATH}}", GetLauncherPath());
 
         var dir = Path.GetDirectoryName(AutoStartPath)!;
         Directory.CreateDirectory(dir);

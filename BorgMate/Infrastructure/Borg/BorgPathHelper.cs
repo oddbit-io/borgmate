@@ -105,7 +105,6 @@ public static class BorgPathHelper
 
     private static string[] BuildLinuxPaths(string binary) =>
     [
-        $"/app/bin/{binary}",
         $"/usr/bin/{binary}",
         $"/usr/local/bin/{binary}",
         $"/snap/bin/{binary}",

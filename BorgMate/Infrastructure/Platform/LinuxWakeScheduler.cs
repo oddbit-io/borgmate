@@ -14,11 +14,8 @@ internal class LinuxWakeScheduler : WakeSchedulerBase
     private const string TimerName = "borgmate-wake.timer";
     private static readonly TimeSpan SystemctlTimeout = TimeSpan.FromSeconds(10);
 
-    // Flatpak: systemctl runs inside the sandbox and XDG_CONFIG_HOME points at the
-    // sandboxed config dir that the host systemd never reads — wake timers can't work there.
     public override bool IsSupported =>
-        Environment.GetEnvironmentVariable("FLATPAK_ID") is null &&
-        (File.Exists("/usr/bin/systemctl") || File.Exists("/bin/systemctl"));
+        File.Exists("/usr/bin/systemctl") || File.Exists("/bin/systemctl");
 
     private static string UserSystemdDirectory
     {
