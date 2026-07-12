@@ -10,9 +10,9 @@
 
 ## Features
 
-- Manage borg repositories (local and SSH remote, plus raw Borg 2 URLs such as `sftp://`, `rest://`, `rclone:`, `s3:`, `b2:`)
+- Manage Borg repositories on local disks, SSH servers, and SMB shares, plus raw Borg 2 URLs such as `sftp://`, `rest://`, `rclone:`, `s3:`, and `b2:`
 - Experimental support for Borg 2.0.0b21+ repositories alongside Borg 1.4.x
-- Create and schedule backups with real-time progress, speed, and ETA
+- Create and schedule backups with real-time progress, speed, and ETA, optional system wake, and AC-power-only runs
 - Browse, compare, restore, and delete archives
 - Repository maintenance (check, compact)
 - Secure passphrase storage via OS keychain (macOS Keychain, libsecret, Windows Credential Manager)
