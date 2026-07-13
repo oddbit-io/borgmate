@@ -248,7 +248,14 @@ public abstract class BorgServiceBase(
             env["BORG_NEW_PASSPHRASE"] = newPassphrase;
 
         if (repo.LocationKind == BorgRepositoryLocationKind.SmbShare)
+        {
+            // Borg 1.x cannot fsync directories on WSL 1 drvfs SMB mounts (EOPNOTSUPP),
+            // so the combination is rejected up front instead of failing mid-backup.
+            if (borgVersion == BorgVersion.Borg1 && WslHelper.IsRequired && !await wsl.IsWsl2Async(ct))
+                throw new NetworkShareMountException(Strings.Get("Error.SmbBorg1Wsl1Unsupported"));
+
             await shareMounter.EnsureMountedAsync(ParseSmbLocation(repo), ct);
+        }
 
         if (UsesSshTransport(repo))
         {

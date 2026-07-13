@@ -1144,6 +1144,9 @@ Install WSL and try again.</value>
     <data name="Error.SmbInvalidUrl" xml:space="preserve">
     <value>The configured SMB location &#x27;{0}&#x27; is not a valid smb:// URL.</value>
   </data>
+    <data name="Error.SmbBorg1Wsl1Unsupported" xml:space="preserve">
+    <value>Borg 1.x repositories on SMB shares are not supported under WSL 1: Borg cannot sync directories on such mounts. Use Borg 2 for this repository or upgrade the distribution to WSL 2.</value>
+  </data>
     <data name="Error.SmbMountFailed" xml:space="preserve">
     <value>Failed to mount SMB share {0}: {1}</value>
   </data>

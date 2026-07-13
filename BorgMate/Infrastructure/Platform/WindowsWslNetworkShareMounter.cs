@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -47,6 +48,12 @@ public class WindowsWslNetworkShareMounter(
     protected override async Task<OneOf<MountedShare, MountError>> MountOnceAsync(
         SmbLocation location, string? password, CancellationToken ct)
     {
+        // On WSL 2 the distribution is a VM with its own network stack: a Windows-side SMB
+        // session does not help it, and drvfs network mounts go through 9P with unverified
+        // fsync semantics. Mount with the in-kernel cifs client instead.
+        if (await wsl.IsWsl2Async(ct))
+            return await MountInsideWsl2Async(location, password, ct);
+
         var unc = $@"\\{location.Host}\{location.Share}";
 
         if (password is not null)
@@ -113,6 +120,50 @@ public class WindowsWslNetworkShareMounter(
 
         if (result.ExitCode == 0)
             return new MountedShare(mountPoint);
+
+        return new MountError.Failed(string.Format(
+            Strings.Get("Error.SmbWslMountFailed"), location.DisplayName,
+            $"{result.StandardError}\n{result.StandardOutput}".Trim()));
+    }
+
+    /// <summary>
+    ///     WSL 2 mount path: the in-kernel cifs client connects to the share directly from the
+    ///     Linux VM. The password travels via the PASSWD environment variable — read natively by
+    ///     mount.cifs and propagated through WSLENV — so it never appears on a command line.
+    /// </summary>
+    private async Task<OneOf<MountedShare, MountError>> MountInsideWsl2Async(
+        SmbLocation location, string? password, CancellationToken ct)
+    {
+        var mountPoint = BuildWslMountPoint(location.Host, location.Share);
+        var source = $"//{location.Host}/{location.Share}";
+        // noperm: the share is a single-user backup target and server-side ACLs still apply;
+        // without it root-mounted cifs would block the borg user by client-side uid checks.
+        var options = password is null
+            ? "guest,noperm,iocharset=utf8"
+            : $"username={location.Username},noperm,iocharset=utf8";
+        var command = $"mkdir -p '{mountPoint}'; mountpoint -q '{mountPoint}' || " +
+                      $"mount -t cifs '{source}' '{mountPoint}' -o '{options}'";
+
+        Dictionary<string, string>? environment = null;
+        if (password is not null)
+            environment = new Dictionary<string, string>
+            {
+                ["PASSWD"] = password,
+                ["WSLENV"] = "PASSWD"
+            };
+
+        var result = await ProcessRunner.RunAsync("wsl",
+            $"-u root -- bash -c {WslHelper.ShellEscapePublic(command)}", environment, null, ct);
+
+        Logger.LogDebug("WSL cifs mount for {Share}: exit={ExitCode}, stderr={Stderr}",
+            location.DisplayName, result.ExitCode, result.StandardError.Trim());
+
+        if (result.ExitCode == 0)
+            return new MountedShare(mountPoint);
+
+        // mount.cifs reports rejected credentials as "mount error(13): Permission denied".
+        if (result.StandardError.Contains("error(13)"))
+            return new MountError.AuthRejected();
 
         return new MountError.Failed(string.Format(
             Strings.Get("Error.SmbWslMountFailed"), location.DisplayName,

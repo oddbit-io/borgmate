@@ -1144,6 +1144,9 @@ Borg использует контрольные точки — повторны
     <data name="Error.SmbInvalidUrl" xml:space="preserve">
     <value>Настроенное расположение SMB &#x27;{0}&#x27; не является корректным smb:// URL.</value>
   </data>
+    <data name="Error.SmbBorg1Wsl1Unsupported" xml:space="preserve">
+    <value>Репозитории Borg 1.x на SMB-ресурсах не поддерживаются под WSL 1: Borg не может синхронизировать каталоги на таких точках монтирования. Используйте Borg 2 для этого репозитория или переведите дистрибутив на WSL 2.</value>
+  </data>
     <data name="Error.SmbMountFailed" xml:space="preserve">
     <value>Не удалось смонтировать SMB-ресурс {0}: {1}</value>
   </data>

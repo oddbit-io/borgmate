@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using BorgMate.Infrastructure.Borg;
 using Microsoft.Extensions.Logging;
 
 namespace BorgMate.Infrastructure.Platform;
@@ -22,6 +23,7 @@ public partial class WslHelper
     private readonly bool _isRequired;
     private readonly ILogger<WslHelper> _logger;
     private bool? _wslAvailable;
+    private bool? _isWsl2;
     private string? _wslHome;
 
     public WslHelper(ILogger<WslHelper> logger)
@@ -62,6 +64,31 @@ public partial class WslHelper
         {
             _availabilityGate.Release();
         }
+    }
+
+    /// <summary>
+    ///     True when the default WSL distribution runs on WSL 2. Detected from the kernel release:
+    ///     WSL 1 reports a fake "4.4.0-XXXXX-Microsoft" kernel, WSL 2 a real
+    ///     "...-microsoft-standard-WSL2" one. Borg behaves differently on the two
+    ///     (directory fsync support, SMB mount strategy), so callers branch on this.
+    /// </summary>
+    public async Task<bool> IsWsl2Async(CancellationToken ct = default)
+    {
+        if (!_isRequired)
+            return false;
+
+        if (_isWsl2 is { } cached)
+            return cached;
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(WslCommandTimeout);
+        var result = await ProcessRunner.RunAsync("wsl", "-- uname -r", null, null, timeout.Token);
+        // Concurrent probes compute the same value, so an unsynchronized cache write is benign.
+        _isWsl2 = result.ExitCode == 0 &&
+                  result.StandardOutput.Contains("WSL2", StringComparison.OrdinalIgnoreCase);
+        _logger.LogDebug("WSL kernel probe: exit={ExitCode}, kernel={Kernel}, isWsl2={IsWsl2}",
+            result.ExitCode, result.StandardOutput.Trim(), _isWsl2);
+        return _isWsl2.Value;
     }
 
     /// <summary>
