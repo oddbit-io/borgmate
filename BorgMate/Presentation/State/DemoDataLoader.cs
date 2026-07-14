@@ -16,7 +16,7 @@ namespace BorgMate.Presentation.State;
 public static class DemoDataLoader
 {
     public static void Load(MainWindowViewModel mainVm, IJournalStore journal, UpdateStatusState status,
-        Func<string, List<ChangelogEntry>, Task<bool>> showChangelog)
+        Func<string, List<ChangelogEntry>, Task<bool>> showChangelog, bool showUpdate)
     {
         var repos = new BorgRepository[]
         {
@@ -111,6 +111,9 @@ public static class DemoDataLoader
         }
 
         mainVm.IsSidebarExpanded = true;
+
+        if (!showUpdate)
+            return;
 
         var fakeVersion = "99.0.0";
         status.SetUpdateAvailable(

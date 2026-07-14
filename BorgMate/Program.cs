@@ -14,6 +14,7 @@ internal sealed class Program
 {
     internal static SingleInstanceGuard? InstanceGuard;
     internal static bool ScheduledWakeMode;
+    internal static bool HideUpdateNotification;
 #if DEBUG
     internal static bool DemoMode;
 #endif
@@ -24,6 +25,7 @@ internal sealed class Program
         ScheduledWakeMode = ParseScheduledWakeMode(args);
 #if DEBUG
         DemoMode = Array.Exists(args, a => a == "--demo");
+        HideUpdateNotification = DemoMode && Array.Exists(args, a => a == "--hide-update");
 
         if (Array.Exists(args, a => a == "--test-notification"))
         {

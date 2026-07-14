@@ -153,7 +153,7 @@ public class App : Application
             if (!startMinimized)
                 ShowMainWindow();
 
-            if (_settings.CheckForUpdates)
+            if (_settings.CheckForUpdates && !Program.HideUpdateNotification)
                 _ = CheckForUpdatesAsync();
         }
 
@@ -489,7 +489,7 @@ public class App : Application
         if (_mainVm is not null)
             DemoDataLoader.Load(_mainVm,
                 Services.GetRequiredService<IJournalStore>(),
-                _status, ShowUpdateChangelogAsync);
+                _status, ShowUpdateChangelogAsync, !Program.HideUpdateNotification);
     }
 #endif
 
