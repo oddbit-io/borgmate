@@ -111,8 +111,11 @@
     <data name="TotalSize" xml:space="preserve">
     <value>Repo size</value>
   </data>
-    <data name="TotalChunks" xml:space="preserve">
-    <value>Total chunks</value>
+  <data name="DiskLegendRepo" xml:space="preserve">
+    <value>Repository size:</value>
+  </data>
+  <data name="DiskLegendFree" xml:space="preserve">
+    <value>Free: {0}</value>
   </data>
     <data name="UniqueChunks" xml:space="preserve">
     <value>Unique chunks</value>

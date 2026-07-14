@@ -47,7 +47,11 @@ public static class DemoDataLoader
         mainVm.RepositoriesPage.Repositories.ReplaceWith(repoVms);
         mainVm.RepositoriesPage.SelectedRepository = repoVms[0];
         repoVms[0].StatsTotalSize = 48_372_015_104;
-        repoVms[0].StatsTotalChunks = 285_413;
+        repoVms[0].StorageSpace = new StorageSpaceSnapshot
+        {
+            AvailableBytes = 1_298_374_651_904,
+            CapacityBytes = 2_000_398_934_016
+        };
 
         repos[0].SourceDirectories.Add("/Users/user/Documents");
         repos[0].SourceDirectories.Add("/Users/user/Photos");

@@ -25,7 +25,7 @@ public class SshAgentHelper(
 {
     private readonly ConcurrentDictionary<string, string> _wslKeyPassphrases = new(StringComparer.Ordinal);
 
-    public string? GetWslKeyPassphrase(string sshKeyPath)
+    public virtual string? GetWslKeyPassphrase(string sshKeyPath)
     {
         return _wslKeyPassphrases.TryGetValue(sshKeyPath, out var passphrase) ? passphrase : null;
     }
@@ -35,7 +35,7 @@ public class SshAgentHelper(
     ///     On macOS/Linux: loads key into ssh-agent via expect or stdin.
     ///     On WSL: prompts for passphrase and stores it on the repo for inline agent use.
     /// </summary>
-    public async Task<bool> EnsureKeyLoadedAsync(
+    public virtual async Task<bool> EnsureKeyLoadedAsync(
         string sshKeyPath,
         BorgRepository? repo = null,
         CancellationToken ct = default)

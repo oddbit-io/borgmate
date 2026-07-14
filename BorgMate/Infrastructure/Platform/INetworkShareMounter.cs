@@ -14,6 +14,11 @@ public interface INetworkShareMounter
     /// </summary>
     Task<string> EnsureMountedAsync(SmbLocation location, CancellationToken ct = default);
 
+    /// <summary>Returns capacity information for a share already mounted by the current operation.</summary>
+    Task<StorageSpaceSnapshot> GetStorageSpaceAsync(
+        SmbLocation location,
+        CancellationToken ct = default);
+
     /// <summary>
     ///     Returns the repository path (mountpoint plus path in share) for a share mounted earlier
     ///     in this session via <see cref="EnsureMountedAsync" />. On Windows the returned path is

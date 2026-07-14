@@ -19,9 +19,15 @@ public class Borg2ServiceTests
     private static readonly SshAgentHelper SshAgent = new(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl);
     private static readonly INetworkShareMounter Mounter = Substitute.For<INetworkShareMounter>();
 
-    private static TestBorg2Service CreateService(AppSettings? settings = null) =>
-        new(Substitute.For<ILogger<Borg2Service>>(), settings ?? new AppSettings(), SshAgent, Wsl, Mounter,
+    private static TestBorg2Service CreateService(AppSettings? settings = null)
+    {
+        var appSettings = settings ?? new AppSettings();
+        var transport = new SshRepositoryTransport(
+            appSettings, SshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+        return new TestBorg2Service(
+            Substitute.For<ILogger<Borg2Service>>(), appSettings, transport, Wsl, Mounter,
             new PromptingPassphraseProvider(null));
+    }
 
     private static BorgRepository LocalRepo(string path = "/repo") =>
         new() { Name = "test", Path = path, IsLocal = true, BorgVersion = BorgVersion.Borg2 };
@@ -322,11 +328,11 @@ public class Borg2ServiceTests
         public TestBorg2Service(
             ILogger<Borg2Service> logger,
             AppSettings settings,
-            SshAgentHelper sshAgent,
+            SshRepositoryTransport sshTransport,
             WslHelper wsl,
             INetworkShareMounter shareMounter,
             PromptingPassphraseProvider passphrase)
-            : base(logger, settings, sshAgent, wsl, shareMounter, passphrase)
+            : base(logger, settings, sshTransport, wsl, shareMounter, passphrase)
         {
             _passphrase = passphrase;
         }

@@ -71,6 +71,14 @@ public abstract class NetworkShareMounterBase(
             : $"{mountPoint.TrimEnd('/')}/{location.PathInShare}";
     }
 
+    public virtual Task<StorageSpaceSnapshot> GetStorageSpaceAsync(
+        SmbLocation location,
+        CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.FromResult(DiskSpaceProbe.GetVolumeSpace(GetMountedPath(location)));
+    }
+
     /// <summary>Returns the mountpoint when the share is already mounted, otherwise null.</summary>
     protected abstract Task<string?> TryGetExistingMountPointAsync(SmbLocation location, CancellationToken ct);
 

@@ -95,6 +95,7 @@
                               IconKind="Database"
                               Title="{Binding SelectedRepository.Name}"
                               Subtitle="{Binding SelectedRepository.Path}"
+                              VerticalContentAlignment="Bottom"
                               IsLoading="{Binding SelectedRepository.IsLoadingStats, FallbackValue=False}"
                               RefreshCommand="{Binding FetchStatsCommand}">
             <controls:DetailPanel.ShowRefreshButton>
@@ -105,7 +106,7 @@
             </controls:DetailPanel.ShowRefreshButton>
             <StackPanel Spacing="2">
                 <controls:ProgressPanel DataContext="{Binding Progress}" />
-                <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto,4,Auto">
+                <Grid ColumnDefinitions="120,8,*" RowDefinitions="Auto">
                     <Grid.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
                             <Binding Path="SelectedRepository.HasStats" />
@@ -113,13 +114,34 @@
                         </MultiBinding>
                     </Grid.IsVisible>
                     <TextBlock Grid.Row="0" Grid.Column="0" Classes="secondary"
+                               IsVisible="{Binding !SelectedRepository.HasDiskSpace}"
                                Text="{Binding [TotalSize], Source={x:Static loc:Strings.Instance}}" />
                     <TextBlock Grid.Row="0" Grid.Column="2" Classes="secondary"
+                               IsVisible="{Binding !SelectedRepository.HasDiskSpace}"
                                Text="{Binding SelectedRepository.StatsTotalSize, Converter={x:Static conv:FormatBytesConverter.Instance}}" />
-                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="secondary"
-                               Text="{Binding [TotalChunks], Source={x:Static loc:Strings.Instance}}" />
-                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="secondary"
-                               Text="{Binding SelectedRepository.StatsTotalChunks, Converter={x:Static conv:FormatNumberConverter.Instance}}" />
+                    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Spacing="4"
+                                IsVisible="{Binding SelectedRepository.HasDiskSpace}">
+                        <ProgressBar Minimum="0"
+                                     Maximum="{Binding SelectedRepository.StorageSpace.CapacityBytes}"
+                                     Value="{Binding SelectedRepository.StatsTotalSize}"
+                                     Background="{DynamicResource DiskGaugeFreeBrush}"
+                                     Foreground="{DynamicResource DiskGaugeRepoBrush}"
+                                     MinHeight="5" Height="5" CornerRadius="2.5" Padding="0" />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Border Width="7" Height="7" CornerRadius="2" VerticalAlignment="Center"
+                                        Background="{DynamicResource DiskGaugeRepoBrush}" />
+                                <TextBlock Classes="secondary"
+                                           Text="{Binding SelectedRepository.DiskLegendRepoText}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Border Width="7" Height="7" CornerRadius="2" VerticalAlignment="Center"
+                                        Background="{DynamicResource DiskGaugeFreeBrush}" />
+                                <TextBlock Classes="secondary"
+                                           Text="{Binding SelectedRepository.DiskLegendFreeText}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
                 </Grid>
             </StackPanel>
         </controls:DetailPanel>

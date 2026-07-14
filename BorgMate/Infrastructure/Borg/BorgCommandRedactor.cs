@@ -1,10 +1,30 @@
 using System;
+using BorgMate.Domain.Repositories;
 
 namespace BorgMate.Infrastructure.Borg;
 
 /// <summary>Redacts command-line and environment values before log or debug display.</summary>
 public static class BorgCommandRedactor
 {
+    /// <summary>Redacts user information from a configured repository location.</summary>
+    public static string RedactRepositoryLocation(BorgRepository repository)
+    {
+        var value = repository.LocationKind == BorgRepositoryLocationKind.BorgUrl &&
+                    !string.IsNullOrWhiteSpace(repository.BorgUrl)
+            ? repository.BorgUrl
+            : repository.Path;
+
+        if (repository.IsSsh && repository.LocationKind != BorgRepositoryLocationKind.BorgUrl)
+        {
+            var pathSeparator = value.IndexOf(':', StringComparison.Ordinal);
+            var userSeparator = value.IndexOf('@', StringComparison.Ordinal);
+            if (userSeparator >= 0 && (pathSeparator < 0 || userSeparator < pathSeparator))
+                return $"***{value[userSeparator..]}";
+        }
+
+        return Redact(value);
+    }
+
     /// <summary>Redacts user-info values in URI-like strings.</summary>
     public static string Redact(string value)
     {

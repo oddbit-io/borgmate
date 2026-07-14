@@ -69,6 +69,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton(settings);
+        services.AddSingleton<SshRepositoryTransport>();
         services.AddSingleton<BorgServiceFactory>();
         services.AddSingleton(configStore);
         services.AddSingleton<ISettingsStore>(sp => sp.GetRequiredService<JsonAppConfigStore>());
@@ -137,6 +138,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IPassphraseProvider>(sp => sp.GetRequiredService<PromptingPassphraseProvider>());
         services.AddSingleton<TransientRetryPolicy>();
         services.AddSingleton<BorgOperationOrchestrator>();
+        services.AddSingleton<RepositoryStorageQuery>();
         services.AddSingleton<IRepositoryOperationRunner, RepositoryOperationRunner>();
         services.AddSingleton<IArchiveOperationRunner, ArchiveOperationRunner>();
         services.AddSingleton<IRepositoryVerificationOperationRunner, RepositoryVerificationOperationRunner>();

@@ -5,24 +5,41 @@ using BorgMate.Domain.Journal;
 using BorgMate.Domain.Repositories;
 using BorgMate.Domain.Settings;
 using BorgMate.Infrastructure.Borg;
+using BorgMate.Infrastructure.Platform;
 using BorgMate.Persistence.Journal;
 using BorgMate.Runtime.Jobs;
 using BorgMate.Runtime.Orchestration;
 using BorgMate.Runtime.Security;
 using OneOf;
-using WslHelper = BorgMate.Infrastructure.Platform.WslHelper;
 
 namespace BorgMate.Runtime.Operations;
 
 /// <summary>Default repository verification runner used by the repository editor.</summary>
-public sealed class RepositoryVerificationOperationRunner(
-    BorgServiceFactory borgServiceFactory,
-    BorgJobQueue jobQueue,
-    IJournalStore journalStore,
-    BorgOperationOrchestrator orchestrator,
-    PromptingPassphraseProvider passphrasePrompt,
-    WslHelper wsl) : IRepositoryVerificationOperationRunner
+public class RepositoryVerificationOperationRunner : IRepositoryVerificationOperationRunner
 {
+    private readonly BorgServiceFactory borgServiceFactory;
+    private readonly BorgJobQueue jobQueue;
+    private readonly IJournalStore journalStore;
+    private readonly BorgOperationOrchestrator orchestrator;
+    private readonly PromptingPassphraseProvider passphrasePrompt;
+    private readonly SshRepositoryTransport sshTransport;
+
+    public RepositoryVerificationOperationRunner(
+        BorgServiceFactory borgServiceFactory,
+        BorgJobQueue jobQueue,
+        IJournalStore journalStore,
+        BorgOperationOrchestrator orchestrator,
+        PromptingPassphraseProvider passphrasePrompt,
+        SshRepositoryTransport sshTransport)
+    {
+        this.borgServiceFactory = borgServiceFactory;
+        this.jobQueue = jobQueue;
+        this.journalStore = journalStore;
+        this.orchestrator = orchestrator;
+        this.passphrasePrompt = passphrasePrompt;
+        this.sshTransport = sshTransport;
+    }
+
     public async Task<OneOf<VersionDetectionResult, OperationError>> DetectVersionAsync(
         VersionDetectionOperationOptions options, CancellationToken ct = default)
     {
@@ -148,12 +165,25 @@ public sealed class RepositoryVerificationOperationRunner(
     {
         try
         {
-            var service = borgServiceFactory.GetService(options.Repository.BorgVersion);
-            var result = await service.CheckRemotePathAsync(
-                options.Host,
-                options.RemotePath,
-                options.SshKeyPath,
-                ct);
+            if (options.RemotePath.StartsWith("-", StringComparison.Ordinal))
+                return new OperationError.Unexpected(new ArgumentException("Invalid remote Borg path."));
+
+            var repository = options.Repository with
+            {
+                Path = $"{options.Host}:.",
+                LocationKind = BorgRepositoryLocationKind.SshFields,
+                IsLocal = false,
+                SshKeyPath = options.SshKeyPath ?? string.Empty,
+                SshPort = options.SshPort
+            };
+            var target = new SshRepositoryTarget
+            {
+                Host = options.Host,
+                RepositoryPath = ".",
+                Port = options.SshPort
+            };
+            var command = $"command -v {SshRepositoryTransport.QuoteRemoteArgument(options.RemotePath)}";
+            var result = await sshTransport.RunAsync(repository, target, command, ct);
             return result.Success ? OperationOk.Instance : result.ToOperationError();
         }
         catch (OperationCanceledException)
@@ -172,10 +202,7 @@ public sealed class RepositoryVerificationOperationRunner(
         try
         {
             ct.ThrowIfCancellationRequested();
-            var service = borgServiceFactory.GetService(options.Repository.BorgVersion);
-            if (WslHelper.IsRequired && service.UsesSshTransport(options.Repository) &&
-                !string.IsNullOrWhiteSpace(options.SshKeyPath))
-                await wsl.CopySshKeyAsync(options.SshKeyPath, ct);
+            await sshTransport.PrepareKeyAsync(options.Repository, options.SshKeyPath, ct);
             return OperationOk.Instance;
         }
         catch (OperationCanceledException)

@@ -11,9 +11,18 @@ namespace BorgMate.Tests.Infrastructure;
 public class BorgServiceFactoryTests
 {
     private static readonly WslHelper Wsl = new(Substitute.For<ILogger<WslHelper>>());
-    private readonly BorgServiceFactory _factory = new(Substitute.For<ILoggerFactory>(), new AppSettings(),
-        new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl), Wsl,
-        Substitute.For<INetworkShareMounter>());
+    private readonly BorgServiceFactory _factory;
+
+    public BorgServiceFactoryTests()
+    {
+        var settings = new AppSettings();
+        var sshAgent = new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl);
+        var transport = new SshRepositoryTransport(
+            settings, sshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+        _factory = new BorgServiceFactory(
+            Substitute.For<ILoggerFactory>(), settings, transport, Wsl,
+            Substitute.For<INetworkShareMounter>());
+    }
 
     [Fact]
     public void GetService_Borg1_ReturnsBorg1Service()

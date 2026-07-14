@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using BorgMate.Domain.Archives;
 using BorgMate.Domain.Repositories;
+using BorgMate.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BorgMate.Presentation.ViewModels;
@@ -29,11 +30,14 @@ public sealed partial class RepositoryViewModel : ObservableObject
     private string? _lastError;
 
     [ObservableProperty]
-    private long? _statsTotalChunks;
+    [NotifyPropertyChangedFor(nameof(HasStats))]
+    [NotifyPropertyChangedFor(nameof(DiskLegendRepoText))]
+    private long? _statsTotalSize;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasStats))]
-    private long? _statsTotalSize;
+    [NotifyPropertyChangedFor(nameof(HasDiskSpace))]
+    [NotifyPropertyChangedFor(nameof(DiskLegendFreeText))]
+    private StorageSpaceSnapshot? _storageSpace;
 
     /// <summary>Creates a presentation repository with a new persisted model.</summary>
     public RepositoryViewModel() : this(new BorgRepository())
@@ -193,6 +197,16 @@ public sealed partial class RepositoryViewModel : ObservableObject
 
     public bool HasStats => StatsTotalSize is not null;
 
+    /// <summary>True when the backup target volume capacity is known.</summary>
+    public bool HasDiskSpace => StorageSpace?.IsValid == true;
+
+    public string DiskLegendRepoText =>
+        $"{Strings.Get("DiskLegendRepo")} {Strings.FormatBytes(StatsTotalSize ?? 0)}";
+
+    public string DiskLegendFreeText => string.Format(
+        Strings.Get("DiskLegendFree"),
+        Strings.FormatBytes(StorageSpace?.AvailableBytes ?? 0));
+
     public static implicit operator BorgRepository(RepositoryViewModel repo)
     {
         return repo.Model;
@@ -239,7 +253,8 @@ public sealed partial class RepositoryViewModel : ObservableObject
     public void RefreshStats()
     {
         OnPropertyChanged(nameof(StatsTotalSize));
-        OnPropertyChanged(nameof(StatsTotalChunks));
+        OnPropertyChanged(nameof(DiskLegendRepoText));
+        OnPropertyChanged(nameof(DiskLegendFreeText));
     }
 
     private bool SetModelProperty<T>(

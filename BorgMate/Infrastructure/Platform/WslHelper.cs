@@ -40,6 +40,8 @@ public partial class WslHelper
 
     public static bool IsRequired => OperatingSystem.IsWindows();
 
+    public virtual bool RequiresWsl => _isRequired;
+
     /// <summary>Returns the last cached WSL availability result without starting a process.</summary>
     public bool IsAvailable => _isRequired && _wslAvailable == true;
 
@@ -160,7 +162,7 @@ public partial class WslHelper
     ///     Copies a Windows SSH key into WSL's ~/.ssh/ with correct permissions (chmod 600).
     ///     Call this when saving repo config so the key is ready for borg operations.
     /// </summary>
-    public async Task<string?> CopySshKeyAsync(string windowsKeyPath, CancellationToken ct = default)
+    public virtual async Task<string?> CopySshKeyAsync(string windowsKeyPath, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(windowsKeyPath) || !await IsAvailableAsync(ct))
             return null;
@@ -205,7 +207,7 @@ public partial class WslHelper
     /// <summary>
     ///     Returns the WSL-native key path for use in BORG_RSH.
     /// </summary>
-    public async Task<string?> GetWslKeyPathAsync(string windowsKeyPath, CancellationToken ct = default)
+    public virtual async Task<string?> GetWslKeyPathAsync(string windowsKeyPath, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(windowsKeyPath)) return null;
         if (!await IsAvailableAsync(ct)) return null;
@@ -282,20 +284,23 @@ public partial class WslHelper
     }
 
     /// <summary>
-    ///     Kills borg processes running inside WSL. Called on cancellation
+    ///     Kills matching processes running inside WSL. Called on cancellation
     ///     because Process.Kill on wsl.exe doesn't reach the Linux namespace.
     /// </summary>
-    public static void KillBorgProcesses(string borgBinary)
+    public static void KillProcesses(string processName)
     {
         var psi = new ProcessStartInfo
         {
             FileName = "wsl",
-            Arguments = $"-- pkill -f {ShellEscape(borgBinary)}",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        psi.ArgumentList.Add("--");
+        psi.ArgumentList.Add("pkill");
+        psi.ArgumentList.Add("-f");
+        psi.ArgumentList.Add(processName);
         using var process = Process.Start(psi);
         process?.WaitForExit(3000);
     }

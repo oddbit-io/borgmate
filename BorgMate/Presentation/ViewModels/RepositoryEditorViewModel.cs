@@ -749,7 +749,8 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
                 NullOperationProgressSink.Instance,
                 host,
                 BorgRemotePath,
-                SshKeyPath));
+                SshKeyPath,
+                SshPort));
         if (result.IsT0)
         {
             VerifyStatus = Strings.Get("Status.RemotePathOk");

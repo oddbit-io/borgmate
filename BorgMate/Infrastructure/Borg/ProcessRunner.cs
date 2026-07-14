@@ -53,13 +53,14 @@ public static class ProcessRunner
     public static Task<BorgResult> RunAsync(
         string fileName,
         IReadOnlyList<string> argumentList,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        Action<Process>? onKill = null)
     {
         var psi = CreateStartInfo(fileName);
         foreach (var argument in argumentList)
             psi.ArgumentList.Add(argument);
 
-        return RunCoreAsync(psi, fileName, null, ct, null, null);
+        return RunCoreAsync(psi, fileName, null, ct, null, onKill);
     }
 
     private static ProcessStartInfo CreateStartInfo(string fileName)

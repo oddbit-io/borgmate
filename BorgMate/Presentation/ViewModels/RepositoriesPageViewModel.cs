@@ -366,7 +366,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         repo.LastError = null;
         repo.LoadedArchives = null;
         repo.StatsTotalSize = null;
-        repo.StatsTotalChunks = null;
+        repo.StorageSpace = null;
         FetchArchivesIfEmpty();
         if (!repo.HasStats)
             FetchStatsCommand.ExecuteAsync(null);
@@ -686,7 +686,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             if (result.IsT0)
             {
                 repo.StatsTotalSize = result.AsT0.TotalSize;
-                repo.StatsTotalChunks = result.AsT0.TotalChunks;
+                repo.StorageSpace = result.AsT0.StorageSpace;
             }
         }
         catch (Exception ex)

@@ -64,6 +64,9 @@
                         <GradientStop Color="#20000000" Offset="0" />
                         <GradientStop Color="#10FFFFFF" Offset="1" />
                     </LinearGradientBrush>
+                    <!-- Disk usage gauge (repository details capacity bar) -->
+                    <SolidColorBrush x:Key="DiskGaugeRepoBrush" Color="{StaticResource AccentColor}" />
+                    <SolidColorBrush x:Key="DiskGaugeFreeBrush" Color="#D8D8DD" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <Color x:Key="SecondaryColor">#98989D</Color>
@@ -93,6 +96,9 @@
                         <GradientStop Color="#18000000" Offset="0" />
                         <GradientStop Color="#08FFFFFF" Offset="1" />
                     </LinearGradientBrush>
+                    <!-- Disk usage gauge (repository details capacity bar) -->
+                    <SolidColorBrush x:Key="DiskGaugeRepoBrush" Color="{StaticResource AccentColor}" />
+                    <SolidColorBrush x:Key="DiskGaugeFreeBrush" Color="#3A3A3C" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 

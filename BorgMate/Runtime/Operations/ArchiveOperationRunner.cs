@@ -6,18 +6,38 @@ using BorgMate.Infrastructure.Borg;
 using BorgMate.Runtime.Jobs;
 using BorgMate.Runtime.Orchestration;
 using BorgMate.Runtime.Progress;
+using Microsoft.Extensions.Logging;
 using OneOf;
 using BorgDiffParser = BorgMate.Infrastructure.Borg.BorgDiffParser;
 
 namespace BorgMate.Runtime.Operations;
 
 /// <summary>Default archive query runner backed by the borg job queue and cache.</summary>
-public sealed class ArchiveOperationRunner(
-    BorgServiceFactory borgServiceFactory,
-    BorgJobQueue jobQueue,
-    BorgCacheService cache,
-    BorgOperationOrchestrator orchestrator) : IArchiveOperationRunner
+public class ArchiveOperationRunner : IArchiveOperationRunner
 {
+    private readonly BorgServiceFactory borgServiceFactory;
+    private readonly BorgJobQueue jobQueue;
+    private readonly BorgCacheService cache;
+    private readonly BorgOperationOrchestrator orchestrator;
+    private readonly RepositoryStorageQuery repositoryStorageQuery;
+    private readonly ILogger<ArchiveOperationRunner> logger;
+
+    public ArchiveOperationRunner(
+        BorgServiceFactory borgServiceFactory,
+        BorgJobQueue jobQueue,
+        BorgCacheService cache,
+        BorgOperationOrchestrator orchestrator,
+        RepositoryStorageQuery repositoryStorageQuery,
+        ILogger<ArchiveOperationRunner> logger)
+    {
+        this.borgServiceFactory = borgServiceFactory;
+        this.jobQueue = jobQueue;
+        this.cache = cache;
+        this.orchestrator = orchestrator;
+        this.repositoryStorageQuery = repositoryStorageQuery;
+        this.logger = logger;
+    }
+
     public async Task<OneOf<ArchiveListResult, OperationError>> ListArchivesAsync(
         ArchiveListOperationOptions options, CancellationToken ct = default)
     {
@@ -64,21 +84,50 @@ public sealed class ArchiveOperationRunner(
     {
         var repo = options.Repository;
         var service = borgServiceFactory.GetService(repo.BorgVersion);
+        StorageSpaceSnapshot? storageSpace = null;
         var result = await RunQueryAsync(
             repo,
             options.ProgressSink,
             $"{Strings.Get("Statistics")}: {repo.Name}",
-            $"stats:{repo.Path}",
-            (_, operationToken) => service.InfoRepoAsync(repo, operationToken),
+            null,
+            async (_, operationToken) =>
+            {
+                var infoResult = await service.InfoRepoAsync(repo, operationToken);
+                if (infoResult.Success)
+                    storageSpace = await repositoryStorageQuery.GetAsync(repo, operationToken);
+                return infoResult;
+            },
             ct);
 
         if (result.IsT1)
             return result.AsT1;
 
         var stats = ArchiveJsonParser.ParseRepoStats(result.AsT0.Result.StandardOutput);
-        return stats is { } s
-            ? new RepositoryStatsResult(s.Size, s.Chunks)
-            : new OperationError.BorgFailure(null, -1, result.AsT0.Result.StandardOutput);
+        if (stats is not { } s)
+            return new OperationError.BorgFailure(null, -1, result.AsT0.Result.StandardOutput);
+
+        if (s.Size is { } repositorySize && storageSpace is { } space && repositorySize > space.UsedBytes)
+        {
+            logger.LogWarning(
+                "Repository size exceeds used volume space: Name={RepositoryName}, Location={RepositoryLocation}, " +
+                "LocationKind={LocationKind}, BorgVersion={BorgVersion}, RepositorySizeBytes={RepositorySizeBytes}, " +
+                "UsedBytes={UsedBytes}, AvailableBytes={AvailableBytes}, CapacityBytes={CapacityBytes}",
+                repo.Name,
+                BorgCommandRedactor.RedactRepositoryLocation(repo),
+                repo.LocationKind,
+                repo.BorgVersion,
+                repositorySize,
+                space.UsedBytes,
+                space.AvailableBytes,
+                space.CapacityBytes);
+        }
+
+        return new RepositoryStatsResult
+        {
+            TotalSize = s.Size,
+            TotalChunks = s.Chunks,
+            StorageSpace = storageSpace
+        };
     }
 
     public async Task<OneOf<ArchiveContentsResult, OperationError>> ListArchiveContentsAsync(
@@ -154,7 +203,7 @@ public sealed class ArchiveOperationRunner(
         BorgRepository repo,
         IOperationProgressSink progressSink,
         string jobName,
-        string tag,
+        string? tag,
         Func<BorgOperationContext, CancellationToken, Task<BorgResult>> operation,
         CancellationToken ct)
     {

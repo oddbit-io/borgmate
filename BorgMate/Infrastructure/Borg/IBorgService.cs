@@ -19,9 +19,6 @@ public interface IBorgService
     /// <summary>Validates that the configured binary is compatible with this service.</summary>
     Task<BorgCliVersionValidationResult> ValidateCliVersionAsync(CancellationToken ct = default);
 
-    /// <summary>Returns true when this service should prepare SSH transport for the repository.</summary>
-    bool UsesSshTransport(BorgRepository repo);
-
     /// <summary>Parses service-specific borg progress output for a running job.</summary>
     void UpdateProgress(BorgJob job, string line);
 
@@ -90,7 +87,4 @@ public interface IBorgService
         BorgRepository repo, string archive1, string archive2,
         CancellationToken ct = default);
 
-    Task<BorgResult> CheckRemotePathAsync(
-        string host, string remotePath,
-        string? sshKeyPath = null, CancellationToken ct = default);
 }

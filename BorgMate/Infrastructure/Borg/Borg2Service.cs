@@ -13,15 +13,20 @@ using WslHelper = BorgMate.Infrastructure.Platform.WslHelper;
 
 namespace BorgMate.Infrastructure.Borg;
 
-public class Borg2Service(
-    ILogger<Borg2Service> logger,
-    AppSettings settings,
-    SshAgentHelper sshAgent,
-    WslHelper wsl,
-    INetworkShareMounter shareMounter,
-    PromptingPassphraseProvider? passphrase = null) : Borg2ServiceBase(logger, settings, sshAgent, wsl,
-    shareMounter, passphrase ?? new PromptingPassphraseProvider(null))
+public class Borg2Service : Borg2ServiceBase
 {
+    public Borg2Service(
+        ILogger<Borg2Service> logger,
+        AppSettings settings,
+        SshRepositoryTransport sshTransport,
+        WslHelper wsl,
+        INetworkShareMounter shareMounter,
+        PromptingPassphraseProvider? passphrase = null)
+        : base(logger, settings, sshTransport, wsl, shareMounter,
+            passphrase ?? new PromptingPassphraseProvider(null))
+    {
+    }
+
     /// <summary>Detected Borg 2 CLI version used for version-specific command mapping.</summary>
     public BorgCliVersion? DetectedVersion { get; set; }
 

@@ -21,6 +21,9 @@ public class RepositoryVerificationOperationRunnerTests
     private static readonly WslHelper Wsl = new(Substitute.For<ILogger<WslHelper>>());
     private static readonly SshAgentHelper SshAgent = new(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl);
     private static readonly INetworkShareMounter Mounter = Substitute.For<INetworkShareMounter>();
+    private static readonly AppSettings Settings = new();
+    private static readonly SshRepositoryTransport SharedSshTransport = new(
+        Settings, SshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
 
     [Fact]
     public async Task ValidateConfiguredBorgAsync_AcceptsBorg14ForBorg1Repository()
@@ -133,9 +136,45 @@ public class RepositoryVerificationOperationRunnerTests
         Assert.Equal(BorgEncryptionMode.Repokey, repo.EncryptionMode);
     }
 
-    private static RepositoryVerificationOperationRunner CreateRunner(
-        IBorgService service, PromptingPassphraseProvider provider)
+    [Fact]
+    public async Task CheckRemotePathAsync_UsesConfiguredPortAndSafelyQuotedPath()
     {
+        var transport = Substitute.For<SshRepositoryTransport>(
+            Settings, SshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+        transport.RunAsync(
+                Arg.Any<BorgRepository>(),
+                Arg.Any<SshRepositoryTarget>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
+            .Returns(new BorgResult(0, "/opt/borg\n", ""));
+        var provider = new CountingPromptProvider("unused");
+        var runner = CreateRunner(Substitute.For<IBorgService>(), provider, transport);
+
+        var result = await runner.CheckRemotePathAsync(
+            new RemotePathCheckOperationOptions(
+                new BorgRepository { BorgVersion = BorgVersion.Borg2 },
+                NullOperationProgressSink.Instance,
+                "backup@example.com",
+                "/opt/borg dir/it's;safe",
+                "/keys/backup",
+                2202));
+
+        Assert.True(result.IsT0);
+        await transport.Received(1).RunAsync(
+            Arg.Is<BorgRepository>(repository =>
+                repository.SshPort == 2202 && repository.SshKeyPath == "/keys/backup"),
+            Arg.Is<SshRepositoryTarget>(target =>
+                target.Host == "backup@example.com" && target.Port == 2202),
+            "command -v '/opt/borg dir/it'\"'\"'s;safe'",
+            Arg.Any<CancellationToken>());
+    }
+
+    private static RepositoryVerificationOperationRunner CreateRunner(
+        IBorgService service,
+        PromptingPassphraseProvider provider,
+        SshRepositoryTransport? sshTransport = null)
+    {
+        sshTransport ??= SharedSshTransport;
         var queue = new BorgJobQueue();
         var journal = Substitute.For<IJournalStore>();
         journal.Add(Arg.Any<JournalEventKind>(), Arg.Any<object[]>(), Arg.Any<string>())
@@ -147,12 +186,19 @@ public class RepositoryVerificationOperationRunnerTests
             queue,
             journal);
         return new RepositoryVerificationOperationRunner(
-            new StubBorgServiceFactory(service), queue, journal, orchestrator, provider, Wsl);
+            new StubBorgServiceFactory(service, sshTransport), queue, journal, orchestrator, provider, sshTransport);
     }
 
-    private sealed class StubBorgServiceFactory(IBorgService service) : BorgServiceFactory(
-        Substitute.For<ILoggerFactory>(), new AppSettings(), SshAgent, Wsl, Mounter)
+    private sealed class StubBorgServiceFactory : BorgServiceFactory
     {
+        private readonly IBorgService service;
+
+        public StubBorgServiceFactory(IBorgService service, SshRepositoryTransport sshTransport)
+            : base(Substitute.For<ILoggerFactory>(), Settings, sshTransport, Wsl, Mounter)
+        {
+            this.service = service;
+        }
+
         public override IBorgService GetService(BorgVersion borgVersion) => service;
     }
 
@@ -161,8 +207,8 @@ public class RepositoryVerificationOperationRunnerTests
         PromptingPassphraseProvider provider, params BorgResult[] infoResults)
         : Borg1Service(
             Substitute.For<ILogger<Borg1Service>>(),
-            new AppSettings(),
-            SshAgent,
+            Settings,
+            SharedSshTransport,
             Wsl,
             Mounter,
             provider)
@@ -208,8 +254,8 @@ public class RepositoryVerificationOperationRunnerTests
     private sealed class VersionBorg1Service(string versionText)
         : Borg1Service(
             Substitute.For<ILogger<Borg1Service>>(),
-            new AppSettings(),
-            SshAgent,
+            Settings,
+            SharedSshTransport,
             Wsl,
             Mounter,
             new PromptingPassphraseProvider(null))
@@ -229,8 +275,8 @@ public class RepositoryVerificationOperationRunnerTests
     private sealed class VersionBorg2Service(string versionText)
         : Borg2Service(
             Substitute.For<ILogger<Borg2Service>>(),
-            new AppSettings(),
-            SshAgent,
+            Settings,
+            SharedSshTransport,
             Wsl,
             Mounter,
             new PromptingPassphraseProvider(null))

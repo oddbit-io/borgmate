@@ -13,15 +13,20 @@ using WslHelper = BorgMate.Infrastructure.Platform.WslHelper;
 
 namespace BorgMate.Infrastructure.Borg;
 
-public class Borg1Service(
-    ILogger<Borg1Service> logger,
-    AppSettings settings,
-    SshAgentHelper sshAgent,
-    WslHelper wsl,
-    INetworkShareMounter shareMounter,
-    PromptingPassphraseProvider? passphrase = null) : BorgServiceBase(logger, settings, BorgVersion.Borg1, sshAgent, wsl,
-    shareMounter, passphrase ?? new PromptingPassphraseProvider(null))
+public class Borg1Service : BorgServiceBase
 {
+    public Borg1Service(
+        ILogger<Borg1Service> logger,
+        AppSettings settings,
+        SshRepositoryTransport sshTransport,
+        WslHelper wsl,
+        INetworkShareMounter shareMounter,
+        PromptingPassphraseProvider? passphrase = null)
+        : base(logger, settings, BorgVersion.Borg1, sshTransport, wsl, shareMounter,
+            passphrase ?? new PromptingPassphraseProvider(null))
+    {
+    }
+
     public override async Task<BorgCliVersionValidationResult> ValidateCliVersionAsync(CancellationToken ct = default)
     {
         var result = await ParseCliVersionAsync(ct);

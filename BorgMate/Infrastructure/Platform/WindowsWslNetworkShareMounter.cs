@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -43,6 +44,29 @@ public class WindowsWslNetworkShareMounter(
         var mountPoint = BuildWslMountPoint(location.Host, location.Share);
         var result = await ProcessRunner.RunAsync("wsl", $"-- mountpoint -q \"{mountPoint}\"", null, null, ct);
         return result.ExitCode == 0 ? mountPoint : null;
+    }
+
+    public override async Task<StorageSpaceSnapshot> GetStorageSpaceAsync(
+        SmbLocation location,
+        CancellationToken ct = default)
+    {
+        var result = await ProcessRunner.RunAsync(
+            "wsl",
+            BuildStorageQueryArguments(GetMountedPath(location)),
+            ct);
+
+        if (result.WasCancelled)
+            throw new OperationCanceledException(ct);
+        if (!result.Success)
+            throw new DiskSpaceQueryException(result.ErrorMessage, result.ExitCode);
+
+        return DiskSpaceProbe.ParseDfOutput(result.StandardOutput)
+               ?? throw new DiskSpaceQueryException("WSL df returned unrecognized output.");
+    }
+
+    internal static IReadOnlyList<string> BuildStorageQueryArguments(string mountedPath)
+    {
+        return ["--", "df", "-P", "-k", mountedPath];
     }
 
     protected override async Task<OneOf<MountedShare, MountError>> MountOnceAsync(

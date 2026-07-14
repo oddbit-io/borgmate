@@ -8,6 +8,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             <Setter Property="BorderThickness" Value="0,1,0,0" />
             <Setter Property="Height" Value="92" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
             <Setter Property="Template">
                 <ControlTemplate TargetType="controls:DetailPanel">
                     <Border BorderBrush="{TemplateBinding BorderBrush}"
@@ -16,14 +17,16 @@
                             <TextBlock Text="{TemplateBinding PlaceholderText}"
                                        Classes="placeholder"
                                        IsVisible="{TemplateBinding ShowPlaceholder}" />
-                            <ScrollViewer Margin="12,8" VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer Margin="12,8"
+                                          VerticalContentAlignment="Stretch"
+                                          VerticalScrollBarVisibility="Auto">
                                 <ScrollViewer.IsVisible>
                                     <Binding RelativeSource="{RelativeSource TemplatedParent}"
                                              Path="ShowPlaceholder"
                                              Converter="{x:Static BoolConverters.Not}" />
                                 </ScrollViewer.IsVisible>
-                                <StackPanel Spacing="2">
-                                    <DockPanel Margin="0,0,0,2">
+                                <Grid RowDefinitions="Auto,*">
+                                    <DockPanel Grid.Row="0" Margin="0,0,0,2">
                                         <Panel DockPanel.Dock="Right"
                                                Width="16" Height="16"
                                                VerticalAlignment="Center"
@@ -55,9 +58,12 @@
                                                        TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                     </DockPanel>
-                                    <ContentPresenter Content="{TemplateBinding Content}"
-                                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
-                                </StackPanel>
+                                    <ContentPresenter Grid.Row="1"
+                                                      Margin="0,2,0,0"
+                                                      Content="{TemplateBinding Content}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                </Grid>
                             </ScrollViewer>
                         </Panel>
                     </Border>

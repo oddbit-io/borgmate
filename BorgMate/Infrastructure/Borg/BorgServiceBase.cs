@@ -14,15 +14,35 @@ using WslHelper = BorgMate.Infrastructure.Platform.WslHelper;
 
 namespace BorgMate.Infrastructure.Borg;
 
-public abstract class BorgServiceBase(
-    ILogger logger,
-    AppSettings settings,
-    BorgVersion borgVersion,
-    SshAgentHelper sshAgent,
-    WslHelper wsl,
-    INetworkShareMounter shareMounter,
-    PromptingPassphraseProvider passphrase) : IBorgService
+public abstract class BorgServiceBase : IBorgService
 {
+    private readonly ILogger logger;
+    private readonly AppSettings settings;
+    private readonly BorgVersion borgVersion;
+    private readonly WslHelper wsl;
+    private readonly INetworkShareMounter shareMounter;
+    private readonly PromptingPassphraseProvider passphrase;
+
+    protected BorgServiceBase(
+        ILogger logger,
+        AppSettings settings,
+        BorgVersion borgVersion,
+        SshRepositoryTransport sshTransport,
+        WslHelper wsl,
+        INetworkShareMounter shareMounter,
+        PromptingPassphraseProvider passphrase)
+    {
+        this.logger = logger;
+        this.settings = settings;
+        this.borgVersion = borgVersion;
+        this.wsl = wsl;
+        this.shareMounter = shareMounter;
+        this.passphrase = passphrase;
+        SshTransport = sshTransport;
+    }
+
+    protected SshRepositoryTransport SshTransport { get; }
+
     protected string BorgBinary => settings.GetEffectiveBorgPath(borgVersion);
 
     public Task<BorgResult> GetVersionAsync(CancellationToken ct = default)
@@ -32,21 +52,7 @@ public abstract class BorgServiceBase(
 
     public abstract Task<BorgCliVersionValidationResult> ValidateCliVersionAsync(CancellationToken ct = default);
 
-    public virtual bool UsesSshTransport(BorgRepository repo)
-    {
-        return repo.IsSsh;
-    }
-
     public abstract void UpdateProgress(BorgJob job, string line);
-
-    public Task<BorgResult> CheckRemotePathAsync(
-        string host, string remotePath,
-        string? sshKeyPath = null, CancellationToken ct = default)
-    {
-        var keyArg = string.IsNullOrWhiteSpace(sshKeyPath) ? "" : $"-i \"{sshKeyPath}\" ";
-        var args = $"{keyArg}\"{host}\" which \"{remotePath}\"";
-        return RunCommandAsync("ssh", args, ct: ct);
-    }
 
     // Version-specific operations implemented by subclasses
     public abstract Task<BorgResult> InitAsync(
@@ -157,7 +163,7 @@ public abstract class BorgServiceBase(
             {
                 try
                 {
-                    WslHelper.KillBorgProcesses(logFileName);
+                    WslHelper.KillProcesses(logFileName);
                 }
                 catch (Exception ex)
                 {
@@ -257,81 +263,17 @@ public abstract class BorgServiceBase(
             await shareMounter.EnsureMountedAsync(ParseSmbLocation(repo), ct);
         }
 
-        if (UsesSshTransport(repo))
+        if (SshTransport.UsesSsh(repo))
         {
-            if (!string.IsNullOrWhiteSpace(repo.SshKeyPath))
-                await sshAgent.EnsureKeyLoadedAsync(repo.SshKeyPath, repo, ct);
-
-            (env["BORG_RSH"], wslPreCommands) = await BuildBorgRshAsync(repo, ct);
+            var preparedSsh = await SshTransport.PrepareForBorgAsync(repo, ct);
+            env["BORG_RSH"] = preparedSsh.BorgRsh;
+            wslPreCommands = preparedSsh.WslPreCommands;
         }
 
         if (!string.IsNullOrWhiteSpace(repo.BorgRemotePath))
             env["BORG_REMOTE_PATH"] = repo.BorgRemotePath;
 
         return new BorgEnv(env, wslPreCommands);
-    }
-
-    /// <summary>
-    ///     Builds the BORG_RSH value and optional WSL pre-commands for SSH repos.
-    /// </summary>
-    private async Task<(string rsh, List<string>? wslPreCommands)> BuildBorgRshAsync(
-        BorgRepository repo,
-        CancellationToken ct)
-    {
-        var rshParts = new List<string> { "ssh" };
-        List<string>? wslPreCommands = null;
-
-        if (!string.IsNullOrWhiteSpace(repo.SshKeyPath))
-        {
-            if (WslHelper.IsRequired)
-            {
-                var wslKey = await wsl.GetWslKeyPathAsync(repo.SshKeyPath, ct);
-                if (wslKey is not null)
-                    rshParts.Add($"-i \"{wslKey}\"");
-
-                wslPreCommands = BuildWslAskPassCommands(sshAgent.GetWslKeyPassphrase(repo.SshKeyPath));
-            }
-            else
-            {
-                rshParts.Add($"-i \"{P(repo.SshKeyPath)}\"");
-            }
-        }
-
-        if (repo.SshPort != 22 && repo.SshPort > 0)
-            rshParts.Add($"-p {repo.SshPort}");
-
-        if (settings.SshKeepAliveInterval > 0)
-        {
-            rshParts.Add($"-o ServerAliveInterval={settings.SshKeepAliveInterval}");
-            rshParts.Add($"-o ServerAliveCountMax={settings.SshKeepAliveCountMax}");
-        }
-
-        if (WslHelper.IsRequired)
-            rshParts.Add("-o StrictHostKeyChecking=accept-new");
-
-        return (string.Join(" ", rshParts), wslPreCommands);
-    }
-
-    /// <summary>
-    ///     Creates WSL pre-commands for SSH_ASKPASS with encrypted keys. Returns null if not needed.
-    /// </summary>
-    private List<string>? BuildWslAskPassCommands(string? sshKeyPassphrase)
-    {
-        if (sshKeyPassphrase is null)
-            return null;
-
-        var safePass = sshKeyPassphrase.Replace("'", "'\\''");
-        logger.LogDebug("WSL pre-commands: SSH_ASKPASS for encrypted key");
-        return
-        [
-            "_BORGMATE_ASKPASS=$(mktemp -p \"${TMPDIR:-/tmp}\" .borgmate-askpass-XXXXXX)",
-            "trap 'rm -f \"$_BORGMATE_ASKPASS\"' EXIT",
-            "chmod 700 \"$_BORGMATE_ASKPASS\"",
-            $"printf '#!/bin/sh\\necho '\"'\"'{safePass}'\"'\"'\\n' > \"$_BORGMATE_ASKPASS\"",
-            "export SSH_ASKPASS=\"$_BORGMATE_ASKPASS\"",
-            "export SSH_ASKPASS_REQUIRE=force",
-            "export DISPLAY=:0"
-        ];
     }
 
     protected Dictionary<string, string> BuildEnvironment(string? passphrase, string? remotePath)
