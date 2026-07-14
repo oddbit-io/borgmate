@@ -579,6 +579,18 @@
     <data name="UpdateChangelogTitle" xml:space="preserve">
     <value>What&#x27;s new in v{0}</value>
   </data>
+    <data name="UpdateChangelogFeatures" xml:space="preserve">
+    <value>Features</value>
+  </data>
+    <data name="UpdateChangelogImprovements" xml:space="preserve">
+    <value>Improvements</value>
+  </data>
+    <data name="UpdateChangelogFixes" xml:space="preserve">
+    <value>Fixes</value>
+  </data>
+    <data name="UpdateChangelogSecurity" xml:space="preserve">
+    <value>Security</value>
+  </data>
     <data name="UpdateNoChangelog" xml:space="preserve">
     <value>No changelog available.</value>
   </data>

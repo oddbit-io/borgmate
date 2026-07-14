@@ -16,7 +16,7 @@ namespace BorgMate.Presentation.State;
 public static class DemoDataLoader
 {
     public static void Load(MainWindowViewModel mainVm, IJournalStore journal, UpdateStatusState status,
-        Func<string, List<UpdateService.ChangelogEntry>, Task<bool>> showChangelog)
+        Func<string, List<ChangelogEntry>, Task<bool>> showChangelog)
     {
         var repos = new BorgRepository[]
         {
@@ -117,20 +117,36 @@ public static class DemoDataLoader
             string.Format(Strings.Get("UpdateAvailable"), fakeVersion),
             async () =>
             {
-                var changelog = new List<UpdateService.ChangelogEntry>
+                var changelog = new List<ChangelogEntry>
                 {
-                    new("99.0.0", "2026-04-10",
-                    [
-                        "Scheduled backups with configurable frequency",
-                        "Native OS notifications on operation completion",
-                        "Show changelog before downloading update"
-                    ]),
-                    new("98.0.0", "2026-04-05",
-                    [
-                        "Fix UI freeze when opening modal dialogs",
-                        "Atomic config writes to prevent data loss",
-                        "Cap stdout/stderr at 10K lines per job"
-                    ])
+                    new()
+                    {
+                        Version = "99.0.0",
+                        Date = "2026-04-10",
+                        Changes = new ChangelogChanges
+                        {
+                            Features =
+                            [
+                                "Scheduled backups with configurable frequency",
+                                "Native OS notifications on operation completion"
+                            ],
+                            Improvements = ["Show changelog before downloading update"]
+                        }
+                    },
+                    new()
+                    {
+                        Version = "98.0.0",
+                        Date = "2026-04-05",
+                        Changes = new ChangelogChanges
+                        {
+                            Improvements =
+                            [
+                                "Atomic config writes to prevent data loss",
+                                "Cap stdout/stderr at 10K lines per job"
+                            ],
+                            Fixes = ["Fix UI freeze when opening modal dialogs"]
+                        }
+                    }
                 };
                 if (!await showChangelog(fakeVersion, changelog))
                     return;

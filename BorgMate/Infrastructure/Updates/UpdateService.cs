@@ -90,7 +90,7 @@ public class UpdateService(ILogger<UpdateService> logger)
         try
         {
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-            var json = await http.GetStringAsync("https://borgmate.oddbit.io/changelog.json");
+            var json = await http.GetStringAsync("https://borgmate.oddbit.io/changelog-v2.json");
             entries.AddRange(ParseChangelog(json, currentVersion, targetVersion));
         }
         catch (Exception ex)
@@ -105,24 +105,21 @@ public class UpdateService(ILogger<UpdateService> logger)
     {
         var current = SemVerParser.Parse(currentVersion);
         var target = SemVerParser.Parse(targetVersion);
-        using var doc = JsonDocument.Parse(json);
+        var changelog = JsonSerializer.Deserialize<List<ChangelogEntry>>(json, JsonSerializerOptions.Web)
+                        ?? throw new JsonException("Changelog is null.");
         var entries = new List<ChangelogEntry>();
 
-        foreach (var item in doc.RootElement.EnumerateArray())
+        foreach (var entry in changelog)
         {
-            var versionText = item.GetProperty("version").GetString()
-                              ?? throw new JsonException("Changelog version is null.");
-            var version = SemVerParser.Parse(versionText);
+            if (string.IsNullOrWhiteSpace(entry.Version))
+                throw new JsonException("Changelog version is empty.");
+            if (entry.Changes is null)
+                throw new JsonException($"Changelog changes are null for version {entry.Version}.");
+
+            var version = SemVerParser.Parse(entry.Version);
             if (version <= current || version > target) continue;
 
-            var date = item.TryGetProperty("date", out var dateElement) ? dateElement.GetString() : null;
-            var changes = new List<string>();
-            if (item.TryGetProperty("changes", out var changesElement))
-                foreach (var change in changesElement.EnumerateArray())
-                    if (change.GetString() is { } text)
-                        changes.Add(text);
-
-            entries.Add(new ChangelogEntry(versionText, date, changes));
+            entries.Add(entry);
         }
 
         return entries;
@@ -144,6 +141,4 @@ public class UpdateService(ILogger<UpdateService> logger)
             logger.LogError(ex, "Failed to apply update");
         }
     }
-
-    public record ChangelogEntry(string Version, string? Date, List<string> Changes);
 }

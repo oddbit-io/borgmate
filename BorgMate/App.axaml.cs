@@ -200,7 +200,7 @@ public class App : Application
     }
 
     private static async Task<bool> ShowUpdateChangelogAsync(
-        string version, List<UpdateService.ChangelogEntry> changelog)
+        string version, List<ChangelogEntry> changelog)
     {
         var window = DialogHelper.GetMainWindow();
         if (window is null) return false;
