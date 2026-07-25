@@ -43,6 +43,10 @@ public class AppSettings
     [JsonIgnore]
     public string? DetectedBorg1Path => _borg1PathDetection.Value.DetectedPath;
 
+    /// <summary>Borg 1 version captured while probing the executable path.</summary>
+    [JsonIgnore]
+    public BorgCliVersion? DetectedBorg1Version => _borg1PathDetection.Value.Version;
+
     /// <summary>Effective default Borg 2 binary path, using a conventional command name when detection fails.</summary>
     [JsonIgnore]
     public string DefaultBorg2Path => _borg2PathDetection.Value.EffectivePath;

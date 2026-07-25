@@ -24,7 +24,7 @@
 ## Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) (for building)
-- [BorgBackup 1.4.x](https://www.borgbackup.org/releases/) (Borg 2.0.0b21+ optional, for experimental Borg 2 repositories — requires a separate `borg2` binary on PATH or a custom path set in Settings)
+- [BorgBackup 1.4.x](https://www.borgbackup.org/releases/), 1.4.5 or newer recommended (Borg 2.0.0b21+ optional, for experimental Borg 2 repositories — requires a separate `borg2` binary on PATH or a custom path set in Settings)
 - [OpenSSH](https://www.openssh.com/) (for remote repositories)
 - **Windows:** [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) with borg installed inside it
 

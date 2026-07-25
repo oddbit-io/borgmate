@@ -348,6 +348,15 @@
     <data name="RateLimit" xml:space="preserve">
     <value>Ограничение скорости (кБ/с, 0 = без ограничений)</value>
   </data>
+    <data name="ExcludeCloudFiles" xml:space="preserve">
+    <value>Пропускать файлы-заглушки iCloud</value>
+  </data>
+    <data name="ExcludeCloudFiles.Tooltip" xml:space="preserve">
+    <value>Исключает файлы iCloud, содержимое которых не скачано на этот Mac, чтобы резервное копирование не заставляло macOS их загружать.</value>
+  </data>
+  <data name="ExcludeCloudFiles.DisabledReason" xml:space="preserve">
+    <value>Недоступно: требуется Borg 1.4.5 или новее.</value>
+  </data>
     <data name="SourceDirectories" xml:space="preserve">
     <value>Исходные каталоги</value>
   </data>

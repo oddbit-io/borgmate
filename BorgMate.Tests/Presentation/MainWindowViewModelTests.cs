@@ -1,5 +1,6 @@
 using BorgMate.Domain.Repositories;
 using BorgMate.Domain.Settings;
+using BorgMate.Infrastructure.Borg;
 using BorgMate.Infrastructure.Platform;
 using BorgMate.Persistence.Configuration;
 using BorgMate.Persistence.Journal;
@@ -25,7 +26,9 @@ public class MainWindowViewModelTests : IDisposable
 {
     private readonly ISettingsStore _settingsStore = Substitute.For<ISettingsStore>();
     private readonly IRepositoryConfigStore _repositoryConfigStore = Substitute.For<IRepositoryConfigStore>();
-    private readonly AppSettings _settings = new();
+    private readonly AppSettings _settings = new(
+        new BorgPathDetectionResult("borg", null, null),
+        new BorgPathDetectionResult("borg2", null, null));
     private readonly IJournalStore _journalService;
     private readonly BorgJobQueue _jobQueue = new();
     private readonly RepositoryPresentationState _store;
@@ -46,6 +49,7 @@ public class MainWindowViewModelTests : IDisposable
 
     private RepositoriesPageViewModel CreatePageVm()
     {
+        var verificationOperations = Substitute.For<IRepositoryVerificationOperationRunner>();
         return new RepositoriesPageViewModel(
             _settings,
             _settingsStore,
@@ -53,7 +57,8 @@ public class MainWindowViewModelTests : IDisposable
             new FilePickerService(),
             Substitute.For<IRepositoryOperationRunner>(),
             Substitute.For<IArchiveOperationRunner>(),
-            Substitute.For<IRepositoryVerificationOperationRunner>(),
+            verificationOperations,
+            new BorgCapabilityQuery(_settings),
             Substitute.For<IPassphraseProvider>(),
             _jobQueue,
             _store,

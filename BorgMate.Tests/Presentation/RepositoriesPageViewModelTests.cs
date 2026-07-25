@@ -51,14 +51,18 @@ public class RepositoriesPageViewModelTests : IDisposable
     {
         var filePicker = new FilePickerService();
         var logger = Substitute.For<ILogger<RepositoriesPageViewModel>>();
+        var settings = new AppSettings(
+            new BorgPathDetectionResult("borg", null, null),
+            new BorgPathDetectionResult("borg2", null, null));
         return new RepositoriesPageViewModel(
-            new AppSettings(),
+            settings,
             _settingsStore,
             _repositoryConfigStore,
             filePicker,
             _repositoryOperations,
             _archiveOperations,
             _verificationOperations,
+            new BorgCapabilityQuery(settings),
             _passphraseProvider,
             _jobQueue,
             _store,

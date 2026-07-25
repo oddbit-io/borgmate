@@ -158,8 +158,11 @@ public class AppSettingsViewModelTests
     public void DetectedBorg2PathDisplay_NotDetected_WhenOnlyFallbackExists()
     {
         var settings = new AppSettings(
-            new BorgPathDetectionResult("borg", "borg"),
-            new BorgPathDetectionResult("borg2", null));
+            new BorgPathDetectionResult(
+                "borg",
+                "borg",
+                new BorgCliVersion(1, 4, 5, null, false, "borg 1.4.5")),
+            new BorgPathDetectionResult("borg2", null, null));
         var vm = new AppSettingsViewModel(settings, _settingsStore, _autoStart, _wakeScheduler);
 
         Assert.Equal("borg2", vm.DetectedBorg2Path);

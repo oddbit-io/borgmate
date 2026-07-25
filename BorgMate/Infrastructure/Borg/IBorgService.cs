@@ -9,8 +9,7 @@ using BorgMate.Runtime.Jobs;
 namespace BorgMate.Infrastructure.Borg;
 
 /// <summary>
-///     Abstracts borg CLI version differences. Implemented by Borg1Service and Borg2Service.
-///     All methods return BorgResult with exit code, stdout (often JSON), and stderr.
+///     Abstracts Borg CLI version differences, supported features, and command execution.
 /// </summary>
 public interface IBorgService
 {
@@ -18,6 +17,8 @@ public interface IBorgService
 
     /// <summary>Validates that the configured binary is compatible with this service.</summary>
     Task<BorgCliVersionValidationResult> ValidateCliVersionAsync(CancellationToken ct = default);
+
+    Task<bool> SupportsFeatureAsync(BorgCliFeature feature, CancellationToken ct = default);
 
     /// <summary>Parses service-specific borg progress output for a running job.</summary>
     void UpdateProgress(BorgJob job, string line);

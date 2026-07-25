@@ -29,6 +29,7 @@ namespace BorgMate.Presentation.ViewModels;
 public partial class RepositoriesPageViewModel : ViewModelBase
 {
     private readonly IArchiveOperationRunner _archiveOperations = null!;
+    private readonly BorgCapabilityQuery _borgCapabilities = null!;
     private readonly IFilePickerService _filePicker = null!;
     private readonly IJobController? _jobController;
     private readonly ILogger<RepositoriesPageViewModel> _logger = null!;
@@ -106,6 +107,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         IRepositoryOperationRunner repositoryOperations,
         IArchiveOperationRunner archiveOperations,
         IRepositoryVerificationOperationRunner verificationOperations,
+        BorgCapabilityQuery borgCapabilities,
         IPassphraseProvider passphraseProvider,
         IJobController jobController,
         RepositoryPresentationState store,
@@ -118,6 +120,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         _repositoryOperations = repositoryOperations;
         _archiveOperations = archiveOperations;
         _verificationOperations = verificationOperations;
+        _borgCapabilities = borgCapabilities;
         _passphraseProvider = passphraseProvider;
         _jobController = jobController;
         _store = store;
@@ -388,6 +391,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
 
     private async Task ShowEditorAsync(RepositoryEditorViewModel vm)
     {
+        vm.SetExcludeDatalessSupport(_borgCapabilities.SupportsExcludeDataless);
         var window = new RepositoryEditorWindow { DataContext = vm };
         var parent = DialogHelper.GetMainWindow();
         if (parent is not null)

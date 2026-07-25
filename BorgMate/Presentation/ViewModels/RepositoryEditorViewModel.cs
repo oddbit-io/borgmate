@@ -172,6 +172,17 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     [ObservableProperty]
     private int _rateLimit;
 
+    [ObservableProperty]
+    private bool _excludeCloudFiles = true;
+
+    public bool IsExcludeDatalessSupported { get; private set; }
+
+    /// <summary>
+    ///     The exclude-cloud-files option is only relevant on macOS for Borg 1 repositories.
+    /// </summary>
+    public bool ShowExcludeCloudFiles =>
+        OperatingSystem.IsMacOS() && BorgVersion == BorgVersion.Borg1;
+
     /// <summary>
     ///     Snapshot of reachability-affecting fields captured at <see cref="ForEdit" /> time.
     ///     Used by <see cref="NeedsReachabilityCheck" /> to skip the borg info call entirely
@@ -363,6 +374,14 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         OnPropertyChanged(nameof(CanUseBorgUrl));
         OnPropertyChanged(nameof(ShowBorg1EncryptionMode));
         OnPropertyChanged(nameof(ShowBorg2EncryptionMode));
+        OnPropertyChanged(nameof(ShowExcludeCloudFiles));
+    }
+
+    internal void SetExcludeDatalessSupport(bool isSupported)
+    {
+        IsExcludeDatalessSupported = isSupported;
+        if (!isSupported)
+            ExcludeCloudFiles = false;
     }
 
     /// <summary>
@@ -538,6 +557,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         SshPort = repo.SshPort;
         BorgRemotePath = repo.BorgRemotePath;
         RateLimit = repo.RateLimit;
+        ExcludeCloudFiles = repo.ExcludeCloudFiles;
         Mode = repo.Mode;
 
         SelectedFrequency = repo.Schedule.Frequency;
@@ -591,6 +611,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         repo.SshPort = SshPort;
         repo.BorgRemotePath = BorgRemotePath;
         repo.RateLimit = RateLimit;
+        repo.ExcludeCloudFiles = ExcludeCloudFiles;
         repo.Mode = Mode;
 
         repo.Schedule.Frequency = SelectedFrequency;

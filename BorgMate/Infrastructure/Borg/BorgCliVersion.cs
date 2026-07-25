@@ -43,4 +43,12 @@ public sealed partial record BorgCliVersion(
 
     /// <summary>Returns true for Borg 2 builds that use the b22 repo-create encryption split.</summary>
     public bool UsesBorg2SplitEncryption => Major == 2 && (Minor > 0 || Patch > 0 || Beta is null or >= 22);
+
+    public bool Supports(BorgCliFeature feature) =>
+        feature switch
+        {
+            BorgCliFeature.QuickStats or BorgCliFeature.ExcludeDataless =>
+                this is { Major: 1, Minor: > 4 } or { Major: 1, Minor: 4, Patch: >= 5 },
+            _ => throw new ArgumentOutOfRangeException(nameof(feature), feature, null)
+        };
 }

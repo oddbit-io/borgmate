@@ -22,8 +22,10 @@ public class BorgPathHelperTests
 
         Assert.Equal("borg", borg1.EffectivePath);
         Assert.Equal("borg", borg1.DetectedPath);
+        Assert.Equal("borg 1.4.4", borg1.Version?.OriginalText);
         Assert.Equal("borg2", borg2.EffectivePath);
         Assert.Null(borg2.DetectedPath);
+        Assert.Null(borg2.Version);
     }
 
     [Fact]

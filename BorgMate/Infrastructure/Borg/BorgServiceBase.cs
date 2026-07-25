@@ -361,4 +361,30 @@ public abstract class BorgServiceBase : IBorgService
             ? BorgCliVersionValidationResult.Validation("Validation.BorgVersionUnknown")
             : new BorgCliVersionValidationResult(version);
     }
+
+    public async Task<bool> SupportsFeatureAsync(BorgCliFeature feature, CancellationToken ct = default)
+    {
+        var version = await GetCliVersionCachedAsync(ct);
+        return version?.Supports(feature) == true;
+    }
+
+    private (string Path, BorgCliVersion Version)? _cliVersionCache;
+
+    /// <summary>
+    ///     Parsed version of the effective borg binary, cached per binary path so
+    ///     version-gated CLI flags don't spawn <c>borg --version</c> on every command.
+    ///     Returns null (and does not cache) when the binary fails or is unparsable.
+    ///     A borg upgraded in place at the same path is picked up on the next app launch.
+    /// </summary>
+    private async Task<BorgCliVersion?> GetCliVersionCachedAsync(CancellationToken ct)
+    {
+        var path = BorgBinary;
+        if (_cliVersionCache is { } cached && cached.Path == path)
+            return cached.Version;
+
+        var version = (await ParseCliVersionAsync(ct)).Version;
+        if (version is not null)
+            _cliVersionCache = (path, version);
+        return version;
+    }
 }

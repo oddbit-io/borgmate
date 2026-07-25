@@ -15,6 +15,7 @@ public class RepositoryData
     public string BorgUrl { get; set; } = string.Empty;
     public string SshKeyPath { get; set; } = string.Empty;
     public int RateLimit { get; set; }
+    public bool ExcludeCloudFiles { get; set; } = true;
     public int SshPort { get; set; } = 22;
     public BorgVersion BorgVersion { get; set; } = BorgVersion.Borg1;
     public string BorgRemotePath { get; set; } = string.Empty;

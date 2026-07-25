@@ -348,6 +348,15 @@
     <data name="RateLimit" xml:space="preserve">
     <value>Rate Limit (kB/s, 0 = unlimited)</value>
   </data>
+    <data name="ExcludeCloudFiles" xml:space="preserve">
+    <value>Skip iCloud placeholder files</value>
+  </data>
+    <data name="ExcludeCloudFiles.Tooltip" xml:space="preserve">
+    <value>Excludes iCloud files whose content is not downloaded to this Mac, so backups do not force macOS to download them.</value>
+  </data>
+  <data name="ExcludeCloudFiles.DisabledReason" xml:space="preserve">
+    <value>Unavailable because Borg 1.4.5 or newer is required.</value>
+  </data>
     <data name="SourceDirectories" xml:space="preserve">
     <value>Source Directories</value>
   </data>

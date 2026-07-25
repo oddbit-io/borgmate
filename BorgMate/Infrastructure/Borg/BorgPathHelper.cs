@@ -55,7 +55,7 @@ public static class BorgPathHelper
                     borgCommandWasBorg2 = true;
 
                 if (version.Major == expectedMajor)
-                    return new BorgPathDetectionResult(candidate, candidate);
+                    return new BorgPathDetectionResult(candidate, candidate, version);
             }
         }
 
@@ -63,7 +63,7 @@ public static class BorgPathHelper
             ? "borg1"
             : DefaultFallbackCommand(borgVersion);
 
-        return new BorgPathDetectionResult(fallback, null);
+        return new BorgPathDetectionResult(fallback, null, null);
     }
 
     private static string[] GetBinaryPreference(BorgVersion borgVersion) =>

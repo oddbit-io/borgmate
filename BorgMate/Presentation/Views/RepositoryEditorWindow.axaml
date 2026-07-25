@@ -441,6 +441,25 @@
                             <NumericUpDown Value="{Binding RateLimit}" Minimum="0" Increment="100"
                                            FormatString="0" Width="150" HorizontalAlignment="Left" />
                         </StackPanel>
+
+                        <StackPanel Spacing="4" IsVisible="{Binding ShowExcludeCloudFiles}">
+                            <CheckBox IsChecked="{Binding ExcludeCloudFiles}"
+                                      IsEnabled="{Binding IsExcludeDatalessSupported}"
+                                      Content="{Binding [ExcludeCloudFiles], Source={x:Static loc:Strings.Instance}}" />
+                            <TextBlock
+                                Margin="28,0,0,0"
+                                Text="{Binding [ExcludeCloudFiles.Tooltip], Source={x:Static loc:Strings.Instance}}"
+                                FontSize="{StaticResource SecondaryFontSize}"
+                                Foreground="{DynamicResource SecondaryTextBrush}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="28,0,0,0"
+                                IsVisible="{Binding !IsExcludeDatalessSupported}"
+                                Text="{Binding [ExcludeCloudFiles.DisabledReason], Source={x:Static loc:Strings.Instance}}"
+                                FontSize="{StaticResource SecondaryFontSize}"
+                                Foreground="{DynamicResource SecondaryTextBrush}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

@@ -35,6 +35,12 @@ public sealed record BorgRepository
     /// <summary>Upload rate limit in KB/s. Maps to borg's rate-limit option. Zero means unlimited.</summary>
     public int RateLimit { get; set; }
 
+    /// <summary>
+    ///     Skip cloud placeholder files without local content during backup (macOS iCloud).
+    ///     Maps to borg 1.4.5+ <c>create --exclude-dataless</c>; ignored by older borg.
+    /// </summary>
+    public bool ExcludeCloudFiles { get; set; } = true;
+
     /// <summary>SSH port for remote repositories.</summary>
     public int SshPort { get; set; } = 22;
 

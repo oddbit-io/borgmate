@@ -60,7 +60,12 @@ public class Borg1Service : BorgServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         var paths = string.Join(" ", sourcePaths.Select(p => $"\"{P(p)}\""));
         var rateLimit = repo.RateLimit > 0 ? $" --remote-ratelimit {repo.RateLimit}" : "";
-        var args = $"create --progress{rateLimit} \"{Location(repo)}::{archiveName}\" {paths}";
+        // --exclude-dataless (borg 1.4.5+) only has an effect on macOS but is accepted everywhere.
+        var excludeDataless =
+            repo.ExcludeCloudFiles && await SupportsFeatureAsync(BorgCliFeature.ExcludeDataless, ct)
+            ? " --exclude-dataless"
+            : "";
+        var args = $"create --progress{rateLimit}{excludeDataless} \"{Location(repo)}::{archiveName}\" {paths}";
         return await RunCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 
@@ -119,7 +124,9 @@ public class Borg1Service : BorgServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         var retention = BuildPruneRetentionArgs(repo.PruneOptions);
-        var args = $"prune --stats --list{retention} \"{Location(repo)}\"";
+        // --quick-stats (borg 1.4.5+) skips the slow "All archives" repository statistics.
+        var stats = await SupportsFeatureAsync(BorgCliFeature.QuickStats, ct) ? "--quick-stats" : "--stats";
+        var args = $"prune {stats} --list{retention} \"{Location(repo)}\"";
         return await RunCommandAsync(BorgBinary, args, env, ct: ct);
     }
 

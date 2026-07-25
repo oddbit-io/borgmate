@@ -54,6 +54,19 @@ public class RepositoryEditorViewModelTests
         Assert.True(vm.ShowBorgVersionSelection);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SetExcludeDatalessSupport_UpdatesAvailabilityAndDefault(bool isSupported)
+    {
+        var vm = RepositoryEditorViewModel.ForNew(new FilePickerService());
+
+        vm.SetExcludeDatalessSupport(isSupported);
+
+        Assert.Equal(isSupported, vm.IsExcludeDatalessSupported);
+        Assert.Equal(isSupported, vm.ExcludeCloudFiles);
+    }
+
     [Fact]
     public void ForEdit_LoadsAllFieldsFromRepo()
     {

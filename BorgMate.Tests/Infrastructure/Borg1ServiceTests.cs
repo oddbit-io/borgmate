@@ -75,6 +75,78 @@ public class Borg1ServiceTests
     }
 
     [Fact]
+    public async Task CreateBackupAsync_WithBorg145_ExcludesDatalessByDefault()
+    {
+        var svc = CreateService();
+        svc.VersionOutput = "borg 1.4.5";
+
+        await svc.CreateBackupAsync(LocalRepo(), "archive", ["/data"]);
+
+        Assert.Contains("--exclude-dataless", svc.LastArgs!);
+    }
+
+    [Fact]
+    public async Task CreateBackupAsync_ExcludeCloudFilesDisabled_OmitsExcludeDataless()
+    {
+        var svc = CreateService();
+        svc.VersionOutput = "borg 1.4.5";
+        var repo = LocalRepo();
+        repo.ExcludeCloudFiles = false;
+
+        await svc.CreateBackupAsync(repo, "archive", ["/data"]);
+
+        Assert.DoesNotContain("--exclude-dataless", svc.LastArgs!);
+    }
+
+    [Fact]
+    public async Task CreateBackupAsync_WithOlderBorg_OmitsExcludeDataless()
+    {
+        var svc = CreateService();
+        svc.VersionOutput = "borg 1.4.4";
+
+        await svc.CreateBackupAsync(LocalRepo(), "archive", ["/data"]);
+
+        Assert.DoesNotContain("--exclude-dataless", svc.LastArgs!);
+    }
+
+    [Fact]
+    public async Task PruneAsync_WithBorg145_UsesQuickStats()
+    {
+        var svc = CreateService();
+        svc.VersionOutput = "borg 1.4.5";
+
+        await svc.PruneAsync(LocalRepo());
+
+        Assert.Contains("--quick-stats", svc.LastArgs!);
+        Assert.DoesNotContain("--stats", svc.LastArgs!);
+    }
+
+    [Fact]
+    public async Task PruneAsync_WithOlderBorg_KeepsFullStats()
+    {
+        var svc = CreateService();
+        svc.VersionOutput = "borg 1.4.4";
+
+        await svc.PruneAsync(LocalRepo());
+
+        Assert.Contains("--stats", svc.LastArgs!);
+        Assert.DoesNotContain("--quick-stats", svc.LastArgs!);
+    }
+
+    [Theory]
+    [InlineData("borg 1.4.4", false)]
+    [InlineData("borg 1.4.5", true)]
+    [InlineData("borg 1.5.0", true)]
+    [InlineData("borg 2.0.0b21", false)]
+    public async Task SupportsFeatureAsync_GatesBorg145Features(string version, bool expected)
+    {
+        var svc = CreateService();
+        svc.VersionOutput = version;
+
+        Assert.Equal(expected, await svc.SupportsFeatureAsync(BorgCliFeature.ExcludeDataless));
+    }
+
+    [Fact]
     public async Task ListArchivesAsync_ProducesJsonFlag()
     {
         var svc = CreateService();
@@ -289,6 +361,9 @@ public class Borg1ServiceTests
         public string? LastArgs { get; private set; }
         public IReadOnlyDictionary<string, string>? LastEnvVars { get; private set; }
 
+        /// <summary>Stdout returned for "borg --version" probes; empty means undetectable version.</summary>
+        public string VersionOutput { get; set; } = "";
+
         public void SetPassphrase(BorgRepository repo, string value) => _passphrase.Set(repo, value);
 
         protected override Task<BorgResult> RunCommandAsync(
@@ -296,6 +371,9 @@ public class Borg1ServiceTests
             string? workingDirectory = null, CancellationToken ct = default,
             Action<string>? onStderrLine = null)
         {
+            if (arguments == "--version")
+                return Task.FromResult(new BorgResult(0, VersionOutput, ""));
+
             LastFileName = fileName;
             LastArgs = arguments;
             LastEnvVars = env?.Variables;
