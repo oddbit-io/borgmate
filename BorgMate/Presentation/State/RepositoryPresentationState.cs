@@ -23,6 +23,9 @@ public sealed partial class RepositoryPresentationState : ObservableObject
     /// <summary>Fired when the selected repo's archive loading state changes.</summary>
     public event Action? SelectedLoadingStateChanged;
 
+    /// <summary>Fired when a repository's cached archive list is invalidated.</summary>
+    public event Action<RepositoryViewModel>? ArchivesInvalidated;
+
     partial void OnSelectedRepositoryChanging(RepositoryViewModel? oldValue, RepositoryViewModel? newValue)
     {
         if (oldValue != newValue)
@@ -53,6 +56,12 @@ public sealed partial class RepositoryPresentationState : ObservableObject
             if (r.Path == path)
                 return r;
         return null;
+    }
+
+    public void InvalidateArchives(RepositoryViewModel repo)
+    {
+        repo.LoadedArchives = null;
+        ArchivesInvalidated?.Invoke(repo);
     }
 
     // --- Per-repo archive loading state ---

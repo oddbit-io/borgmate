@@ -200,6 +200,7 @@ public class BackupScheduler : IBackupScheduler
                                     Interactive: false)));
                 }
 
+                _store.InvalidateArchives(repo);
                 _settingsStore.RequestSave();
             }
             catch (Exception ex)

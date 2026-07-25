@@ -686,6 +686,42 @@ public class RepositoriesPageViewModelTests : IDisposable
     }
 
     [Fact]
+    public void StoreInvalidation_SelectedRepository_ClearsVisibleArchives()
+    {
+        var vm = CreateVm();
+        var repo = new RepositoryViewModel { Name = "r", Path = "/r" };
+        repo.LoadedArchives = [new BorgArchive("a", DateTime.Now)];
+        vm.Repositories.Add(repo);
+        vm.SelectedRepository = repo;
+        vm.SelectedArchive = vm.Archives.Single();
+
+        _store.InvalidateArchives(repo);
+
+        Assert.Empty(vm.Archives);
+        Assert.Null(vm.SelectedArchive);
+        _archiveOperations.Received(1).InvalidateRepositoryCache(repo);
+    }
+
+    [Fact]
+    public void StoreInvalidation_BackgroundRepository_PreservesVisibleArchives()
+    {
+        var vm = CreateVm();
+        var selected = new RepositoryViewModel { Name = "selected", Path = "/selected" };
+        selected.LoadedArchives = [new BorgArchive("visible", DateTime.Now)];
+        var background = new RepositoryViewModel { Name = "background", Path = "/background" };
+        background.LoadedArchives = [new BorgArchive("cached", DateTime.Now)];
+        vm.Repositories.Add(selected);
+        vm.Repositories.Add(background);
+        vm.SelectedRepository = selected;
+
+        _store.InvalidateArchives(background);
+
+        Assert.Equal("visible", Assert.Single(vm.Archives).Name);
+        Assert.Null(background.LoadedArchives);
+        _archiveOperations.Received(1).InvalidateRepositoryCache(background);
+    }
+
+    [Fact]
     public void FetchArchivesIfEmpty_RepoHasError_NoOp()
     {
         var vm = CreateVm();

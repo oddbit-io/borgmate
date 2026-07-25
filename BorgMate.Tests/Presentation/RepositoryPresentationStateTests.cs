@@ -1,3 +1,4 @@
+using BorgMate.Domain.Archives;
 using RepositoryPresentationState = BorgMate.Presentation.State.RepositoryPresentationState;
 using RepositoryViewModel = BorgMate.Presentation.ViewModels.RepositoryViewModel;
 
@@ -77,6 +78,26 @@ public class RepositoryPresentationStateTests
         _store.Add(new RepositoryViewModel { Name = "a", Path = "/a" });
 
         Assert.Null(_store.FindByPath("/missing"));
+    }
+
+    [Fact]
+    public void InvalidateArchives_ClearsOnlyTargetAndRaisesEvent()
+    {
+        var repoA = new RepositoryViewModel { Name = "a", Path = "/a" };
+        var repoB = new RepositoryViewModel { Name = "b", Path = "/b" };
+        repoA.LoadedArchives = [new BorgArchive("a1", DateTime.Now)];
+        repoB.LoadedArchives = [new BorgArchive("b1", DateTime.Now)];
+        _store.Add(repoA);
+        _store.Add(repoB);
+
+        RepositoryViewModel? invalidated = null;
+        _store.ArchivesInvalidated += repo => invalidated = repo;
+
+        _store.InvalidateArchives(repoA);
+
+        Assert.Null(repoA.LoadedArchives);
+        Assert.NotNull(repoB.LoadedArchives);
+        Assert.Same(repoA, invalidated);
     }
 
     // --- SelectionChanged event ---

@@ -1,3 +1,4 @@
+using BorgMate.Domain.Archives;
 using BorgMate.Domain.Journal;
 using BorgMate.Domain.Repositories;
 using BorgMate.Domain.Settings;
@@ -359,6 +360,45 @@ public class SchedulerComputeNextRunTests
         await scheduler.CheckSchedulesGuardedAsync();
 
         await runner.Received(1).BackupAsync(Arg.Any<BackupOperationOptions>());
+    }
+
+    [Fact]
+    public async Task CheckSchedules_SuccessfulBackup_InvalidatesArchiveCache()
+    {
+        var repo = MakeRepo(ScheduleFrequency.EveryNHours, DateTime.Now.AddHours(-3), intervalHours: 1);
+        var store = new RepositoryPresentationState();
+        store.Add(repo);
+        var viewRepo = store.Repositories.Single();
+        viewRepo.LoadedArchives = [new BorgArchive("cached", DateTime.Now)];
+        var runner = Substitute.For<IRepositoryOperationRunner>();
+        runner.BackupAsync(Arg.Any<BackupOperationOptions>())
+            .Returns(Task.FromResult<OneOf<OperationOk, OperationError>>(OperationOk.Instance));
+        var scheduler = CreateScheduler(store,
+            new AppSettings { ScheduledBackupsOnlyOnAcPower = false }, MakeWakeScheduler(), runner);
+
+        await scheduler.CheckSchedulesGuardedAsync();
+
+        Assert.Null(viewRepo.LoadedArchives);
+    }
+
+    [Fact]
+    public async Task CheckSchedules_FailedBackup_PreservesArchiveCache()
+    {
+        var repo = MakeRepo(ScheduleFrequency.EveryNHours, DateTime.Now.AddHours(-3), intervalHours: 1);
+        var store = new RepositoryPresentationState();
+        store.Add(repo);
+        var viewRepo = store.Repositories.Single();
+        viewRepo.LoadedArchives = [new BorgArchive("cached", DateTime.Now)];
+        var runner = Substitute.For<IRepositoryOperationRunner>();
+        runner.BackupAsync(Arg.Any<BackupOperationOptions>())
+            .Returns(Task.FromResult<OneOf<OperationOk, OperationError>>(
+                new OperationError.Validation("failed")));
+        var scheduler = CreateScheduler(store,
+            new AppSettings { ScheduledBackupsOnlyOnAcPower = false }, MakeWakeScheduler(), runner);
+
+        await scheduler.CheckSchedulesGuardedAsync();
+
+        Assert.NotNull(viewRepo.LoadedArchives);
     }
 
     [Fact]

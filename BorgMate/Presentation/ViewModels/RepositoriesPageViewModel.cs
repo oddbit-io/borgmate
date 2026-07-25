@@ -124,6 +124,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         _logger = logger;
 
         _store.PropertyChanged += OnStorePropertyChanged;
+        _store.ArchivesInvalidated += OnArchivesInvalidated;
         _jobController.JobCompleted += OnJobCompleted;
         _store.SelectedLoadingStateChanged += () =>
             IsLoadingArchives = _store.SelectedRepository is { } r && _store.IsLoadingArchives(r);
@@ -339,10 +340,14 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     public void InvalidateArchives()
     {
         if (_store.SelectedRepository is { } repo)
-        {
-            repo.LoadedArchives = null;
-            _archiveOperations.InvalidateRepositoryCache(repo);
-        }
+            _store.InvalidateArchives(repo);
+    }
+
+    private void OnArchivesInvalidated(RepositoryViewModel repo)
+    {
+        _archiveOperations.InvalidateRepositoryCache(repo);
+        if (_store.SelectedRepository != repo)
+            return;
 
         Archives.Clear();
         SelectedArchive = null;
