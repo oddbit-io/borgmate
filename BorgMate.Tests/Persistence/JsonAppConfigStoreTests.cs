@@ -137,7 +137,7 @@ public class JsonAppConfigStoreTests
     }
 
     [Fact]
-    public async Task SaveAsync_WritesPreRefactorRepositoryConfigShape()
+    public async Task SaveAsync_WritesDurableRepositoryAndTransientState()
     {
         var configPath = CreateTempConfigPath();
         var store = new JsonAppConfigStore(configPath);
@@ -162,8 +162,19 @@ public class JsonAppConfigStoreTests
         Assert.Equal("Scheduled", persisted.GetProperty("Name").GetString());
         Assert.Equal("Scheduled", persisted.GetProperty("Mode").GetString());
         Assert.Equal("Thursday", persisted.GetProperty("Schedule").GetProperty("DayOfWeek").GetString());
-        Assert.Equal("2026-06-02T01:02:03.0000000", persisted.GetProperty("LastBackupAt").GetString());
+        Assert.False(persisted.TryGetProperty("LastBackupAt", out _));
         Assert.Equal(5, persisted.GetProperty("PruneOptions").GetProperty("KeepDaily").GetInt32());
+
+        using var stateDocument = JsonDocument.Parse(await File.ReadAllTextAsync(GetStatePath(configPath)));
+        var lastBackupAt = stateDocument.RootElement
+            .GetProperty("LastBackupAtByRepositoryPath")
+            .GetProperty("/repos/main")
+            .GetDateTime();
+        Assert.Equal(new DateTime(2026, 6, 2, 1, 2, 3), lastBackupAt);
+
+        var reloaded = await ((IRepositoryConfigStore)new JsonAppConfigStore(configPath)).LoadAsync();
+        Assert.True(reloaded.IsT0, reloaded.IsT1 ? reloaded.AsT1.ToString() : string.Empty);
+        Assert.Equal(new DateTime(2026, 6, 2, 1, 2, 3), Assert.Single(reloaded.AsT0.Repositories).LastBackupAt);
     }
 
     [Fact]
@@ -267,10 +278,10 @@ public class JsonAppConfigStoreTests
     }
 
     [Fact]
-    public async Task SaveAsync_CreatesBackupBeforeOverwritingExistingConfig()
+    public async Task SaveAsync_CreatesRollingBackupBeforeOverwritingExistingConfig()
     {
         var configPath = CreateTempConfigPath();
-        await File.WriteAllTextAsync(configPath, """
+        const string existingConfig = """
         {
           "Settings": {},
           "Repositories": [
@@ -293,7 +304,8 @@ public class JsonAppConfigStoreTests
           ],
           "Tasks": []
         }
-        """);
+        """;
+        await File.WriteAllTextAsync(configPath, existingConfig);
         var store = new JsonAppConfigStore(configPath);
         var load = await ((IRepositoryConfigStore)store).LoadAsync();
         Assert.True(load.IsT0, load.IsT1 ? load.AsT1.ToString() : string.Empty);
@@ -304,8 +316,130 @@ public class JsonAppConfigStoreTests
         var save = await store.SaveAsync();
 
         Assert.True(save.IsT0);
-        var backups = Directory.GetFiles(Path.GetDirectoryName(configPath)!, "config.json.*.bak");
-        Assert.Single(backups);
+        Assert.Equal(existingConfig, await File.ReadAllTextAsync(configPath + ".bak"));
+        Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(configPath)!, "config.json.*.bak"));
+
+        var previousConfig = await File.ReadAllTextAsync(configPath);
+        repo.ArchiveNamePrefix = "changed-again";
+        await store.UpdateAsync(repo);
+        Assert.True((await store.SaveAsync()).IsT0);
+        Assert.Equal(previousConfig, await File.ReadAllTextAsync(configPath + ".bak"));
+    }
+
+    [Fact]
+    public async Task SaveAsync_TransientChangeDoesNotRewriteDurableConfig()
+    {
+        var configPath = CreateTempConfigPath();
+        var store = new JsonAppConfigStore(configPath);
+        var config = store.Load();
+        config.Settings.Language = "en";
+
+        Assert.True((await store.SaveAsync()).IsT0);
+        var durableConfig = await File.ReadAllTextAsync(configPath);
+
+        config.Settings.WindowX = 120;
+        config.Settings.WindowY = 80;
+        config.Settings.IsMaximized = true;
+        config.Settings.SidebarExpanded = true;
+        Assert.True((await store.SaveAsync()).IsT0);
+
+        Assert.Equal(durableConfig, await File.ReadAllTextAsync(configPath));
+        Assert.False(File.Exists(configPath + ".bak"));
+        using var stateDocument = JsonDocument.Parse(await File.ReadAllTextAsync(GetStatePath(configPath)));
+        Assert.Equal(120, stateDocument.RootElement.GetProperty("WindowX").GetDouble());
+        Assert.Equal(80, stateDocument.RootElement.GetProperty("WindowY").GetDouble());
+        Assert.True(stateDocument.RootElement.GetProperty("IsMaximized").GetBoolean());
+        Assert.True(stateDocument.RootElement.GetProperty("SidebarExpanded").GetBoolean());
+
+        var reloaded = await ((ISettingsStore)new JsonAppConfigStore(configPath)).LoadAsync();
+        Assert.True(reloaded.IsT0, reloaded.IsT1 ? reloaded.AsT1.ToString() : string.Empty);
+        Assert.Equal(120, reloaded.AsT0.Settings.WindowX);
+        Assert.Equal(80, reloaded.AsT0.Settings.WindowY);
+        Assert.True(reloaded.AsT0.Settings.IsMaximized);
+        Assert.True(reloaded.AsT0.Settings.SidebarExpanded);
+    }
+
+    [Fact]
+    public async Task SaveAsync_MigratesTransientStateAndDeletesTimestampedBackups()
+    {
+        var configPath = CreateTempConfigPath();
+        const string legacyConfig = """
+        {
+          "Settings": {
+            "Language": "ru",
+            "WindowX": 42,
+            "WindowY": 24,
+            "WindowWidth": 1280,
+            "WindowHeight": 720,
+            "IsMaximized": true,
+            "SidebarExpanded": true
+          },
+          "Repositories": [
+            {
+              "Name": "Main",
+              "Path": "/repos/main",
+              "LastBackupAt": "2026-07-24T12:34:56.0000000"
+            }
+          ],
+          "Tasks": []
+        }
+        """;
+        await File.WriteAllTextAsync(configPath, legacyConfig);
+        var directory = Path.GetDirectoryName(configPath)!;
+        await File.WriteAllTextAsync(Path.Combine(directory, "config.json.20260724010101.bak"), "old");
+        await File.WriteAllTextAsync(Path.Combine(directory, "config.json.20260725010101.2.bak"), "older");
+        var store = new JsonAppConfigStore(configPath);
+
+        var config = store.Load();
+        var repository = store.FindByPath("/repos/main");
+
+        Assert.Equal(42, config.Settings.WindowX);
+        Assert.Equal(24, config.Settings.WindowY);
+        Assert.Equal(1280, config.Settings.WindowWidth);
+        Assert.Equal(720, config.Settings.WindowHeight);
+        Assert.True(config.Settings.IsMaximized);
+        Assert.True(config.Settings.SidebarExpanded);
+        Assert.Equal(new DateTime(2026, 7, 24, 12, 34, 56), repository?.LastBackupAt);
+        Assert.True((await store.SaveAsync()).IsT0);
+
+        using var durableDocument = JsonDocument.Parse(await File.ReadAllTextAsync(configPath));
+        var settings = durableDocument.RootElement.GetProperty("Settings");
+        Assert.False(settings.TryGetProperty("WindowX", out _));
+        Assert.False(settings.TryGetProperty("SidebarExpanded", out _));
+        Assert.False(durableDocument.RootElement.GetProperty("Repositories")[0]
+            .TryGetProperty("LastBackupAt", out _));
+
+        using var stateDocument = JsonDocument.Parse(await File.ReadAllTextAsync(GetStatePath(configPath)));
+        Assert.Equal(42, stateDocument.RootElement.GetProperty("WindowX").GetDouble());
+        Assert.Equal(new DateTime(2026, 7, 24, 12, 34, 56), stateDocument.RootElement
+            .GetProperty("LastBackupAtByRepositoryPath")
+            .GetProperty("/repos/main")
+            .GetDateTime());
+        Assert.Equal(legacyConfig, await File.ReadAllTextAsync(configPath + ".bak"));
+        Assert.Empty(Directory.GetFiles(directory, "config.json.*.bak"));
+    }
+
+    [Fact]
+    public async Task LoadAsync_CorruptTransientStateDoesNotBlockConfig()
+    {
+        var configPath = CreateTempConfigPath();
+        await File.WriteAllTextAsync(configPath, """
+        {
+          "Settings": {
+            "Language": "en"
+          },
+          "Repositories": [],
+          "Tasks": []
+        }
+        """);
+        await File.WriteAllTextAsync(GetStatePath(configPath), "{ not json");
+        var store = new JsonAppConfigStore(configPath);
+
+        var load = await ((ISettingsStore)store).LoadAsync();
+
+        Assert.True(load.IsT0, load.IsT1 ? load.AsT1.ToString() : string.Empty);
+        Assert.Equal("en", load.AsT0.Settings.Language);
+        Assert.Null(load.AsT0.Settings.WindowX);
     }
 
     [Fact]
@@ -477,5 +611,10 @@ public class JsonAppConfigStoreTests
         var directory = Path.Combine(Path.GetTempPath(), "BorgMate.Tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         return Path.Combine(directory, "config.json");
+    }
+
+    private static string GetStatePath(string configPath)
+    {
+        return Path.Combine(Path.GetDirectoryName(configPath)!, "state.json");
     }
 }

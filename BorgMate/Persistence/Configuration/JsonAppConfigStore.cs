@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using BorgMate.Domain.Repositories;
+using BorgMate.Domain.Settings;
 using BorgMate.Infrastructure.Borg;
 using Microsoft.Extensions.Logging;
 using OneOf;
@@ -16,13 +18,16 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
 {
     private readonly string _configDirectory;
     private readonly string _configFilePath;
+    private readonly string _stateFilePath;
     private readonly ILogger<JsonAppConfigStore>? _logger;
     private readonly bool _persistChanges;
     private AppConfigDocument _data = new();
+    private AppStateDocument _state = new();
     private bool _loadedExistingConfig;
     private int _loadedRepositoryCount;
     private StoreError? _loadError;
     private bool _repositoryMutated;
+    private bool _legacyStateMigrationPending;
 
     public JsonAppConfigStore(ILogger<JsonAppConfigStore>? logger = null)
         : this(DefaultConfigFilePath, logger)
@@ -41,6 +46,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
         _persistChanges = persistChanges;
         _configFilePath = configFilePath;
         _configDirectory = Path.GetDirectoryName(configFilePath) ?? string.Empty;
+        _stateFilePath = Path.Combine(_configDirectory, "state.json");
     }
 
     private static string DefaultConfigDirectory =>
@@ -81,6 +87,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
 
         _repositoryMutated = true;
         _data.Repositories.Add(FromModel(repo));
+        UpdateRepositoryState(repo);
         var snapshot = CreateRepositorySnapshot();
         RepositoriesChanged?.Invoke(snapshot);
         await Task.CompletedTask;
@@ -96,11 +103,16 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
         if (index < 0)
             index = _data.Repositories.FindIndex(r => string.Equals(r.Name, repo.Name, StringComparison.Ordinal));
 
+        var previousPath = index >= 0 ? _data.Repositories[index].Path : null;
         _repositoryMutated = true;
         if (index < 0)
             _data.Repositories.Add(FromModel(repo));
         else
             _data.Repositories[index] = FromModel(repo);
+
+        if (previousPath is not null && !string.Equals(previousPath, repo.Path, StringComparison.Ordinal))
+            _state.LastBackupAtByRepositoryPath.Remove(previousPath);
+        UpdateRepositoryState(repo);
 
         var snapshot = CreateRepositorySnapshot();
         RepositoriesChanged?.Invoke(snapshot);
@@ -114,6 +126,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
         ct.ThrowIfCancellationRequested();
         _repositoryMutated = true;
         _data.Repositories.RemoveAll(r => string.Equals(r.Path, repo.Path, StringComparison.Ordinal));
+        _state.LastBackupAtByRepositoryPath.Remove(repo.Path);
         var snapshot = CreateRepositorySnapshot();
         RepositoriesChanged?.Invoke(snapshot);
         await Task.CompletedTask;
@@ -210,6 +223,8 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
                 ? new StoreError.Corrupt(ex.Message)
                 : new StoreError.Io(ex);
             _data = new AppConfigDocument();
+            _state = new AppStateDocument();
+            _legacyStateMigrationPending = false;
             return _data;
         }
     }
@@ -231,6 +246,8 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
             _logger?.LogError(ex, "Failed to parse config from {Path}", _configFilePath);
             _loadError = new StoreError.Corrupt(ex.Message);
             _data = new AppConfigDocument();
+            _state = new AppStateDocument();
+            _legacyStateMigrationPending = false;
             return _loadError;
         }
         catch (IOException ex)
@@ -238,6 +255,8 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
             _logger?.LogError(ex, "Failed to load config from {Path}", _configFilePath);
             _loadError = new StoreError.Io(ex);
             _data = new AppConfigDocument();
+            _state = new AppStateDocument();
+            _legacyStateMigrationPending = false;
             return _loadError;
         }
         catch (UnauthorizedAccessException ex)
@@ -245,6 +264,8 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
             _logger?.LogError(ex, "Failed to load config from {Path}", _configFilePath);
             _loadError = new StoreError.Io(ex);
             _data = new AppConfigDocument();
+            _state = new AppStateDocument();
+            _legacyStateMigrationPending = false;
             return _loadError;
         }
     }
@@ -256,15 +277,24 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
         _loadedExistingConfig = File.Exists(_configFilePath);
         _loadedRepositoryCount = 0;
 
-        if (!_loadedExistingConfig)
-            return new AppConfigDocument();
-
-        var json = File.ReadAllText(_configFilePath);
-        var data = JsonSerializer.Deserialize(json, AppConfigJsonContext.Default.AppConfigDocument) ??
+        string? json = null;
+        var data = new AppConfigDocument();
+        if (_loadedExistingConfig)
+        {
+            json = File.ReadAllText(_configFilePath);
+            data = JsonSerializer.Deserialize(json, AppConfigJsonContext.Default.AppConfigDocument) ??
                    new AppConfigDocument();
-        NormalizeSettings(data);
-        NormalizeRepositories(data);
-        MigrateLegacyTasks(data);
+            NormalizeSettings(data);
+            NormalizeRepositories(data);
+            MigrateLegacyTasks(data);
+        }
+
+        var legacyState = json is null
+            ? new AppStateDocument()
+            : ReadLegacyState(json, out _legacyStateMigrationPending);
+        _state = LoadState(legacyState);
+        _legacyStateMigrationPending |= HasLegacyConfigBackups();
+        ApplyState(data);
         _loadedRepositoryCount = data.Repositories.Count;
         return data;
     }
@@ -295,20 +325,14 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
                 return new StoreError.Validation("Config.RefusingEmptyRepositoryOverwrite");
             }
 
+            CaptureState();
             await Task.Run(() =>
             {
                 Directory.CreateDirectory(_configDirectory);
-                var json = JsonSerializer.Serialize(_data, AppConfigJsonContext.Default.AppConfigDocument);
-
-                // Skip write if content hasn't changed
-                if (File.Exists(_configFilePath) && File.ReadAllText(_configFilePath) == json)
-                    return;
-
-                BackupExistingConfig();
-
-                var tmpPath = _configFilePath + ".tmp";
-                File.WriteAllText(tmpPath, json);
-                File.Move(tmpPath, _configFilePath, true);
+                var stateSaved = TrySaveState();
+                SaveConfig();
+                if (_legacyStateMigrationPending && stateSaved)
+                    _legacyStateMigrationPending = !DeleteLegacyConfigBackups();
             }, ct);
             return StoreOk.Instance;
         }
@@ -381,19 +405,198 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
         }
     }
 
-    private void BackupExistingConfig()
+    private AppStateDocument LoadState(AppStateDocument legacyState)
     {
-        if (!File.Exists(_configFilePath))
-            return;
+        if (!File.Exists(_stateFilePath))
+            return legacyState;
 
-        var timestamp = DateTimeOffset.Now.ToString("yyyyMMddHHmmss");
-        var backupPath = $"{_configFilePath}.{timestamp}.bak";
-        for (var i = 2; File.Exists(backupPath); i++)
-            backupPath = $"{_configFilePath}.{timestamp}.{i}.bak";
-        File.Copy(_configFilePath, backupPath, false);
+        try
+        {
+            var json = File.ReadAllText(_stateFilePath);
+            var state = JsonSerializer.Deserialize(json, AppConfigJsonContext.Default.AppStateDocument) ??
+                        new AppStateDocument();
+            state.LastBackupAtByRepositoryPath ??= [];
+            return state;
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            _logger?.LogWarning(ex, "Failed to load transient state from {Path}; using migrated or default state",
+                _stateFilePath);
+            return legacyState;
+        }
     }
 
-    private static BorgRepository ToModel(RepositoryData data)
+    private static AppStateDocument ReadLegacyState(string json, out bool foundLegacyState)
+    {
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+        var state = new AppStateDocument();
+        foundLegacyState = false;
+
+        if (root.TryGetProperty(nameof(AppConfigDocument.Settings), out var settings) &&
+            settings.ValueKind == JsonValueKind.Object)
+        {
+            foundLegacyState =
+                settings.TryGetProperty(nameof(AppSettings.WindowX), out _) |
+                settings.TryGetProperty(nameof(AppSettings.WindowY), out _) |
+                settings.TryGetProperty(nameof(AppSettings.WindowWidth), out _) |
+                settings.TryGetProperty(nameof(AppSettings.WindowHeight), out _) |
+                settings.TryGetProperty(nameof(AppSettings.IsMaximized), out _) |
+                settings.TryGetProperty(nameof(AppSettings.SidebarExpanded), out _);
+            state.WindowX = ReadNullableDouble(settings, nameof(AppSettings.WindowX));
+            state.WindowY = ReadNullableDouble(settings, nameof(AppSettings.WindowY));
+            state.WindowWidth = ReadNullableDouble(settings, nameof(AppSettings.WindowWidth));
+            state.WindowHeight = ReadNullableDouble(settings, nameof(AppSettings.WindowHeight));
+            state.IsMaximized = ReadBoolean(settings, nameof(AppSettings.IsMaximized));
+            state.SidebarExpanded = ReadBoolean(settings, nameof(AppSettings.SidebarExpanded));
+        }
+
+        if (!root.TryGetProperty(nameof(AppConfigDocument.Repositories), out var repositories) ||
+            repositories.ValueKind != JsonValueKind.Array)
+            return state;
+
+        foreach (var repository in repositories.EnumerateArray())
+        {
+            if (!repository.TryGetProperty(nameof(BorgRepository.LastBackupAt), out var lastBackupElement))
+                continue;
+
+            foundLegacyState = true;
+            if (!repository.TryGetProperty(nameof(RepositoryData.Path), out var pathElement) ||
+                pathElement.ValueKind != JsonValueKind.String ||
+                pathElement.GetString() is not { Length: > 0 } path ||
+                lastBackupElement.ValueKind != JsonValueKind.String ||
+                lastBackupElement.GetString() is not { } lastBackupText ||
+                !DateTime.TryParse(lastBackupText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
+                    out var lastBackup))
+                continue;
+
+            state.LastBackupAtByRepositoryPath[path] = lastBackup;
+        }
+
+        return state;
+    }
+
+    private static double? ReadNullableDouble(JsonElement element, string propertyName)
+    {
+        return element.TryGetProperty(propertyName, out var property) &&
+               property.ValueKind == JsonValueKind.Number
+            ? property.GetDouble()
+            : null;
+    }
+
+    private static bool ReadBoolean(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+            return false;
+
+        return property.ValueKind == JsonValueKind.True;
+    }
+
+    private void ApplyState(AppConfigDocument data)
+    {
+        data.Settings.WindowX = _state.WindowX;
+        data.Settings.WindowY = _state.WindowY;
+        data.Settings.WindowWidth = _state.WindowWidth;
+        data.Settings.WindowHeight = _state.WindowHeight;
+        data.Settings.IsMaximized = _state.IsMaximized;
+        data.Settings.SidebarExpanded = _state.SidebarExpanded;
+    }
+
+    private void CaptureState()
+    {
+        _state.WindowX = _data.Settings.WindowX;
+        _state.WindowY = _data.Settings.WindowY;
+        _state.WindowWidth = _data.Settings.WindowWidth;
+        _state.WindowHeight = _data.Settings.WindowHeight;
+        _state.IsMaximized = _data.Settings.IsMaximized;
+        _state.SidebarExpanded = _data.Settings.SidebarExpanded;
+    }
+
+    private void UpdateRepositoryState(BorgRepository repo)
+    {
+        if (repo.LastBackupAt is { } lastBackupAt)
+            _state.LastBackupAtByRepositoryPath[repo.Path] = lastBackupAt;
+        else
+            _state.LastBackupAtByRepositoryPath.Remove(repo.Path);
+    }
+
+    private bool TrySaveState()
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(_state, AppConfigJsonContext.Default.AppStateDocument);
+            if (File.Exists(_stateFilePath) && File.ReadAllText(_stateFilePath) == json)
+                return true;
+
+            var tmpPath = _stateFilePath + ".tmp";
+            File.WriteAllText(tmpPath, json);
+            File.Move(tmpPath, _stateFilePath, true);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _logger?.LogWarning(ex, "Failed to save transient state to {Path}", _stateFilePath);
+            return false;
+        }
+    }
+
+    private void SaveConfig()
+    {
+        var json = JsonSerializer.Serialize(_data, AppConfigJsonContext.Default.AppConfigDocument);
+        if (File.Exists(_configFilePath) && File.ReadAllText(_configFilePath) == json)
+            return;
+
+        var tmpPath = _configFilePath + ".tmp";
+        File.WriteAllText(tmpPath, json);
+        if (File.Exists(_configFilePath))
+            File.Copy(_configFilePath, _configFilePath + ".bak", true);
+        File.Move(tmpPath, _configFilePath, true);
+    }
+
+    private bool HasLegacyConfigBackups()
+    {
+        try
+        {
+            return Directory.Exists(_configDirectory) &&
+                   Directory.EnumerateFiles(_configDirectory, $"{Path.GetFileName(_configFilePath)}.*.bak").Any();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _logger?.LogWarning(ex, "Failed to enumerate legacy config backups in {Path}", _configDirectory);
+            return false;
+        }
+    }
+
+    private bool DeleteLegacyConfigBackups()
+    {
+        try
+        {
+            var deletedAll = true;
+            foreach (var path in Directory.EnumerateFiles(
+                         _configDirectory,
+                         $"{Path.GetFileName(_configFilePath)}.*.bak"))
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    deletedAll = false;
+                    _logger?.LogWarning(ex, "Failed to delete legacy config backup {Path}", path);
+                }
+            }
+
+            return deletedAll;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _logger?.LogWarning(ex, "Failed to enumerate legacy config backups in {Path}", _configDirectory);
+            return false;
+        }
+    }
+
+    private BorgRepository ToModel(RepositoryData data)
     {
         var locationKind = ResolveLocationKind(data);
         var borgUrl = !string.IsNullOrWhiteSpace(data.BorgUrl) ? data.BorgUrl : string.Empty;
@@ -439,7 +642,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
             repo.Schedule.RunPruneAfterBackup = data.Schedule.RunPruneAfterBackup;
         }
 
-        if (data.LastBackupAt is not null && DateTime.TryParse(data.LastBackupAt, out var lastBackup))
+        if (_state.LastBackupAtByRepositoryPath.TryGetValue(data.Path, out var lastBackup))
             repo.LastBackupAt = lastBackup;
 
         if (data.PruneOptions is not null)
@@ -491,7 +694,6 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
                     RunPruneAfterBackup = repo.Schedule.RunPruneAfterBackup
                 }
                 : null,
-            LastBackupAt = repo.LastBackupAt?.ToString("o"),
             PruneOptions = repo.PruneOptions.HasAnyRetention
                 ? new PruneOptionsData
                 {

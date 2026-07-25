@@ -6,4 +6,5 @@ namespace BorgMate.Persistence.Configuration;
     WriteIndented = true,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(AppConfigDocument))]
+[JsonSerializable(typeof(AppStateDocument))]
 public partial class AppConfigJsonContext : JsonSerializerContext;

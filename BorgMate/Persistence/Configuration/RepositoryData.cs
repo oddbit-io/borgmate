@@ -22,6 +22,5 @@ public class RepositoryData
     public List<string>? SourceDirectories { get; set; }
     public BackupScheduleData? Schedule { get; set; }
     public BackupMode? Mode { get; set; }
-    public string? LastBackupAt { get; set; }
     public PruneOptionsData? PruneOptions { get; set; }
 }

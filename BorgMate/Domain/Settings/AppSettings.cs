@@ -74,12 +74,18 @@ public class AppSettings
     public bool LoggingEnabled { get; set; } = true;
     public AppLogLevel LogLevel { get; set; } = AppLogLevel.Info;
     public RetentionPeriod? LogRetention { get; set; } = RetentionPeriod.OneWeek;
+    [JsonIgnore]
     public bool SidebarExpanded { get; set; }
     public RetentionPeriod? JournalRetention { get; set; } = RetentionPeriod.OneWeek;
+    [JsonIgnore]
     public double? WindowX { get; set; }
+    [JsonIgnore]
     public double? WindowY { get; set; }
+    [JsonIgnore]
     public double? WindowWidth { get; set; }
+    [JsonIgnore]
     public double? WindowHeight { get; set; }
+    [JsonIgnore]
     public bool IsMaximized { get; set; }
 
     /// <summary>True = binary units (KiB/MiB/GiB, base 1024). False = decimal units (KB/MB/GB, base 1000).</summary>
