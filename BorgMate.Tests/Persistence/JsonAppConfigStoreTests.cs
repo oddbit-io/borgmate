@@ -74,6 +74,7 @@ public class JsonAppConfigStoreTests
         Assert.Equal(2222, repo.SshPort);
         Assert.Equal(128, repo.RateLimit);
         Assert.Single(repo.SourceDirectories);
+        Assert.Empty(repo.ExcludedPaths);
         Assert.Equal(BackupMode.Scheduled, repo.Mode);
         Assert.Equal(ScheduleFrequency.Weekly, repo.Schedule.Frequency);
         Assert.Equal(DayOfWeek.Friday, repo.Schedule.DayOfWeek);
@@ -149,6 +150,7 @@ public class JsonAppConfigStoreTests
             LastBackupAt = new DateTime(2026, 6, 2, 1, 2, 3)
         };
         repo.SourceDirectories.Add("/home/user");
+        repo.ExcludedPaths.Add("/home/user/cache");
         repo.Schedule.Frequency = ScheduleFrequency.Monthly;
         repo.Schedule.DayOfWeek = DayOfWeek.Thursday;
         repo.PruneOptions.KeepDaily = 5;
@@ -164,6 +166,7 @@ public class JsonAppConfigStoreTests
         Assert.Equal("Thursday", persisted.GetProperty("Schedule").GetProperty("DayOfWeek").GetString());
         Assert.False(persisted.TryGetProperty("LastBackupAt", out _));
         Assert.Equal(5, persisted.GetProperty("PruneOptions").GetProperty("KeepDaily").GetInt32());
+        Assert.Equal("/home/user/cache", persisted.GetProperty("ExcludedPaths")[0].GetString());
 
         using var stateDocument = JsonDocument.Parse(await File.ReadAllTextAsync(GetStatePath(configPath)));
         var lastBackupAt = stateDocument.RootElement
@@ -174,7 +177,9 @@ public class JsonAppConfigStoreTests
 
         var reloaded = await ((IRepositoryConfigStore)new JsonAppConfigStore(configPath)).LoadAsync();
         Assert.True(reloaded.IsT0, reloaded.IsT1 ? reloaded.AsT1.ToString() : string.Empty);
-        Assert.Equal(new DateTime(2026, 6, 2, 1, 2, 3), Assert.Single(reloaded.AsT0.Repositories).LastBackupAt);
+        var reloadedRepo = Assert.Single(reloaded.AsT0.Repositories);
+        Assert.Equal(new DateTime(2026, 6, 2, 1, 2, 3), reloadedRepo.LastBackupAt);
+        Assert.Equal("/home/user/cache", Assert.Single(reloadedRepo.ExcludedPaths));
     }
 
     [Fact]
@@ -479,6 +484,18 @@ public class JsonAppConfigStoreTests
         Assert.Equal(2, repo.SourceDirectories.Count);
         Assert.Contains("/home/user/docs", repo.SourceDirectories);
         Assert.Contains("/home/user/photos", repo.SourceDirectories);
+    }
+
+    [Fact]
+    public void Clone_ExcludedPaths()
+    {
+        var original = new BorgRepository { Name = "test", Path = "/test" };
+        original.ExcludedPaths.Add("/home/user/cache");
+
+        var repo = JsonAppConfigStore.Clone(original);
+        original.ExcludedPaths.Clear();
+
+        Assert.Equal("/home/user/cache", Assert.Single(repo.ExcludedPaths));
     }
 
     [Fact]

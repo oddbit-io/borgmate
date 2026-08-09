@@ -65,7 +65,8 @@ public class Borg1Service : BorgServiceBase
             repo.ExcludeCloudFiles && await SupportsFeatureAsync(BorgCliFeature.ExcludeDataless, ct)
             ? " --exclude-dataless"
             : "";
-        var args = $"create --progress{rateLimit}{excludeDataless} \"{Location(repo)}::{archiveName}\" {paths}";
+        var excludes = BuildExcludeArgs(repo.ExcludedPaths);
+        var args = $"create --progress{rateLimit}{excludeDataless}{excludes} \"{Location(repo)}::{archiveName}\" {paths}";
         return await RunCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 

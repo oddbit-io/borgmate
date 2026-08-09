@@ -75,6 +75,20 @@ public class Borg1ServiceTests
     }
 
     [Fact]
+    public async Task CreateBackupAsync_WithExcludedPaths_IncludesLiteralPathPrefixes()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+        repo.ExcludedPaths.Add("/home/user/cache");
+        repo.ExcludedPaths.Add("/home/user/large file.bin");
+
+        await svc.CreateBackupAsync(repo, "archive", ["/home/user"]);
+
+        Assert.Contains("--exclude \"pp:/home/user/cache\"", svc.LastArgs!);
+        Assert.Contains("--exclude \"pp:/home/user/large file.bin\"", svc.LastArgs!);
+    }
+
+    [Fact]
     public async Task CreateBackupAsync_WithBorg145_ExcludesDatalessByDefault()
     {
         var svc = CreateService();

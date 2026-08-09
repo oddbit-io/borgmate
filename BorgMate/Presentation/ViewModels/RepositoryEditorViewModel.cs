@@ -216,6 +216,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private string? _selectedDirectory;
 
     [ObservableProperty]
+    private string? _selectedExcludedPath;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowHourMinute))]
     [NotifyPropertyChangedFor(nameof(ShowDayOfWeek))]
     [NotifyPropertyChangedFor(nameof(ShowDayOfMonth))]
@@ -306,8 +309,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public bool ShowSshKeyOptions => IsSsh || IsBorgUrlSshLike;
     public bool ShowRemoteBorgPathOptions => ShowSshKeyOptions;
 
-    // Source directories and schedule.
+    // Backup paths and schedule.
     public ObservableCollection<string> SourceDirectories { get; } = [];
+    public ObservableCollection<string> ExcludedPaths { get; } = [];
 
     public bool IsScheduled
     {
@@ -430,7 +434,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         _reachabilitySnapshot is not { } snap ||
         !snap.Equals(CaptureReachabilitySnapshot());
 
-    // --- Commands: browsing and source dirs ---
+    // --- Commands: browsing and backup paths ---
 
     [RelayCommand]
     private async Task BrowseSourceDirectories()
@@ -446,6 +450,31 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private void RemoveSourceDirectory(string path)
     {
         SourceDirectories.Remove(path);
+    }
+
+    [RelayCommand]
+    private async Task BrowseExcludedDirectories()
+    {
+        if (_filePicker is not { } filePicker) return;
+        var paths = await filePicker.PickFoldersAsync(Strings.Get("Picker.SelectExcludedDirs"));
+        foreach (var path in paths)
+            if (!ExcludedPaths.Contains(path))
+                ExcludedPaths.Add(path);
+    }
+
+    [RelayCommand]
+    private async Task BrowseExcludedFile()
+    {
+        if (_filePicker is not { } filePicker) return;
+        var path = await filePicker.PickFileAsync(Strings.Get("Picker.SelectExcludedFile"));
+        if (path is not null && !ExcludedPaths.Contains(path))
+            ExcludedPaths.Add(path);
+    }
+
+    [RelayCommand]
+    private void RemoveExcludedPath(string path)
+    {
+        ExcludedPaths.Remove(path);
     }
 
     [RelayCommand]
@@ -573,6 +602,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         foreach (var dir in repo.SourceDirectories)
             SourceDirectories.Add(dir);
 
+        ExcludedPaths.Clear();
+        foreach (var path in repo.ExcludedPaths)
+            ExcludedPaths.Add(path);
+
         KeepLastEnabled = repo.PruneOptions.KeepLast > 0;
         if (repo.PruneOptions.KeepLast > 0) KeepLast = repo.PruneOptions.KeepLast;
         KeepHourlyEnabled = repo.PruneOptions.KeepHourly > 0;
@@ -631,6 +664,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         repo.SourceDirectories.Clear();
         foreach (var dir in SourceDirectories)
             repo.SourceDirectories.Add(dir);
+
+        repo.ExcludedPaths.Clear();
+        foreach (var path in ExcludedPaths)
+            repo.ExcludedPaths.Add(path);
 
         repo.PruneOptions.KeepLast = KeepLastEnabled ? KeepLast : 0;
         repo.PruneOptions.KeepHourly = KeepHourlyEnabled ? KeepHourly : 0;

@@ -202,18 +202,23 @@
 
             <!-- Source Folders tab -->
             <TabItem Header="{Binding [SourceDirectories], Source={x:Static loc:Strings.Instance}}">
-                <DockPanel Margin="0,8,0,0">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
-                        <controls:ToolbarButton Icon="FolderPlus"
-                                                Label="{Binding [Add], Source={x:Static loc:Strings.Instance}}"
-                                                Command="{Binding BrowseSourceDirectoriesCommand}" />
-                        <controls:ToolbarButton Icon="Trash"
-                                                Label="{Binding [Remove], Source={x:Static loc:Strings.Instance}}"
-                                                Command="{Binding RemoveSourceDirectoryCommand}"
-                                                CommandParameter="{Binding SelectedDirectory}"
-                                                IsEnabled="{Binding SelectedDirectory, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <Grid Margin="0,8,0,0" RowDefinitions="Auto,*,Auto,*" RowSpacing="8">
+                    <StackPanel Grid.Row="0" Spacing="4">
+                        <TextBlock Text="{Binding [IncludedDirectories], Source={x:Static loc:Strings.Instance}}"
+                                   FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <controls:ToolbarButton Icon="FolderPlus"
+                                                    Label="{Binding [Add], Source={x:Static loc:Strings.Instance}}"
+                                                    Command="{Binding BrowseSourceDirectoriesCommand}" />
+                            <controls:ToolbarButton Icon="Trash"
+                                                    Label="{Binding [Remove], Source={x:Static loc:Strings.Instance}}"
+                                                    Command="{Binding RemoveSourceDirectoryCommand}"
+                                                    CommandParameter="{Binding SelectedDirectory}"
+                                                    IsEnabled="{Binding SelectedDirectory, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </StackPanel>
                     </StackPanel>
-                    <ListBox ItemsSource="{Binding SourceDirectories}"
+                    <ListBox Grid.Row="1"
+                             ItemsSource="{Binding SourceDirectories}"
                              SelectedItem="{Binding SelectedDirectory}"
                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
                              ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -245,7 +250,41 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                </DockPanel>
+
+                    <StackPanel Grid.Row="2" Spacing="4">
+                        <TextBlock Text="{Binding [ExcludedPaths], Source={x:Static loc:Strings.Instance}}"
+                                   FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <controls:ToolbarButton Icon="FolderPlus"
+                                                    Label="{Binding [AddFolder], Source={x:Static loc:Strings.Instance}}"
+                                                    Command="{Binding BrowseExcludedDirectoriesCommand}" />
+                            <controls:ToolbarButton Icon="FileEarmark"
+                                                    Label="{Binding [AddFile], Source={x:Static loc:Strings.Instance}}"
+                                                    Command="{Binding BrowseExcludedFileCommand}" />
+                            <controls:ToolbarButton Icon="Trash"
+                                                    Label="{Binding [Remove], Source={x:Static loc:Strings.Instance}}"
+                                                    Command="{Binding RemoveExcludedPathCommand}"
+                                                    CommandParameter="{Binding SelectedExcludedPath}"
+                                                    IsEnabled="{Binding SelectedExcludedPath, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <ListBox Grid.Row="3"
+                             ItemsSource="{Binding ExcludedPaths}"
+                             SelectedItem="{Binding SelectedExcludedPath}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="2,2">
+                                    <controls:BootstrapIcon Kind="DashCircleFill" Width="12" Height="12"
+                                                            VerticalAlignment="Center"
+                                                            Foreground="{DynamicResource SecondaryTextBrush}" />
+                                    <TextBlock Text="{Binding}" VerticalAlignment="Center" FontSize="12" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
             </TabItem>
 
             <!-- Schedule tab -->

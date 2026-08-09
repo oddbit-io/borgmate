@@ -143,6 +143,19 @@ public class Borg2ServiceTests
     }
 
     [Fact]
+    public async Task CreateBackupAsync_WithExcludedPath_IncludesLiteralPathPrefix()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+        repo.ExcludedPaths.Add("/data/cache");
+
+        await svc.CreateBackupAsync(repo, "archive", ["/data"]);
+
+        Assert.Contains("--exclude \"pp:/data/cache\"", svc.LastArgs!);
+        AssertBorgRepo(svc, repo.Path);
+    }
+
+    [Fact]
     public async Task CreateBackupAsync_UsesConfiguredBorg2BinaryPath()
     {
         var settings = new AppSettings { Borg2BinaryPath = "/opt/borg2/bin/borg" };

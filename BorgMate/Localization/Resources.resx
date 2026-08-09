@@ -42,6 +42,12 @@
     <data name="Add" xml:space="preserve">
     <value>Add</value>
   </data>
+    <data name="AddFolder" xml:space="preserve">
+    <value>Add Folder</value>
+  </data>
+    <data name="AddFile" xml:space="preserve">
+    <value>Add File</value>
+  </data>
     <data name="Edit" xml:space="preserve">
     <value>Edit</value>
   </data>
@@ -359,6 +365,12 @@
   </data>
     <data name="SourceDirectories" xml:space="preserve">
     <value>Source Directories</value>
+  </data>
+    <data name="IncludedDirectories" xml:space="preserve">
+    <value>Included Directories</value>
+  </data>
+    <data name="ExcludedPaths" xml:space="preserve">
+    <value>Excluded Files and Directories</value>
   </data>
     <data name="AppSettings.Group.Startup" xml:space="preserve">
     <value>Startup</value>
@@ -1040,6 +1052,12 @@
   </data>
     <data name="Picker.SelectSourceDirs" xml:space="preserve">
     <value>Select Source Directories</value>
+  </data>
+    <data name="Picker.SelectExcludedDirs" xml:space="preserve">
+    <value>Select Directories to Exclude</value>
+  </data>
+    <data name="Picker.SelectExcludedFile" xml:space="preserve">
+    <value>Select File to Exclude</value>
   </data>
     <data name="Picker.SelectRestoreDest" xml:space="preserve">
     <value>Select Restore Destination</value>

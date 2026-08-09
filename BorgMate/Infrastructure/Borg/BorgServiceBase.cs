@@ -333,6 +333,11 @@ public abstract class BorgServiceBase : IBorgService
         return parts.Count == 0 ? "" : " " + string.Join(" ", parts);
     }
 
+    protected static string BuildExcludeArgs(IEnumerable<string> excludedPaths)
+    {
+        return string.Concat(excludedPaths.Select(path => $" --exclude \"pp:{P(path)}\""));
+    }
+
     /// <summary>Builds optional metadata flags for <c>borg extract</c>.</summary>
     protected static string BuildExtractOptionArgs(BorgExtractOptions options)
     {

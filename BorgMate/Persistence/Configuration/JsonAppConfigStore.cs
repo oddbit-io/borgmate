@@ -629,6 +629,10 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
             foreach (var dir in data.SourceDirectories)
                 repo.SourceDirectories.Add(dir);
 
+        if (data.ExcludedPaths is not null)
+            foreach (var excludedPath in data.ExcludedPaths)
+                repo.ExcludedPaths.Add(excludedPath);
+
         if (data.Schedule is not null)
         {
             repo.Schedule.Frequency = data.Schedule.Frequency;
@@ -682,6 +686,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
             BorgRemotePath = repo.BorgRemotePath,
             IsLocal = locationKind == BorgRepositoryLocationKind.LocalPath,
             SourceDirectories = repo.SourceDirectories.Count > 0 ? repo.SourceDirectories.ToList() : null,
+            ExcludedPaths = repo.ExcludedPaths.Count > 0 ? repo.ExcludedPaths.ToList() : null,
             Mode = repo.Mode != BackupMode.Manual ? repo.Mode : null,
             Schedule = repo.Mode != BackupMode.Manual
                 ? new BackupScheduleData
@@ -759,6 +764,9 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
 
         foreach (var dir in repo.SourceDirectories ?? [])
             clone.SourceDirectories.Add(dir);
+
+        foreach (var path in repo.ExcludedPaths ?? [])
+            clone.ExcludedPaths.Add(path);
 
         return clone;
     }

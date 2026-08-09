@@ -19,6 +19,7 @@ public class BorgRepositoryTests
         Assert.Equal(BorgEncryptionMode.RepokeyBlake2, repo.EncryptionMode);
         Assert.Equal(BackupMode.Manual, repo.Mode);
         Assert.Empty(repo.SourceDirectories);
+        Assert.Empty(repo.ExcludedPaths);
         Assert.Null(repo.LastBackupAt);
     }
 

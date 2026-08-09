@@ -56,6 +56,9 @@ public sealed record BorgRepository
     /// <summary>Source directories included in backups.</summary>
     public ObservableCollection<string> SourceDirectories { get; set; } = [];
 
+    /// <summary>Local files and directory trees excluded from backups.</summary>
+    public ObservableCollection<string> ExcludedPaths { get; set; } = [];
+
     /// <summary>Manual or scheduled backup mode.</summary>
     public BackupMode Mode { get; set; } = BackupMode.Manual;
 

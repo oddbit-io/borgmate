@@ -1,5 +1,6 @@
 using BorgMate.Domain.Repositories;
 using BorgMate.Presentation.Dialogs;
+using NSubstitute;
 using RepositoryEditorViewModel = BorgMate.Presentation.ViewModels.RepositoryEditorViewModel;
 
 namespace BorgMate.Tests.Presentation;
@@ -88,6 +89,7 @@ public class RepositoryEditorViewModelTests
         repo.Schedule.Minute = 15;
         repo.Schedule.DayOfWeek = System.DayOfWeek.Friday;
         repo.SourceDirectories.Add("/home/user/docs");
+        repo.ExcludedPaths.Add("/home/user/docs/cache");
 
         var vm = RepositoryEditorViewModel.ForEdit(new FilePickerService(), repo);
 
@@ -107,6 +109,7 @@ public class RepositoryEditorViewModelTests
         Assert.Equal(15, vm.ScheduleMinute);
         Assert.Equal(System.DayOfWeek.Friday, vm.SelectedDayOfWeek);
         Assert.Single(vm.SourceDirectories);
+        Assert.Equal("/home/user/docs/cache", Assert.Single(vm.ExcludedPaths));
         // Path decomposed into host/user/path VM fields
         Assert.Equal("host", vm.SshHost);
         Assert.Equal("user", vm.SshUser);
@@ -502,11 +505,29 @@ public class RepositoryEditorViewModelTests
         vm.RepoPath = "/data/borg";
         vm.SourceDirectories.Add("/home/user/docs");
         vm.SourceDirectories.Add("/home/user/photos");
+        vm.ExcludedPaths.Add("/home/user/docs/cache");
 
         vm.SaveCommand.Execute(null);
 
         Assert.NotNull(vm.Repository);
         Assert.Equal(2, vm.Repository!.SourceDirectories.Count);
+        Assert.Equal("/home/user/docs/cache", Assert.Single(vm.Repository.Model.ExcludedPaths));
+    }
+
+    [Fact]
+    public async Task ExcludedPaths_AddsUniquePickerPathsAndRemovesSelection()
+    {
+        var picker = Substitute.For<IFilePickerService>();
+        picker.PickFoldersAsync(Arg.Any<string>())
+            .Returns(Task.FromResult<IReadOnlyList<string>>(["/home/user/cache", "/home/user/cache"]));
+        picker.PickFileAsync(Arg.Any<string>()).Returns(Task.FromResult<string?>("/home/user/large.bin"));
+        var vm = RepositoryEditorViewModel.ForNew(picker);
+
+        await vm.BrowseExcludedDirectoriesCommand.ExecuteAsync(null);
+        await vm.BrowseExcludedFileCommand.ExecuteAsync(null);
+        vm.RemoveExcludedPathCommand.Execute("/home/user/cache");
+
+        Assert.Equal("/home/user/large.bin", Assert.Single(vm.ExcludedPaths));
     }
 
     [Fact]

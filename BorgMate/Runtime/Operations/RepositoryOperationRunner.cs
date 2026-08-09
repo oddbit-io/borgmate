@@ -53,7 +53,10 @@ public sealed class RepositoryOperationRunner(
             async (job, token, sink) =>
             {
                 job.StatusMessage = Strings.Get("Status.CalculatingSize");
-                var (totalSize, totalFiles) = sizeCalculator.Calculate(repo.SourceDirectories, token,
+                var (totalSize, totalFiles) = sizeCalculator.Calculate(
+                    repo.SourceDirectories,
+                    repo.ExcludedPaths,
+                    token,
                     (dirs, files, size) =>
                     {
                         var msg = string.Format(

@@ -21,6 +21,7 @@ public class RepositoryData
     public string BorgRemotePath { get; set; } = string.Empty;
     public bool IsLocal { get; set; } = true;
     public List<string>? SourceDirectories { get; set; }
+    public List<string>? ExcludedPaths { get; set; }
     public BackupScheduleData? Schedule { get; set; }
     public BackupMode? Mode { get; set; }
     public PruneOptionsData? PruneOptions { get; set; }

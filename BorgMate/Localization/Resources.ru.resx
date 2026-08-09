@@ -42,6 +42,12 @@
     <data name="Add" xml:space="preserve">
     <value>Добавить</value>
   </data>
+    <data name="AddFolder" xml:space="preserve">
+    <value>Добавить каталог</value>
+  </data>
+    <data name="AddFile" xml:space="preserve">
+    <value>Добавить файл</value>
+  </data>
     <data name="Edit" xml:space="preserve">
     <value>Изменить</value>
   </data>
@@ -359,6 +365,12 @@
   </data>
     <data name="SourceDirectories" xml:space="preserve">
     <value>Исходные каталоги</value>
+  </data>
+    <data name="IncludedDirectories" xml:space="preserve">
+    <value>Включаемые каталоги</value>
+  </data>
+    <data name="ExcludedPaths" xml:space="preserve">
+    <value>Исключённые файлы и каталоги</value>
   </data>
     <data name="AppSettings.Group.Startup" xml:space="preserve">
     <value>Запуск</value>
@@ -1040,6 +1052,12 @@
   </data>
     <data name="Picker.SelectSourceDirs" xml:space="preserve">
     <value>Выберите исходные каталоги</value>
+  </data>
+    <data name="Picker.SelectExcludedDirs" xml:space="preserve">
+    <value>Выберите исключаемые каталоги</value>
+  </data>
+    <data name="Picker.SelectExcludedFile" xml:space="preserve">
+    <value>Выберите исключаемый файл</value>
   </data>
     <data name="Picker.SelectRestoreDest" xml:space="preserve">
     <value>Выберите путь восстановления</value>
