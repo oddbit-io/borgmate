@@ -352,7 +352,7 @@
     <value>Режим шифрования</value>
   </data>
     <data name="RateLimit" xml:space="preserve">
-    <value>Ограничение скорости (кБ/с, 0 = без ограничений)</value>
+    <value>Ограничение скорости ({0}, 0 = без ограничений)</value>
   </data>
     <data name="ExcludeCloudFiles" xml:space="preserve">
     <value>Пропускать файлы-заглушки iCloud</value>

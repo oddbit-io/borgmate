@@ -402,7 +402,10 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     private async Task AddNew()
     {
         var vm = RepositoryEditorViewModel.ForNew(
-            _filePicker, _verificationOperations, _settings.ExperimentalBorg2Support);
+            _filePicker,
+            _verificationOperations,
+            isBorg2SupportEnabled: _settings.ExperimentalBorg2Support,
+            binaryUnits: _settings.BinaryUnits);
         await ShowEditorAsync(vm);
 
         if (vm.IsSaved && vm.Repository is { } repo)
@@ -418,7 +421,10 @@ public partial class RepositoriesPageViewModel : ViewModelBase
     private async Task OpenExisting()
     {
         var vm = RepositoryEditorViewModel.ForOpen(
-            _filePicker, _verificationOperations, _settings.ExperimentalBorg2Support);
+            _filePicker,
+            _verificationOperations,
+            isBorg2SupportEnabled: _settings.ExperimentalBorg2Support,
+            binaryUnits: _settings.BinaryUnits);
         await ShowEditorAsync(vm);
 
         if (vm.IsSaved && vm.Repository is { } repo)
@@ -437,7 +443,11 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         var persistedBeforeEdit = JsonAppConfigStore.Clone(repo.Model);
 
         var vm = RepositoryEditorViewModel.ForEdit(
-            _filePicker, repo, _verificationOperations, _settings.ExperimentalBorg2Support);
+            _filePicker,
+            repo,
+            _verificationOperations,
+            isBorg2SupportEnabled: _settings.ExperimentalBorg2Support,
+            binaryUnits: _settings.BinaryUnits);
         await ShowEditorAsync(vm);
 
         if (vm.IsSaved)
@@ -469,7 +479,12 @@ public partial class RepositoriesPageViewModel : ViewModelBase
 
         var copyName = GenerateUniqueCopyName(repo.Name);
         var vm = RepositoryEditorViewModel.ForDuplicate(
-            _filePicker, repo, copyName, _verificationOperations, _settings.ExperimentalBorg2Support);
+            _filePicker,
+            repo,
+            copyName,
+            _verificationOperations,
+            isBorg2SupportEnabled: _settings.ExperimentalBorg2Support,
+            binaryUnits: _settings.BinaryUnits);
         await ShowEditorAsync(vm);
 
         if (vm.IsSaved && vm.Repository is { } newRepo)

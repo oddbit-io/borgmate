@@ -352,7 +352,7 @@
     <value>Encryption Mode</value>
   </data>
     <data name="RateLimit" xml:space="preserve">
-    <value>Rate Limit (kB/s, 0 = unlimited)</value>
+    <value>Rate Limit ({0}, 0 = unlimited)</value>
   </data>
     <data name="ExcludeCloudFiles" xml:space="preserve">
     <value>Skip iCloud placeholder files</value>

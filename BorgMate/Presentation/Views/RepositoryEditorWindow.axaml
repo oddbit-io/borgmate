@@ -476,9 +476,11 @@
                         </StackPanel>
 
                         <StackPanel Spacing="{StaticResource FieldSpacing}">
-                            <TextBlock Text="{Binding [RateLimit], Source={x:Static loc:Strings.Instance}}" />
-                            <NumericUpDown Value="{Binding RateLimit}" Minimum="0" Increment="100"
-                                           FormatString="0" Width="150" HorizontalAlignment="Left" />
+                            <TextBlock Text="{Binding RateLimitLabel}" />
+                            <NumericUpDown Value="{Binding RateLimit}" Minimum="0"
+                                           Maximum="{Binding RateLimitMaximum}" Increment="100"
+                                           FormatString="{Binding RateLimitFormat}" Width="150"
+                                           HorizontalAlignment="Left" />
                         </StackPanel>
 
                         <StackPanel Spacing="4" IsVisible="{Binding ShowExcludeCloudFiles}">

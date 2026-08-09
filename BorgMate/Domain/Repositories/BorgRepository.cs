@@ -32,7 +32,7 @@ public sealed record BorgRepository
     /// <summary>SSH private key path for remote repositories.</summary>
     public string SshKeyPath { get; set; } = string.Empty;
 
-    /// <summary>Upload rate limit in KB/s. Maps to borg's rate-limit option. Zero means unlimited.</summary>
+    /// <summary>Upload rate limit in KiB/s. Maps to borg's rate-limit option. Zero means unlimited.</summary>
     public int RateLimit { get; set; }
 
     /// <summary>

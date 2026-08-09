@@ -23,6 +23,7 @@ namespace BorgMate.Presentation.ViewModels;
 /// </summary>
 public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 {
+    private readonly bool _binaryUnits = true;
     private readonly IFilePickerService? _filePicker;
     private readonly IRepositoryVerificationOperationRunner? _verificationRunner;
 
@@ -170,7 +171,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private string? _pathError;
 
     [ObservableProperty]
-    private int _rateLimit;
+    private decimal _rateLimit;
 
     [ObservableProperty]
     private bool _excludeCloudFiles = true;
@@ -272,11 +273,13 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public RepositoryEditorViewModel(
         IFilePickerService filePicker,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false)
+        bool isBorg2SupportEnabled = false,
+        bool binaryUnits = true)
     {
         _filePicker = filePicker;
         _verificationRunner = verificationRunner;
         IsBorg2SupportEnabled = isBorg2SupportEnabled;
+        _binaryUnits = binaryUnits;
     }
 
     /// <summary>
@@ -302,6 +305,11 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public bool CanUseBorgUrl => IsBorg2;
     public bool IsBorg2SupportEnabled { get; private set; }
     public bool ShowBorgVersionSelection => IsBorg2SupportEnabled;
+    public string RateLimitLabel => string.Format(
+        Strings.Get("RateLimit"),
+        $"{Strings.Get(_binaryUnits ? "BytesKB.bin" : "BytesKB.dec")}/{Strings.Get("SpeedPerSec")}");
+    public string RateLimitFormat => _binaryUnits ? "0" : "0.###";
+    public decimal RateLimitMaximum => ToDisplayRateLimit(int.MaxValue);
     // Hidden in Open mode: the real mode is detected from `borg info` during verification.
     public bool ShowBorg1EncryptionMode => !IsBorg2 && !IsOpen;
     public bool ShowBorg2EncryptionMode => IsBorg2 && !IsOpen;
@@ -501,9 +509,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public static RepositoryEditorViewModel ForNew(
         IFilePickerService filePicker,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false)
+        bool isBorg2SupportEnabled = false,
+        bool binaryUnits = true)
     {
-        return new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled)
+        return new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled, binaryUnits)
         {
             IsNew = true
         };
@@ -513,9 +522,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public static RepositoryEditorViewModel ForOpen(
         IFilePickerService filePicker,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false)
+        bool isBorg2SupportEnabled = false,
+        bool binaryUnits = true)
     {
-        return new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled)
+        return new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled, binaryUnits)
         {
             IsOpen = true
         };
@@ -531,9 +541,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         IFilePickerService filePicker,
         RepositoryViewModel repo,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false)
+        bool isBorg2SupportEnabled = false,
+        bool binaryUnits = true)
     {
-        var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled);
+        var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled, binaryUnits);
         vm.LoadFrom(repo);
         vm._targetRepo = repo;
         vm._reachabilitySnapshot = vm.CaptureReachabilitySnapshot();
@@ -549,9 +560,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         RepositoryViewModel source,
         string newName,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false)
+        bool isBorg2SupportEnabled = false,
+        bool binaryUnits = true)
     {
-        var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled);
+        var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled, binaryUnits);
         vm.LoadFrom(source);
         vm.Name = newName;
         if (!isBorg2SupportEnabled)
@@ -585,7 +597,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         SshKeyPath = repo.SshKeyPath;
         SshPort = repo.SshPort;
         BorgRemotePath = repo.BorgRemotePath;
-        RateLimit = repo.RateLimit;
+        RateLimit = ToDisplayRateLimit(repo.RateLimit);
         ExcludeCloudFiles = repo.ExcludeCloudFiles;
         Mode = repo.Mode;
 
@@ -643,7 +655,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         repo.SshKeyPath = SshKeyPath;
         repo.SshPort = SshPort;
         repo.BorgRemotePath = BorgRemotePath;
-        repo.RateLimit = RateLimit;
+        repo.RateLimit = ToBorgRateLimit(RateLimit);
         repo.ExcludeCloudFiles = ExcludeCloudFiles;
         repo.Mode = Mode;
 
@@ -684,6 +696,20 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         var repo = new BorgRepository();
         ApplyTo(repo);
         return repo;
+    }
+
+    private decimal ToDisplayRateLimit(int value)
+    {
+        return _binaryUnits ? value : value * 1024m / 1000m;
+    }
+
+    private int ToBorgRateLimit(decimal value)
+    {
+        if (value <= 0) return 0;
+
+        var kibibytes = _binaryUnits ? value : value * 1000m / 1024m;
+        var rounded = decimal.Round(kibibytes, 0, MidpointRounding.AwayFromZero);
+        return decimal.ToInt32(Math.Max(1, rounded));
     }
 
     /// <summary>Splits a "user@host:/path", "smb://..." or local path into VM fields.</summary>
