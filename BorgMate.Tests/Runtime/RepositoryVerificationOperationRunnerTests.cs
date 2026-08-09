@@ -67,27 +67,19 @@ public class RepositoryVerificationOperationRunnerTests
         Assert.Equal("Validation.BorgVersionMismatch", validation.MessageKey);
     }
 
-    [Fact]
-    public async Task ValidateConfiguredBorgAsync_RejectsOlderBorg2Beta()
+    [Theory]
+    [InlineData("borg 2.0.0b20")]
+    [InlineData("borg 2.0.0b21.dev437")]
+    [InlineData("borg 2.0.0b22")]
+    [InlineData("borg 2.0.0")]
+    public async Task ValidateConfiguredBorgAsync_RejectsUnsupportedBorg2Version(string versionText)
     {
-        var service = new VersionBorg2Service("borg 2.0.0b20");
+        var service = new VersionBorg2Service(versionText);
 
         var error = await RepositoryVerificationOperationRunner.ValidateConfiguredBorgAsync(service, CancellationToken.None);
 
         var validation = Assert.IsType<OperationError.Validation>(error);
-        Assert.Equal("Validation.Borg2TooOld", validation.MessageKey);
-    }
-
-    [Fact]
-    public async Task ValidateConfiguredBorgAsync_StoresDetectedBorg2VersionOnService()
-    {
-        var service = new VersionBorg2Service("borg 2.0.0b21");
-
-        var error = await RepositoryVerificationOperationRunner.ValidateConfiguredBorgAsync(service, CancellationToken.None);
-
-        Assert.Null(error);
-        Assert.NotNull(service.DetectedVersion);
-        Assert.Equal(21, service.DetectedVersion.Beta);
+        Assert.Equal("Validation.Borg2Unsupported", validation.MessageKey);
     }
 
     [Fact]

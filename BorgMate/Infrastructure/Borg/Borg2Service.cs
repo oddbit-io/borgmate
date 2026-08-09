@@ -27,9 +27,6 @@ public class Borg2Service : Borg2ServiceBase
     {
     }
 
-    /// <summary>Detected Borg 2 CLI version used for version-specific command mapping.</summary>
-    public BorgCliVersion? DetectedVersion { get; set; }
-
     public override async Task<BorgCliVersionValidationResult> ValidateCliVersionAsync(CancellationToken ct = default)
     {
         var result = await ParseCliVersionAsync(ct);
@@ -40,9 +37,8 @@ public class Borg2Service : Borg2ServiceBase
             return BorgCliVersionValidationResult.Validation("Validation.BorgVersionMismatch", result.Version);
 
         if (!result.Version.IsSupportedBorg2)
-            return BorgCliVersionValidationResult.Validation("Validation.Borg2TooOld", result.Version);
+            return BorgCliVersionValidationResult.Validation("Validation.Borg2Unsupported", result.Version);
 
-        DetectedVersion = result.Version;
         return result;
     }
 
@@ -57,9 +53,9 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var encryptionArgs = Borg2EncryptionModeMapper.BuildRepoCreateArgs(repo.Borg2EncryptionMode, DetectedVersion);
+        var encryptionArgs = Borg2EncryptionModeMapper.BuildRepoCreateArgs(repo.Borg2EncryptionMode);
         var args = $"repo-create {encryptionArgs}";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     public override async Task<BorgResult> CreateBackupAsync(
@@ -73,7 +69,7 @@ public class Borg2Service : Borg2ServiceBase
         var rateLimit = repo.RateLimit > 0 ? $" --upload-ratelimit {repo.RateLimit}" : "";
         var excludes = BuildExcludeArgs(repo.ExcludedPaths);
         var args = $"create --progress{rateLimit}{excludes} \"{archiveName}\" {paths}";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 
     public override async Task<BorgResult> ListArchivesAsync(
@@ -82,7 +78,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = "repo-list --json";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     public override async Task<BorgResult> InfoArchiveAsync(
@@ -91,7 +87,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = $"info --json \"{archiveName}\"";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     public override async Task<BorgResult> ListArchiveContentsAsync(
@@ -100,7 +96,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = $"list --json-lines \"{archiveName}\"";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     public override async Task<BorgResult> ExtractAsync(
@@ -117,7 +113,7 @@ public class Borg2Service : Borg2ServiceBase
             ? " " + string.Join(" ", paths.Select(p => $"\"{p}\""))
             : "";
         var args = $"extract --progress{optionArgs} \"{archiveName}\"{pathArgs}";
-        return await RunCommandAsync(BorgBinary, args, env, P(restorePath), ct, onStderrLine);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, P(restorePath), ct, onStderrLine);
     }
 
     public override async Task<BorgResult> DeleteArchiveAsync(
@@ -127,7 +123,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = $"delete \"{archiveName}\"";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     public override async Task<BorgResult> PruneAsync(
@@ -138,7 +134,7 @@ public class Borg2Service : Borg2ServiceBase
         AddRepositoryEnvironment(repo, env);
         var retention = BuildPruneRetentionArgs(repo.PruneOptions);
         var args = $"prune --list{retention}";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     public override async Task<BorgResult> CheckAsync(
@@ -149,7 +145,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = "check --progress";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 
     public override async Task<BorgResult> CompactAsync(
@@ -160,7 +156,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = "compact --progress";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 
     public override async Task<BorgResult> ChangePassphraseAsync(
@@ -170,7 +166,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, newPassphrase, ct);
         AddRepositoryEnvironment(repo, env);
         var args = "key change-passphrase";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     public override async Task<BorgResult> InfoRepoAsync(
@@ -180,7 +176,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = "repo-info --json";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     public override async Task<BorgResult> DiffArchivesAsync(
@@ -190,6 +186,25 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = $"diff \"{archive1}\" \"{archive2}\"";
-        return await RunCommandAsync(BorgBinary, args, env, ct: ct);
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
+    }
+
+    private async Task<BorgResult> RunSupportedCommandAsync(
+        string fileName,
+        string arguments,
+        BorgEnv? env = null,
+        string? workingDirectory = null,
+        CancellationToken ct = default,
+        Action<string>? onStderrLine = null)
+    {
+        var validation = await ValidateCliVersionAsync(ct);
+        if (validation.FailureResult is { } failure)
+            return failure;
+
+        if (!validation.IsValid)
+            return new BorgResult(-1, "", Strings.Get(
+                validation.ValidationMessageKey ?? "Validation.BorgVersionUnknown"));
+
+        return await RunCommandAsync(fileName, arguments, env, workingDirectory, ct, onStderrLine);
     }
 }

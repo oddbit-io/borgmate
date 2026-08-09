@@ -19,14 +19,16 @@ public class Borg2ServiceTests
     private static readonly SshAgentHelper SshAgent = new(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl);
     private static readonly INetworkShareMounter Mounter = Substitute.For<INetworkShareMounter>();
 
-    private static TestBorg2Service CreateService(AppSettings? settings = null)
+    private static TestBorg2Service CreateService(
+        AppSettings? settings = null,
+        string versionText = "borg 2.0.0b21")
     {
         var appSettings = settings ?? new AppSettings();
         var transport = new SshRepositoryTransport(
             appSettings, SshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
         return new TestBorg2Service(
             Substitute.For<ILogger<Borg2Service>>(), appSettings, transport, Wsl, Mounter,
-            new PromptingPassphraseProvider(null));
+            new PromptingPassphraseProvider(null), versionText);
     }
 
     private static BorgRepository LocalRepo(string path = "/repo") =>
@@ -44,6 +46,22 @@ public class Borg2ServiceTests
         Assert.Equal("repo-create --encryption=repokey-blake2-aes-ocb", svc.LastArgs);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
+    }
+
+    [Theory]
+    [InlineData("borg 2.0.0b20")]
+    [InlineData("borg 2.0.0b21.dev437")]
+    [InlineData("borg 2.0.0b22")]
+    [InlineData("borg 2.0.0")]
+    public async Task ListArchivesAsync_UnsupportedVersion_DoesNotRunCommand(string versionText)
+    {
+        var svc = CreateService(versionText: versionText);
+
+        var result = await svc.ListArchivesAsync(LocalRepo());
+
+        Assert.False(result.Success);
+        Assert.Null(svc.LastArgs);
+        Assert.Contains("2.0.0b21", result.StandardError);
     }
 
     [Fact]
@@ -337,6 +355,7 @@ public class Borg2ServiceTests
     private class TestBorg2Service : Borg2Service
     {
         private readonly PromptingPassphraseProvider _passphrase;
+        private readonly string _versionText;
 
         public TestBorg2Service(
             ILogger<Borg2Service> logger,
@@ -344,10 +363,12 @@ public class Borg2ServiceTests
             SshRepositoryTransport sshTransport,
             WslHelper wsl,
             INetworkShareMounter shareMounter,
-            PromptingPassphraseProvider passphrase)
+            PromptingPassphraseProvider passphrase,
+            string versionText)
             : base(logger, settings, sshTransport, wsl, shareMounter, passphrase)
         {
             _passphrase = passphrase;
+            _versionText = versionText;
         }
 
         public string? LastFileName { get; private set; }
@@ -361,6 +382,9 @@ public class Borg2ServiceTests
             string? workingDirectory = null, CancellationToken ct = default,
             Action<string>? onStderrLine = null)
         {
+            if (arguments == "--version")
+                return Task.FromResult(new BorgResult(0, _versionText, ""));
+
             LastFileName = fileName;
             LastArgs = arguments;
             LastEnvVars = env?.Variables;

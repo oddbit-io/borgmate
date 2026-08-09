@@ -876,8 +876,8 @@
     <data name="Validation.BorgVersionMismatch" xml:space="preserve">
     <value>Выбранный бинарный файл borg не соответствует версии Borg этого репозитория</value>
   </data>
-    <data name="Validation.Borg2TooOld" xml:space="preserve">
-    <value>Для репозиториев Borg 2 требуется Borg 2.0.0b21 или новее</value>
+    <data name="Validation.Borg2Unsupported" xml:space="preserve">
+    <value>Для репозиториев Borg 2 поддерживается только Borg 2.0.0b21</value>
   </data>
     <data name="Status.BackupFailed" xml:space="preserve">
     <value>Ошибка копирования: {0}</value>

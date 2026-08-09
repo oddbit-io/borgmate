@@ -16,7 +16,7 @@ public class BorgCliVersionTests
     }
 
     [Fact]
-    public void Parse_Borg20Beta21_IsSupportedWithoutSplitEncryption()
+    public void Parse_Borg20Beta21_IsSupported()
     {
         var version = BorgCliVersion.Parse("borg 2.0.0b21");
 
@@ -24,27 +24,19 @@ public class BorgCliVersionTests
         Assert.Equal(2, version.Major);
         Assert.Equal(21, version.Beta);
         Assert.True(version.IsSupportedBorg2);
-        Assert.False(version.UsesBorg2SplitEncryption);
     }
 
-    [Fact]
-    public void Parse_OlderBorg2Beta_IsNotSupported()
+    [Theory]
+    [InlineData("borg 2.0.0b20")]
+    [InlineData("borg 2.0.0b21.dev437")]
+    [InlineData("borg 2.0.0b22")]
+    [InlineData("borg 2.0.0")]
+    public void Parse_OtherBorg2Versions_AreNotSupported(string versionText)
     {
-        var version = BorgCliVersion.Parse("borg 2.0.0b20");
+        var version = BorgCliVersion.Parse(versionText);
 
         Assert.NotNull(version);
         Assert.False(version.IsSupportedBorg2);
-    }
-
-    [Fact]
-    public void Parse_Borg20Beta22Dev_UsesSplitEncryption()
-    {
-        var version = BorgCliVersion.Parse("borg 2.0.0b22.dev437");
-
-        Assert.NotNull(version);
-        Assert.True(version.IsDevelopment);
-        Assert.True(version.IsSupportedBorg2);
-        Assert.True(version.UsesBorg2SplitEncryption);
     }
 
     [Fact]

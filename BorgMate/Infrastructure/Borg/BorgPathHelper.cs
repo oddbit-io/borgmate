@@ -54,7 +54,8 @@ public static class BorgPathHelper
                 if (binary == "borg" && version.Major == 2)
                     borgCommandWasBorg2 = true;
 
-                if (version.Major == expectedMajor)
+                if (version.Major == expectedMajor &&
+                    (borgVersion != BorgVersion.Borg2 || version.IsSupportedBorg2))
                     return new BorgPathDetectionResult(candidate, candidate, version);
             }
         }

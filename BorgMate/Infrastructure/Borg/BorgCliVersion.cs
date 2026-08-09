@@ -38,11 +38,9 @@ public sealed partial record BorgCliVersion(
             text.Trim());
     }
 
-    /// <summary>Borg 2 support starts with the 2.0.0b21 CLI shape.</summary>
-    public bool IsSupportedBorg2 => Major == 2 && (Minor > 0 || Patch > 0 || Beta is null or >= 21);
-
-    /// <summary>Returns true for Borg 2 builds that use the b22 repo-create encryption split.</summary>
-    public bool UsesBorg2SplitEncryption => Major == 2 && (Minor > 0 || Patch > 0 || Beta is null or >= 22);
+    /// <summary>Returns true only for the supported Borg 2.0.0b21 release.</summary>
+    public bool IsSupportedBorg2 =>
+        this is { Major: 2, Minor: 0, Patch: 0, Beta: 21, IsDevelopment: false };
 
     public bool Supports(BorgCliFeature feature) =>
         feature switch

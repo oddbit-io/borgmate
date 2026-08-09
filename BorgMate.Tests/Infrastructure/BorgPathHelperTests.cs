@@ -90,6 +90,26 @@ public class BorgPathHelperTests
     }
 
     [Fact]
+    public void Detect_UnsupportedBorg2Candidate_IsSkipped()
+    {
+        var candidates = new Dictionary<string, string[]>
+        {
+            ["borg2"] = ["unsupported-borg2"],
+            ["borg"] = ["supported-borg2"]
+        };
+        var versions = new Dictionary<string, string?>
+        {
+            ["unsupported-borg2"] = "borg 2.0.0b22",
+            ["supported-borg2"] = "borg 2.0.0b21"
+        };
+
+        var result = Detect(BorgVersion.Borg2, candidates, versions);
+
+        Assert.Equal("supported-borg2", result.EffectivePath);
+        Assert.Equal("supported-borg2", result.DetectedPath);
+    }
+
+    [Fact]
     public void Detect_UnparsableOrFailedVersionProbesAreIgnored()
     {
         var candidates = new Dictionary<string, string[]>
