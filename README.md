@@ -1,8 +1,16 @@
 <p align="center">
   <img src="BorgMate/Assets/borgmate-256.png" width="128" height="128" alt="BorgMate">
   <h1 align="center">BorgMate</h1>
-  <p align="center">A cross-platform desktop GUI for <a href="https://www.borgbackup.org/">BorgBackup</a> 1.4 (and 2, experimental), built with .NET 10 and <a href="https://avaloniaui.net/">Avalonia UI</a> 12</p>
+  <p align="center">A cross-platform desktop GUI for <a href="https://www.borgbackup.org/">BorgBackup</a> 1.4, built with .NET 10 and <a href="https://avaloniaui.net/">Avalonia UI</a> 12</p>
 </p>
+
+## Security warning
+
+Attackers are copying legitimate projects on GitHub and distributing malware disguised as ready-to-use binaries. They are also using BorgMate’s source code to do this.
+
+Check the website address before downloading. Download official BorgMate binaries only from [borgmate.oddbit.io](https://borgmate.oddbit.io) or our official GitHub repository: [github.com/oddbit-io/borgmate](https://github.com/oddbit-io/borgmate).
+
+Official BorgMate download packages are signed with GPG. These signatures cover only the packages; the installed binaries themselves are not signed. The signatures are available in our [GitHub releases](https://github.com/oddbit-io/borgmate/releases). GPG signing key fingerprint: `2D0B01C4BDAAF32BA376AE1E793239019CE4CF26`.
 
 <p align="center">
   <img src="screenshots/repositories.png" width="800" alt="BorgMate — Repositories">
