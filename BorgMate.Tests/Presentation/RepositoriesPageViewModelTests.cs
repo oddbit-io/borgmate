@@ -338,6 +338,37 @@ public class RepositoriesPageViewModelTests : IDisposable
     }
 
     [Fact]
+    public void HandleJobCompleted_QueryJobFailureWhileBusy_KeepsRepositoryHealthy()
+    {
+        var vm = CreateVm();
+        var repo = new RepositoryViewModel { Name = "r", Path = "/repo", IsBusy = true };
+        vm.Repositories.Add(repo);
+
+        var job = new BorgJob { RepoPath = "/repo", Kind = BorgJobKind.Query };
+        vm.HandleJobCompleted(new JobCompleted(job, new BorgResult(73, "", "lock timed out")));
+
+        Assert.False(repo.HasError);
+        Assert.Null(repo.LastError);
+    }
+
+    [Fact]
+    public void RepositoryBecomingBusy_ClearsPreviousFailure()
+    {
+        var repo = new RepositoryViewModel
+        {
+            Name = "r",
+            Path = "/repo",
+            HasError = true,
+            LastError = "Borg repository lock timed out.",
+        };
+
+        repo.IsBusy = true;
+
+        Assert.False(repo.HasError);
+        Assert.Null(repo.LastError);
+    }
+
+    [Fact]
     public void HandleJobCompleted_UnknownRepoPath_NoOp()
     {
         var vm = CreateVm();

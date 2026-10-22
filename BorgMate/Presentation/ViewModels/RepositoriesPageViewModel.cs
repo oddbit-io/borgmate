@@ -251,6 +251,10 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             return;
         }
 
+        // A running command holds the repository lock, so a query failing meanwhile says nothing
+        // about the repository itself.
+        if (job.Kind == BorgJobKind.Query && repo.IsBusy) return;
+
         repo.HasError = true;
         repo.LastError = result.ErrorMessage;
     }

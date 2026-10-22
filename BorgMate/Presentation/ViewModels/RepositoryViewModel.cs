@@ -53,6 +53,14 @@ public sealed partial class RepositoryViewModel : ObservableObject
     /// <summary>The persisted repository configuration.</summary>
     public BorgRepository Model { get; }
 
+    // A new command attempt supersedes the previous failure; its completion records the new outcome.
+    partial void OnIsBusyChanged(bool value)
+    {
+        if (!value) return;
+        HasError = false;
+        LastError = null;
+    }
+
     public string Name
     {
         get => Model.Name;
