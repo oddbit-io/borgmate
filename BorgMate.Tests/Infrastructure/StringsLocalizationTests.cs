@@ -78,7 +78,7 @@ public class StringsLocalizationTests
         Settings.BinaryUnits = true;
         // 512 MiB formatted in the unit of 2 GiB → should be "0.5 GiB"
         var result = Strings.FormatBytesInUnit(536_870_912, 2_147_483_648);
-        Assert.Equal("0.5 GiB", result);
+        Assert.Equal("0.50 GiB", result);
     }
 
     [Fact]
@@ -87,6 +87,6 @@ public class StringsLocalizationTests
         Settings.BinaryUnits = true;
         // 1 byte formatted in GiB unit
         var result = Strings.FormatBytesInUnit(1, 2_147_483_648);
-        Assert.Equal("0.0 GiB", result);
+        Assert.Equal("0.00 GiB", result);
     }
 }

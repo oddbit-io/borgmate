@@ -11,8 +11,10 @@ namespace BorgMate.Runtime.Jobs;
 
 public partial class BorgJob : ObservableObject
 {
-    // ETA via exponential moving average of progress rate
-    private const double EmaAlpha = 0.15;
+    // ETA via a time-weighted exponential moving average of progress rate: a sample spanning a long
+    // plateau outweighs bursts recorded earlier at sub-second intervals.
+    private static readonly TimeSpan RateSmoothingWindow = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan MinSampleInterval = TimeSpan.FromMilliseconds(500);
 
     private const int MaxOutputLines = 10_000;
 
@@ -38,7 +40,7 @@ public partial class BorgJob : ObservableObject
     [ObservableProperty]
     private string? _environmentDisplay;
 
-    private DateTime _lastProgressTime;
+    private DateTimeOffset _lastProgressTime;
     private double _lastProgressValue;
 
     [ObservableProperty]
@@ -117,13 +119,16 @@ public partial class BorgJob : ObservableObject
 
     public Func<BorgJob, CancellationToken, IProgress<string>, Task<BorgResult>>? Work { get; init; }
 
+    /// <summary>Time source for progress-rate sampling.</summary>
+    public TimeProvider Clock { get; init; } = TimeProvider.System;
+
     /// <summary>
     ///     Records a progress sample for EMA-based ETA/speed estimation.
     ///     Called by BorgProgressParser as borg reports progress on stderr.
     /// </summary>
     public void RecordProgress(double progress)
     {
-        var now = DateTime.Now;
+        var now = Clock.GetUtcNow();
         if (!_emaInitialized)
         {
             _lastProgressTime = now;
@@ -133,17 +138,29 @@ public partial class BorgJob : ObservableObject
         }
 
         var dt = (now - _lastProgressTime).TotalSeconds;
-        if (dt < 0.5) return; // skip rapid-fire updates
+        if (dt < MinSampleInterval.TotalSeconds) return;
 
         var dp = progress - _lastProgressValue;
+        if (dp < 0)
+        {
+            // A retried attempt restarts its counters.
+            _lastProgressTime = now;
+            _lastProgressValue = progress;
+            return;
+        }
+
+        // Borg prints sizes with three significant digits, so on large backups the value stays flat
+        // for minutes and then jumps; the reference sample stays put until it moves so the jump is
+        // divided by the whole time it took.
+        if (dp == 0) return;
+
         _lastProgressTime = now;
         _lastProgressValue = progress;
 
-        if (dp <= 0 || dt <= 0) return;
-
         var instantRate = dp / dt;
+        var weight = 1 - Math.Exp(-dt / RateSmoothingWindow.TotalSeconds);
         _smoothedRate = _smoothedRate > 0
-            ? EmaAlpha * instantRate + (1 - EmaAlpha) * _smoothedRate
+            ? weight * instantRate + (1 - weight) * _smoothedRate
             : instantRate; // first valid rate — use as-is
     }
 

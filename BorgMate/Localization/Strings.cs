@@ -122,13 +122,14 @@ public class Strings : INotifyPropertyChanged
 
     /// <summary>
     ///     Formats bytes using the same unit as referenceBytes, so both strings have the same suffix.
+    ///     Two decimals match the three significant digits borg reports, so large totals still show movement.
     /// </summary>
     public static string FormatBytesInUnit(long bytes, long referenceBytes)
     {
         var (_, unitIndex) = GetByteUnit(referenceBytes);
         var divisor = Math.Pow(ByteBase, unitIndex);
         var value = bytes / divisor;
-        return $"{value.ToString(unitIndex == 0 ? "N0" : "0.0", Culture)} {Get(ByteSuffixKeys[unitIndex])}";
+        return $"{value.ToString(unitIndex == 0 ? "N0" : "0.00", Culture)} {Get(ByteSuffixKeys[unitIndex])}";
     }
 
     public static string FormatSpeed(long bytesPerSec)

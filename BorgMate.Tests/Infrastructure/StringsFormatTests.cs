@@ -60,6 +60,6 @@ public class StringsFormatTests
         _settings.BinaryUnits = true;
         // Reference is 2 GiB → unit is GiB. Format 512 MiB in GiB.
         var result = Strings.FormatBytesInUnit(536_870_912, 2_147_483_648);
-        Assert.Equal("0.5 GiB", result);
+        Assert.Equal("0.50 GiB", result);
     }
 }

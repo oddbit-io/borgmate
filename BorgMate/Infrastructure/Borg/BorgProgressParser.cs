@@ -51,7 +51,7 @@ public static partial class BorgProgressParser
             : "?";
         var filesProcessed = nfiles.ToString("N0", Strings.Culture);
 
-        var sizeTotal = job.TotalSize > 0 ? Strings.FormatBytes(job.TotalSize) : "?";
+        var sizeTotal = job.TotalSize > 0 ? Strings.FormatBytesInUnit(job.TotalSize, job.TotalSize) : "?";
         var sizeProcessed = job.TotalSize > 0
             ? Strings.FormatBytesInUnit(processedBytes, job.TotalSize)
             : Strings.FormatBytes(processedBytes);

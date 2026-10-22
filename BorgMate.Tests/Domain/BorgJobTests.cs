@@ -104,4 +104,35 @@ public class BorgJobTests
         job.Progress = null;
         Assert.Null(job.Progress);
     }
+
+    [Fact]
+    public void EstimateSpeed_QuantizedProgressAfterFastPhase_ReportsActualThroughput()
+    {
+        const long totalSize = 2_000_000_000_000;
+        var clock = new ManualTimeProvider();
+        var job = new BorgJob { TotalSize = totalSize, Clock = clock };
+
+        // Unchanged files fly by: 100 GB in one second.
+        job.RecordProgress(40.0);
+        clock.Advance(TimeSpan.FromSeconds(1));
+        job.RecordProgress(45.0);
+
+        // New data uploads at ~5 MB/s while borg keeps printing the same rounded size for 35 minutes.
+        var plateau = TimeSpan.FromMinutes(35);
+        var step = TimeSpan.FromMilliseconds(500);
+        for (var elapsed = TimeSpan.Zero; elapsed < plateau; elapsed += step)
+        {
+            clock.Advance(step);
+            job.RecordProgress(45.0);
+        }
+
+        clock.Advance(step);
+        job.RecordProgress(45.5);
+        job.Progress = 45.5;
+
+        var expected = totalSize * 0.005 / (plateau + step).TotalSeconds;
+        var speed = job.EstimateSpeed();
+        Assert.NotNull(speed);
+        Assert.InRange(speed.Value, expected * 0.99, expected * 1.01);
+    }
 }
