@@ -63,6 +63,16 @@ public class Borg1ServiceTests
     }
 
     [Fact]
+    public async Task CreateBackupAsync_WaitsForRepositoryLock()
+    {
+        var svc = CreateService();
+
+        await svc.CreateBackupAsync(LocalRepo(), "archive", ["/data"]);
+
+        Assert.Contains("--lock-wait 600", svc.LastArgs!);
+    }
+
+    [Fact]
     public async Task CreateBackupAsync_WithRateLimit_IncludesFlag()
     {
         var svc = CreateService();

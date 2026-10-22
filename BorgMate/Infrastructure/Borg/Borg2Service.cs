@@ -68,7 +68,7 @@ public class Borg2Service : Borg2ServiceBase
         var paths = string.Join(" ", sourcePaths.Select(p => $"\"{P(p)}\""));
         var rateLimit = repo.RateLimit > 0 ? $" --upload-ratelimit {repo.RateLimit}" : "";
         var excludes = BuildExcludeArgs(repo.ExcludedPaths);
-        var args = $"create --progress{rateLimit}{excludes} \"{archiveName}\" {paths}";
+        var args = $"create --progress{BackupLockWaitArgs}{rateLimit}{excludes} \"{archiveName}\" {paths}";
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 

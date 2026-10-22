@@ -66,7 +66,7 @@ public class Borg1Service : BorgServiceBase
             ? " --exclude-dataless"
             : "";
         var excludes = BuildExcludeArgs(repo.ExcludedPaths);
-        var args = $"create --progress{rateLimit}{excludeDataless}{excludes} \"{Location(repo)}::{archiveName}\" {paths}";
+        var args = $"create --progress{BackupLockWaitArgs}{rateLimit}{excludeDataless}{excludes} \"{Location(repo)}::{archiveName}\" {paths}";
         return await RunCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 

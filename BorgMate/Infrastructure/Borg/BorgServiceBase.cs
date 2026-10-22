@@ -333,6 +333,15 @@ public abstract class BorgServiceBase : IBorgService
         return parts.Count == 0 ? "" : " " + string.Join(" ", parts);
     }
 
+    /// <summary>
+    ///     Lock wait for <c>borg create</c>. After a dropped connection the server-side borg keeps
+    ///     the repository lock until the server notices the dead client, which outlasts borg's
+    ///     one-second default and the retry delays.
+    /// </summary>
+    protected static string BackupLockWaitArgs => $" --lock-wait {(int)BackupLockWait.TotalSeconds}";
+
+    private static readonly TimeSpan BackupLockWait = TimeSpan.FromMinutes(10);
+
     protected static string BuildExcludeArgs(IEnumerable<string> excludedPaths)
     {
         return string.Concat(excludedPaths.Select(path => $" --exclude \"pp:{P(path)}\""));
