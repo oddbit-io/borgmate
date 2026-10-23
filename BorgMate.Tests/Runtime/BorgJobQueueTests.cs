@@ -17,7 +17,7 @@ public class BorgJobQueueTests : IDisposable
         async (_, ct, _) => { await Task.Delay(ms, ct); return new BorgResult(0, "ok", ""); };
 
     private static Func<BorgJob, CancellationToken, IProgress<string>, Task<BorgResult>> FailWork =>
-        (_, _, _) => Task.FromResult(new BorgResult(119, "", "error"));
+        (_, _, _) => Task.FromResult(new BorgResult(150, "", "error"));
 
     // --- Enqueue ---
 
@@ -205,7 +205,7 @@ public class BorgJobQueueTests : IDisposable
         var result = await job.Completion.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
         Assert.False(result.Success);
-        Assert.Equal($"Borg failed with unknown exit code 119.{Environment.NewLine}{Environment.NewLine}error",
+        Assert.Equal($"Borg failed with unknown exit code 150.{Environment.NewLine}{Environment.NewLine}error",
             result.ErrorMessage);
     }
 

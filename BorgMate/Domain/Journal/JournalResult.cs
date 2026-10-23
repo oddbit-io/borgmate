@@ -9,5 +9,8 @@ public enum JournalResult
     Cancelled,
 
     /// <summary>Postponed (e.g. on battery with AC-only backups); will run under missed-run rules.</summary>
-    Deferred
+    Deferred,
+
+    /// <summary>Borg finished the operation but reported warnings, such as unreadable source files.</summary>
+    CompletedWithWarnings
 }

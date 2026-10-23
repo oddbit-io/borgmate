@@ -295,9 +295,12 @@ public sealed class RepositoryOperationRunner(
         var result = await job.Completion.Task;
         passphrasePrompt.Clear(repo);
 
-        if (result.Success)
+        if (result.Completed)
         {
-            journalStore.Complete(journalEntry, JournalResult.Completed);
+            if (result.HasWarnings)
+                journalStore.Complete(journalEntry, JournalResult.CompletedWithWarnings, result.ErrorMessage);
+            else
+                journalStore.Complete(journalEntry, JournalResult.Completed);
             if (invalidateArchivesOnSuccess)
                 cache.InvalidateRepo(repo.Path);
             return new BorgExecutionResult(result);

@@ -18,6 +18,7 @@ public class JournalEntryTypeToIconConverter : IValueConverter
                 JournalResult.Failed => "XCircleFill",
                 JournalResult.Cancelled => "DashCircleFill",
                 JournalResult.Deferred => "Clock",
+                JournalResult.CompletedWithWarnings => "ExclamationCircleFill",
                 JournalResult.Running => "Clock",
                 _ => "Clock"
             }

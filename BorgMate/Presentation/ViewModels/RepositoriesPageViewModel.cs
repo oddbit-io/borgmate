@@ -244,7 +244,7 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         var repo = _store.FindByPath(job.RepoPath);
         if (repo is null) return;
 
-        if (result.Success)
+        if (result.Completed)
         {
             repo.HasError = false;
             repo.LastError = null;

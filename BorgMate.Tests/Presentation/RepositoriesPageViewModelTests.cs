@@ -273,11 +273,11 @@ public class RepositoriesPageViewModelTests : IDisposable
         var job = new BorgJob { RepoPath = "/repo" };
         vm.HandleJobCompleted(new JobCompleted(
             job,
-            new BorgResult(119, "", "borg: failed for some unclassified reason\nmore details")));
+            new BorgResult(150, "", "borg: failed for some unclassified reason\nmore details")));
 
         Assert.True(repo.HasError);
         Assert.Equal(
-            $"Borg failed with unknown exit code 119.{Environment.NewLine}{Environment.NewLine}borg: failed for some unclassified reason{Environment.NewLine}more details",
+            $"Borg failed with unknown exit code 150.{Environment.NewLine}{Environment.NewLine}borg: failed for some unclassified reason{Environment.NewLine}more details",
             repo.LastError);
     }
 

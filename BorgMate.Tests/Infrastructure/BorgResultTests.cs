@@ -39,9 +39,44 @@ public class BorgResultTests
     [Fact]
     public void ErrorMessage_UsesUnknownMessageAndStderr_WhenExitCodeIsUnknown()
     {
-        var result = new BorgResult(119, "", "something unexpected");
+        var result = new BorgResult(150, "", "something unexpected");
         Assert.Equal(
-            $"Borg failed with unknown exit code 119.{Environment.NewLine}{Environment.NewLine}something unexpected",
+            $"Borg failed with unknown exit code 150.{Environment.NewLine}{Environment.NewLine}something unexpected",
+            result.ErrorMessage);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(100)]
+    [InlineData(105)]
+    [InlineData(127)]
+    public void Completed_WithWarnings_WhenExitCodeIsBorgWarning(int exitCode)
+    {
+        var result = new BorgResult(exitCode, "", "warning");
+        Assert.False(result.Success);
+        Assert.True(result.HasWarnings);
+        Assert.True(result.Completed);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(99)]
+    [InlineData(128)]
+    [InlineData(-1)]
+    public void Completed_False_WhenExitCodeIsBorgError(int exitCode)
+    {
+        var result = new BorgResult(exitCode, "", "error");
+        Assert.False(result.HasWarnings);
+        Assert.False(result.Completed);
+    }
+
+    [Fact]
+    public void ErrorMessage_UsesGenericWarning_WhenWarningCodeIsUnknown()
+    {
+        var result = new BorgResult(119, "", "something skipped");
+        Assert.Equal(BorgModernExitCode.Warning, result.ErrorCode);
+        Assert.Equal(
+            $"Borg completed with warnings.{Environment.NewLine}{Environment.NewLine}something skipped",
             result.ErrorMessage);
     }
 
@@ -82,10 +117,10 @@ public class BorgResultTests
             "Initializing cache transaction: Reading config",
             "7.77 GB O 7.57 GB C 0 B D 1190 N Users/user/Documents/photo.jpg",
             "borg: /Users/user/Documents/photo.jpg: file changed while reading");
-        var result = new BorgResult(119, "", stderr);
+        var result = new BorgResult(150, "", stderr);
 
         Assert.Equal(
-            $"Borg failed with unknown exit code 119.{Environment.NewLine}{Environment.NewLine}borg: /Users/user/Documents/photo.jpg: file changed while reading",
+            $"Borg failed with unknown exit code 150.{Environment.NewLine}{Environment.NewLine}borg: /Users/user/Documents/photo.jpg: file changed while reading",
             result.ErrorMessage);
     }
 

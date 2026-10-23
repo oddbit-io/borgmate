@@ -25,6 +25,7 @@ public class JournalEntryTypeToColorConverter : IValueConverter
                 JournalResult.Failed => Red,
                 JournalResult.Cancelled => Gray,
                 JournalResult.Deferred => Orange,
+                JournalResult.CompletedWithWarnings => Orange,
                 JournalResult.Running => Blue,
                 _ => Blue
             }

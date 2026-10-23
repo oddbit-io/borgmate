@@ -93,7 +93,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
             async (_, operationToken) =>
             {
                 var infoResult = await service.InfoRepoAsync(repo, operationToken);
-                if (infoResult.Success)
+                if (infoResult.Completed)
                     storageSpace = await repositoryStorageQuery.GetAsync(repo, operationToken);
                 return infoResult;
             },
@@ -225,7 +225,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
         using var registration = ct.Register(() => job.Cts.Cancel());
         var borgResult = await job.Completion.Task;
 
-        if (borgResult.Success)
+        if (borgResult.Completed)
             return new BorgExecutionResult(borgResult);
 
         return borgResult.WasCancelled

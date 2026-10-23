@@ -6,12 +6,24 @@ namespace BorgMate.Infrastructure.Borg;
 public record BorgResult(int ExitCode, string StandardOutput, string StandardError, bool WasCancelled = false)
 {
     private const int MaxErrorMessageLines = 8;
+    private const int FirstWarningExitCode = 100;
+    private const int LastWarningExitCode = 127;
 
     public bool Success => ExitCode == 0;
 
+    /// <summary>
+    ///     True when Borg reached the normal end of the operation but reported warnings
+    ///     (exit code 1 or 100-127); the operation's effect, such as a created archive, persists.
+    /// </summary>
+    public bool HasWarnings => ExitCode is (int)BorgModernExitCode.Warning
+        or (>= FirstWarningExitCode and <= LastWarningExitCode);
+
+    /// <summary>True when a Borg command finished its operation, with or without warnings.</summary>
+    public bool Completed => Success || HasWarnings;
+
     public BorgModernExitCode? ErrorCode => Success || WasCancelled
         ? null
-        : BorgModernExitCodeMapper.TryMap(ExitCode);
+        : BorgModernExitCodeMapper.TryMap(ExitCode) ?? (HasWarnings ? BorgModernExitCode.Warning : null);
 
     /// <summary>
     ///     User-friendly error message from the modern exit code, with stderr diagnostic detail preserved.

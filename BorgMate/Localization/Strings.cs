@@ -169,6 +169,7 @@ public class Strings : INotifyPropertyChanged
             JournalResult.Failed => Get("Job.Failed"),
             JournalResult.Cancelled => Get("Job.Cancelled"),
             JournalResult.Deferred => Get("Job.Deferred"),
+            JournalResult.CompletedWithWarnings => Get("Job.CompletedWithWarnings"),
             _ => ""
         };
     }

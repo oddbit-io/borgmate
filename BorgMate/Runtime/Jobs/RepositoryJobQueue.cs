@@ -136,13 +136,13 @@ internal sealed class RepositoryJobQueue : IDisposable
 
             var finalStatus = job.Cts.IsCancellationRequested
                 ? BorgJobStatus.Cancelled
-                : result.Success
+                : result.Completed
                     ? BorgJobStatus.Completed
                     : BorgJobStatus.Failed;
 
             var finalMessage = job.Cts.IsCancellationRequested
                 ? string.Empty
-                : result.Success
+                : result.Completed
                     ? job.StatusMessage
                     : result.ErrorMessage;
 

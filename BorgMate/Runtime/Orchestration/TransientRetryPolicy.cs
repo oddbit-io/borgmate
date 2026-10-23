@@ -25,7 +25,7 @@ public sealed class TransientRetryPolicy(ILogger<TransientRetryPolicy> logger)
                 ct.ThrowIfCancellationRequested();
                 var result = await operation(ct);
 
-                if (result.Success)
+                if (result.Completed)
                     return new BorgExecutionResult(result);
 
                 if (result.WasCancelled)
