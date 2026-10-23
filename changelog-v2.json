@@ -1,0 +1,185 @@
+[
+  {
+    "version": "1.1.1",
+    "date": "2026-10-22",
+    "changes": {
+      "improvements": [
+        "Show backup progress sizes with two decimals so large backups visibly advance."
+      ],
+      "fixes": [
+        "Clear a repository's previous error when a new operation starts, and ignore lock errors from background queries while a backup is running.",
+        "Fix overestimated speed and remaining time on large backups.",
+        "Wait up to 10 minutes for the repository lock left behind by a dropped SSH connection instead of failing the backup."
+      ]
+    }
+  },
+  {
+    "version": "1.1.0",
+    "date": "2026-08-10",
+    "changes": {
+      "features": [
+        "Exclude selected files and directories from new backups.",
+        "Skip iCloud placeholder files on macOS without downloading their contents."
+      ],
+      "improvements": [
+        "Use the configured binary or decimal units when entering repository rate limits.",
+        "Use faster repository statistics during prune with Borg 1.4.5 or newer."
+      ],
+      "fixes": [
+        "Reject unsupported Borg 2 versions before repository operations; experimental support is limited to Borg 2.0.0b21."
+      ]
+    }
+  },
+  {
+    "version": "1.0.1",
+    "date": "2026-07-25",
+    "changes": {
+      "improvements": [
+        "Keep transient window and backup timing state separate from durable configuration.",
+        "Keep one rolling configuration backup and remove legacy timestamped backups after migration."
+      ],
+      "fixes": [
+        "Refresh the archive list after scheduled backups, including workflows that continue with automatic prune and compact."
+      ]
+    }
+  },
+  {
+    "version": "1.0.0",
+    "date": "2026-07-14",
+    "changes": {
+      "features": [
+        "Back up to SMB shares.",
+        "View repository size and free storage.",
+        "Wake the computer for scheduled backups and optionally defer scheduled runs while on battery power."
+      ],
+      "improvements": [
+        "Report missing remote Borg executables clearly.",
+        "Archive browser folder rows now show their total file size."
+      ],
+      "fixes": [
+        "Improve scheduled backup progress, missed runs, and credential errors.",
+        "Open unencrypted repositories without a passphrase prompt.",
+        "Fix archive browser text contrast in dark theme."
+      ]
+    }
+  },
+  {
+    "version": "0.9.12",
+    "date": "2026-06-24",
+    "changes": {
+      "features": [
+        "Experimental Borg 2 support."
+      ],
+      "improvements": [
+        "Refreshed BorgMate app icon.",
+        "App internals were reorganized for more reliable future changes."
+      ],
+      "security": [
+        "Repository URLs now reject embedded passwords or secret tokens before they can be stored in config or logs."
+      ]
+    }
+  },
+  {
+    "version": "0.9.11",
+    "date": "2026-05-14",
+    "changes": {
+      "features": [
+        "Repository list: Change Passphrase action, rotates the encryption passphrase and updates the OS keychain entry."
+      ],
+      "fixes": [
+        "Fix repository operations hanging when a background job threw an unhandled exception.",
+        "Fix repository being flagged with an error after cancelling the passphrase prompt."
+      ]
+    }
+  },
+  {
+    "version": "0.9.9",
+    "date": "2026-05-01",
+    "changes": {
+      "features": [
+        "Repository list: Duplicate action in the More menu, copies an existing repository's configuration under a new name.",
+        "Settings: auto-load options for archive list, repository details, and archive details."
+      ],
+      "improvements": [
+        "Repository editor: save closes immediately when no connection-affecting field changed."
+      ]
+    }
+  },
+  {
+    "version": "0.9.8",
+    "date": "2026-04-27",
+    "changes": {
+      "features": [
+        "Prune tab: automatically compact the repository after prune to reclaim freed space (on by default; toggle in the Prune tab).",
+        "Repository editor: optional Archive Name Prefix field on the General tab — used as the prefix for generated archive names; falls back to the repository name when blank."
+      ],
+      "improvements": [
+        "Repository editor: renamed Display Name to Repository Name."
+      ]
+    }
+  },
+  {
+    "version": "0.9.7",
+    "date": "2026-04-22",
+    "changes": {
+      "features": [
+        "Configurable log verbosity (Debug, Info, Warning, Error) in Advanced settings."
+      ],
+      "fixes": [
+        "Fix shutdown log entry not being written, so logs now reliably end with a 'shutting down' line."
+      ]
+    }
+  },
+  {
+    "version": "0.9.6",
+    "date": "2026-04-16",
+    "changes": {
+      "features": [
+        "Prune: new editor tab for per-rule retention, action in the repository More menu, and option to run prune automatically after each scheduled backup."
+      ],
+      "fixes": [
+        "Fix toolbar labels not retranslating when the interface language is changed.",
+        "Fix repository editor tab strip wrapping onto two rows with longer translations.",
+        "Fix OS autostart entry being rewritten on every settings save."
+      ]
+    }
+  },
+  {
+    "version": "0.9.5",
+    "date": "2026-04-12",
+    "changes": {
+      "features": [
+        "Operations on different repositories now run in parallel.",
+        "Progress indicator on repository list items during backup and other operations.",
+        "Operation errors shown in notifications instead of popup dialogs."
+      ],
+      "improvements": [
+        "Repository editor verifies connection before saving.",
+        "Confirmation when stopping running operations.",
+        "Auto-accept relocated repository warnings."
+      ]
+    }
+  },
+  {
+    "version": "0.9.4",
+    "date": "2026-04-10",
+    "changes": {
+      "improvements": [
+        "Prevent system sleep during long-running borg operations."
+      ],
+      "fixes": [
+        "Fix BorgMate blocking session logout/shutdown on Linux.",
+        "Fix crash on closing system file picker on macOS"
+      ]
+    }
+  },
+  {
+    "version": "0.9.3",
+    "date": "2026-04-09",
+    "changes": {
+      "features": [
+        "Initial public release."
+      ]
+    }
+  }
+]
