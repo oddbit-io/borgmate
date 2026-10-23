@@ -62,11 +62,11 @@ public partial class BootstrapIcon : Control
 
         var names = new[]
         {
-            "ArrowClockwise", "ArrowUpCircle", "ArrowsCollapse", "Bell", "Box", "BoxArrowDown",
+            "ArrowClockwise", "ArrowUpCircle", "ArrowUpCircleFill", "ArrowsCollapse", "Bell", "Box", "BoxArrowDown",
             "CheckCircleFill", "ChevronDown", "ChevronRight", "Clock", "DashCircleFill",
             "Database", "ExclamationCircle", "ExclamationCircleFill", "FileDiff", "FolderFill", "FolderPlus",
             "GearWideConnected", "HourglassSplit", "InfoCircle", "KeyFill", "List", "ListNested",
-            "PencilSquare", "PlayFill", "PlusLg", "QuestionCircle", "Scissors", "ShieldCheck",
+            "PencilSquare", "PlayFill", "PlusCircleFill", "PlusLg", "QuestionCircle", "Scissors", "ShieldCheck",
             "StopFill", "ThreeDotsVertical", "Trash", "XCircleFill",
             "FileEarmark", "FileEarmarkCode", "FileEarmarkText", "FileEarmarkPdf",
             "FileEarmarkImage", "FileEarmarkMusic", "FileEarmarkPlay", "FileEarmarkZip",

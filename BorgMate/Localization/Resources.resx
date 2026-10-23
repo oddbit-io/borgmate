@@ -601,7 +601,7 @@
     <value>Update Available</value>
   </data>
     <data name="UpdateChangelogTitle" xml:space="preserve">
-    <value>What&#x27;s new in v{0}</value>
+    <value>What&#x27;s New</value>
   </data>
     <data name="UpdateChangelogFeatures" xml:space="preserve">
     <value>Features</value>

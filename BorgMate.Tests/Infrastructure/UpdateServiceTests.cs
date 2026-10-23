@@ -51,7 +51,7 @@ public class UpdateServiceTests
 
         var entry = Assert.Single(UpdateService.ParseChangelog(json, "0.9.12", "1.0.0-alpha"));
 
-        Assert.Equal("2026-07-14", entry.Date);
+        Assert.Equal(new DateOnly(2026, 7, 14), entry.Date);
         Assert.Equal(["Feature"], entry.Changes.Features);
         Assert.Equal(["Improvement"], entry.Changes.Improvements);
         Assert.Equal(["Fix"], entry.Changes.Fixes);

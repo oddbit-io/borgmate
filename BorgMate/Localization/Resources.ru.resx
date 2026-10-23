@@ -601,7 +601,7 @@
     <value>Доступно обновление</value>
   </data>
     <data name="UpdateChangelogTitle" xml:space="preserve">
-    <value>Что нового в v{0}</value>
+    <value>Что нового</value>
   </data>
     <data name="UpdateChangelogFeatures" xml:space="preserve">
     <value>Новые возможности</value>

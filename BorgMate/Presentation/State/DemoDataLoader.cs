@@ -125,7 +125,7 @@ public static class DemoDataLoader
                     new()
                     {
                         Version = "99.0.0",
-                        Date = "2026-04-10",
+                        Date = new DateOnly(2026, 4, 10),
                         Changes = new ChangelogChanges
                         {
                             Features =
@@ -139,7 +139,7 @@ public static class DemoDataLoader
                     new()
                     {
                         Version = "98.0.0",
-                        Date = "2026-04-05",
+                        Date = new DateOnly(2026, 4, 5),
                         Changes = new ChangelogChanges
                         {
                             Improvements =

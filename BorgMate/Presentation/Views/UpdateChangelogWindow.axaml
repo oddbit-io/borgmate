@@ -4,40 +4,65 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:BorgMate.Presentation.Controls"
-        mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="350"
+        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="600"
         x:Class="BorgMate.Presentation.Views.UpdateChangelogWindow"
-        Width="450"
-        SizeToContent="Height"
-        MaxHeight="500"
+        Width="560"
+        Height="600"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
-    <DockPanel Margin="{StaticResource ModalPadding}">
-        <StackPanel Classes="dialog-buttons">
-            <Button Content="{Binding [Cancel], Source={x:Static loc:Strings.Instance}}" Name="CancelButton" />
-            <Button Content="{Binding [UpdateDownload], Source={x:Static loc:Strings.Instance}}" Name="DownloadButton"
-                    Classes="accent" />
-        </StackPanel>
+    <Window.Styles>
+        <Style Selector="Border.changelog-header">
+            <Setter Property="DockPanel.Dock" Value="Top" />
+            <Setter Property="Padding" Value="24,16" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+        <Style Selector="Border.changelog-footer">
+            <Setter Property="DockPanel.Dock" Value="Bottom" />
+            <Setter Property="Padding" Value="{StaticResource ModalPadding}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="0,1,0,0" />
+        </Style>
+        <Style Selector="Border.changelog-footer StackPanel.dialog-buttons">
+            <Setter Property="Margin" Value="0" />
+        </Style>
+        <Style Selector="TextBlock.changelog-version">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="TextBlock.changelog-category">
+            <Setter Property="FontSize" Value="{StaticResource SecondaryFontSize}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="LetterSpacing" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+        </Style>
+        <Style Selector="controls|BootstrapIcon.changelog-bullet">
+            <Setter Property="Width" Value="14" />
+            <Setter Property="Height" Value="14" />
+            <Setter Property="Margin" Value="0,1,10,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        </Style>
+    </Window.Styles>
 
-        <ScrollViewer MaxHeight="380">
-            <StackPanel Spacing="12">
-                <!-- Title -->
-                <DockPanel>
-                    <controls:BootstrapIcon Kind="ArrowUpCircle" Width="24" Height="24"
-                                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
-                                            Margin="0,0,12,0" DockPanel.Dock="Left" />
-                    <TextBlock Name="TitleText" FontWeight="SemiBold" FontSize="14"
-                               TextWrapping="Wrap" VerticalAlignment="Center" />
-                </DockPanel>
+    <DockPanel>
+        <Border Classes="changelog-header">
+            <TextBlock Text="{Binding [UpdateChangelogTitle], Source={x:Static loc:Strings.Instance}}"
+                       FontSize="22" FontWeight="Bold" />
+        </Border>
 
-                <!-- Changelog entries -->
-                <StackPanel Name="ChangelogPanel" Spacing="10" />
-
-                <!-- Fallback when no changelog -->
-                <TextBlock Name="NoChangelogText"
-                           Foreground="{DynamicResource SecondaryTextBrush}"
-                           IsVisible="False" />
+        <Border Classes="changelog-footer">
+            <StackPanel Classes="dialog-buttons">
+                <Button Content="{Binding [Cancel], Source={x:Static loc:Strings.Instance}}" Name="CancelButton" />
+                <Button Content="{Binding [UpdateDownload], Source={x:Static loc:Strings.Instance}}"
+                        Name="DownloadButton" Classes="accent" />
             </StackPanel>
+        </Border>
+
+        <ScrollViewer>
+            <StackPanel Name="ChangelogPanel" Margin="24,16" Spacing="24" />
         </ScrollViewer>
     </DockPanel>
 </Window>

@@ -1,12 +1,19 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Media;
 using BorgMate.Infrastructure.Updates;
+using BorgMate.Presentation.Controls;
 
 namespace BorgMate.Presentation.Views;
 
 public partial class UpdateChangelogWindow : ModalWindow
 {
+    private const string ReleaseDateFormat = "d MMMM yyyy";
+
     public UpdateChangelogWindow()
     {
         InitializeComponent();
@@ -15,30 +22,22 @@ public partial class UpdateChangelogWindow : ModalWindow
     public UpdateChangelogWindow(string version, List<ChangelogEntry> changelog) : this()
     {
         Title = Strings.Get("UpdateTitle");
-        TitleText.Text = string.Format(Strings.Get("UpdateChangelogTitle"), version);
 
         if (changelog.Count > 0)
         {
             foreach (var entry in changelog)
-            {
-                var section = new StackPanel { Spacing = 8 };
-                section.Children.Add(new TextBlock
-                {
-                    Text = $"v{entry.Version}" + (entry.Date is not null ? $" \u2014 {entry.Date}" : ""),
-                    FontWeight = FontWeight.SemiBold,
-                    Classes = { "secondary" }
-                });
-                AddCategory(section, Strings.Get("UpdateChangelogFeatures"), entry.Changes.Features);
-                AddCategory(section, Strings.Get("UpdateChangelogImprovements"), entry.Changes.Improvements);
-                AddCategory(section, Strings.Get("UpdateChangelogFixes"), entry.Changes.Fixes);
-                AddCategory(section, Strings.Get("UpdateChangelogSecurity"), entry.Changes.Security);
-                ChangelogPanel.Children.Add(section);
-            }
+                ChangelogPanel.Children.Add(CreateEntrySection(entry));
         }
         else
         {
-            NoChangelogText.Text = Strings.Get("UpdateNoChangelog");
-            NoChangelogText.IsVisible = true;
+            var section = new StackPanel { Spacing = 12 };
+            section.Children.Add(CreateVersionHeader(version, null));
+            section.Children.Add(new TextBlock
+            {
+                Text = Strings.Get("UpdateNoChangelog"),
+                Classes = { "secondary" }
+            });
+            ChangelogPanel.Children.Add(section);
         }
 
         DownloadButton.Click += (_, _) =>
@@ -51,23 +50,58 @@ public partial class UpdateChangelogWindow : ModalWindow
 
     public bool Confirmed { get; private set; }
 
-    private static void AddCategory(StackPanel section, string title, List<string> changes)
+    private static StackPanel CreateEntrySection(ChangelogEntry entry)
+    {
+        var section = new StackPanel { Spacing = 16 };
+        section.Children.Add(CreateVersionHeader(entry.Version, entry.Date));
+        AddCategory(section, Strings.Get("UpdateChangelogFeatures"), "PlusCircleFill", entry.Changes.Features);
+        AddCategory(section, Strings.Get("UpdateChangelogImprovements"), "ArrowUpCircleFill",
+            entry.Changes.Improvements);
+        AddCategory(section, Strings.Get("UpdateChangelogFixes"), "CheckCircleFill", entry.Changes.Fixes);
+        AddCategory(section, Strings.Get("UpdateChangelogSecurity"), "ShieldCheck", entry.Changes.Security);
+        return section;
+    }
+
+    private static DockPanel CreateVersionHeader(string version, DateOnly? date)
+    {
+        var header = new DockPanel();
+        if (date is { } releaseDate)
+        {
+            var dateText = new TextBlock
+            {
+                Text = releaseDate.ToString(ReleaseDateFormat, Strings.Culture),
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(8, 0, 0, 2),
+                Classes = { "secondary" }
+            };
+            DockPanel.SetDock(dateText, Dock.Right);
+            header.Children.Add(dateText);
+        }
+
+        header.Children.Add(new TextBlock { Text = $"v{version}", Classes = { "changelog-version" } });
+        return header;
+    }
+
+    private static void AddCategory(StackPanel section, string title, string iconKind, List<string> changes)
     {
         if (changes.Count == 0) return;
 
-        var category = new StackPanel { Spacing = 2 };
+        var category = new StackPanel { Spacing = 10 };
         category.Children.Add(new TextBlock
         {
-            Text = title,
-            FontWeight = FontWeight.SemiBold,
-            Classes = { "secondary" }
+            Text = title.ToUpper(CultureInfo.CurrentUICulture),
+            Classes = { "changelog-category" }
         });
         foreach (var change in changes)
-            category.Children.Add(new TextBlock
-            {
-                Text = $"  \u2022 {change}",
-                TextWrapping = TextWrapping.Wrap
-            });
+        {
+            var row = new DockPanel();
+            var icon = new BootstrapIcon { Kind = iconKind, Classes = { "changelog-bullet" } };
+            DockPanel.SetDock(icon, Dock.Left);
+            row.Children.Add(icon);
+            row.Children.Add(new TextBlock { Text = change, TextWrapping = TextWrapping.Wrap });
+            category.Children.Add(row);
+        }
+
         section.Children.Add(category);
     }
 }
