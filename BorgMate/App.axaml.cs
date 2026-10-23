@@ -20,6 +20,7 @@ using BorgMate.Persistence.Configuration;
 using BorgMate.Persistence.Journal;
 using BorgMate.Presentation.Dialogs;
 using BorgMate.Presentation.State;
+using BorgMate.Presentation.Theming;
 using BorgMate.Runtime.Jobs;
 using BorgMate.Runtime.Scheduling;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,6 +51,7 @@ public class App : Application
     private bool _sleepInhibited;
     private ISleepInhibitor _sleepInhibitor = null!;
     private UpdateStatusState _status = null!;
+    private SystemColorsBinder? _systemColors;
     private TrayIcon? _trayIcon;
     private UpdateService _updateService = null!;
     public static IServiceProvider Services { get; private set; } = null!;
@@ -70,6 +72,8 @@ public class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            _systemColors = new SystemColorsBinder(this,
+                PlatformSettings ?? throw new InvalidOperationException("Platform settings are unavailable."));
             _settings = Services.GetRequiredService<AppSettings>();
 
             // AC-only backups gate: pmset can't condition the wake itself, so a scheduled-wake

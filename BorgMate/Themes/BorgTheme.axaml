@@ -4,17 +4,15 @@
 
     <Styles.Resources>
         <ResourceDictionary>
-            <!-- Shared (theme-independent) -->
-            <Color x:Key="AccentColor">#2857B8</Color>
-            <Color x:Key="AccentHoverColor">#3D9BFF</Color>
-            <Color x:Key="AccentPressedColor">#0060DF</Color>
+            <!-- Shared (theme-independent). The accent colours live in App.axaml so the
+                 system accent can replace them at runtime. -->
             <Color x:Key="SelectedTextColor">White</Color>
             <Color x:Key="SecondarySelectedTextColor">#CCFFFFFF</Color>
             <Color x:Key="ValidationColor">#FF3B30</Color>
 
-            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-            <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
-            <SolidColorBrush x:Key="AccentPressedBrush" Color="{StaticResource AccentPressedColor}" />
+            <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="{DynamicResource AccentHoverColor}" />
+            <SolidColorBrush x:Key="AccentPressedBrush" Color="{DynamicResource AccentPressedColor}" />
             <SolidColorBrush x:Key="ValidationErrorBrush" Color="{StaticResource ValidationColor}" />
 
             <!-- Spacing -->
@@ -48,11 +46,11 @@
                     <SolidColorBrush x:Key="SecondaryTextBrush" Color="#8F8F94" />
                     <SolidColorBrush x:Key="InputBorderBrush" Color="#2A000000" />
                     <Color x:Key="ListItemHoverColor">#0A000000</Color>
-                    <Color x:Key="ListItemSelectedHoverColor">#0060DF</Color>
+                    <SolidColorBrush x:Key="ListItemSelectedHoverBrush" Color="{DynamicResource AccentPressedColor}" />
                     <SolidColorBrush x:Key="SidebarBrush" Color="#F0F0F0" />
                     <SolidColorBrush x:Key="WindowBrush" Color="#F5F5F7" />
                     <!-- Text selection colors. -->
-                    <SolidColorBrush x:Key="HighlightBrush" Color="{StaticResource AccentColor}" />
+                    <SolidColorBrush x:Key="HighlightBrush" Color="{DynamicResource AccentColor}" />
                     <SolidColorBrush x:Key="HighlightForegroundBrush" Color="White" />
                     <SolidColorBrush x:Key="ButtonBevelBrush" Color="#33000000" />
                     <SolidColorBrush x:Key="ButtonPressedBevelBrush" Color="#30000000" />
@@ -65,7 +63,7 @@
                         <GradientStop Color="#10FFFFFF" Offset="1" />
                     </LinearGradientBrush>
                     <!-- Disk usage gauge (repository details capacity bar) -->
-                    <SolidColorBrush x:Key="DiskGaugeRepoBrush" Color="{StaticResource AccentColor}" />
+                    <SolidColorBrush x:Key="DiskGaugeRepoBrush" Color="{DynamicResource AccentColor}" />
                     <SolidColorBrush x:Key="DiskGaugeFreeBrush" Color="#D8D8DD" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
@@ -80,11 +78,11 @@
                     <SolidColorBrush x:Key="SecondaryTextBrush" Color="#98989D" />
                     <SolidColorBrush x:Key="InputBorderBrush" Color="#24FFFFFF" />
                     <Color x:Key="ListItemHoverColor">#3A3A3C</Color>
-                    <Color x:Key="ListItemSelectedHoverColor">#3D9BFF</Color>
+                    <SolidColorBrush x:Key="ListItemSelectedHoverBrush" Color="{DynamicResource AccentHoverColor}" />
                     <SolidColorBrush x:Key="SidebarBrush" Color="#2C2C2E" />
                     <SolidColorBrush x:Key="WindowBrush" Color="#1C1C1E" />
                     <!-- Text selection colors. -->
-                    <SolidColorBrush x:Key="HighlightBrush" Color="{StaticResource AccentColor}" />
+                    <SolidColorBrush x:Key="HighlightBrush" Color="{DynamicResource AccentColor}" />
                     <SolidColorBrush x:Key="HighlightForegroundBrush" Color="White" />
                     <SolidColorBrush x:Key="ButtonBevelBrush" Color="#18FFFFFF" />
                     <SolidColorBrush x:Key="ButtonPressedBevelBrush" Color="#10FFFFFF" />
@@ -97,7 +95,7 @@
                         <GradientStop Color="#08FFFFFF" Offset="1" />
                     </LinearGradientBrush>
                     <!-- Disk usage gauge (repository details capacity bar) -->
-                    <SolidColorBrush x:Key="DiskGaugeRepoBrush" Color="{StaticResource AccentColor}" />
+                    <SolidColorBrush x:Key="DiskGaugeRepoBrush" Color="{DynamicResource AccentColor}" />
                     <SolidColorBrush x:Key="DiskGaugeFreeBrush" Color="#3A3A3C" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
@@ -316,7 +314,7 @@
         <Setter Property="Background" Value="{StaticResource AccentBrush}" />
     </Style>
     <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverColor}" />
+        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverBrush}" />
     </Style>
     <Style Selector="ListBoxItem:selected TextBlock">
         <Setter Property="Foreground" Value="{StaticResource SelectedTextColor}" />
@@ -350,7 +348,7 @@
         <Setter Property="Background" Value="{StaticResource AccentBrush}" />
     </Style>
     <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverColor}" />
+        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverBrush}" />
     </Style>
     <Style Selector="ComboBoxItem:selected TextBlock">
         <Setter Property="Foreground" Value="White" />
@@ -405,7 +403,7 @@
         <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="MenuItem:selected:pointerover /template/ Border">
-        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverColor}" />
+        <Setter Property="Background" Value="{DynamicResource ListItemSelectedHoverBrush}" />
         <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="MenuItem:pressed">

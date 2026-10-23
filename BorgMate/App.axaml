@@ -5,6 +5,13 @@
              RequestedThemeVariant="Default"
              Name="BorgMate">
 
+    <!-- Brand accent; SystemColorsBinder replaces these with the OS accent on Windows and macOS. -->
+    <Application.Resources>
+        <Color x:Key="AccentColor">#2857B8</Color>
+        <Color x:Key="AccentHoverColor">#3D9BFF</Color>
+        <Color x:Key="AccentPressedColor">#0060DF</Color>
+    </Application.Resources>
+
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
