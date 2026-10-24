@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.2.0",
+    "date": "2026-10-25",
+    "changes": {
+      "features": [
+        "Follow the system accent color on Windows and macOS."
+      ],
+      "improvements": [
+        "Redesign the What's New dialog shown after an update.",
+        "Refresh the app icon."
+      ],
+      "fixes": [
+        "Complete backups that finish with Borg warnings, such as unreadable files, instead of failing them."
+      ]
+    }
+  },
+  {
     "version": "1.1.1",
     "date": "2026-10-22",
     "changes": {
