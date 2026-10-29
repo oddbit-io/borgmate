@@ -25,4 +25,5 @@ public class RepositoryData
     public BackupScheduleData? Schedule { get; set; }
     public BackupMode? Mode { get; set; }
     public PruneOptionsData? PruneOptions { get; set; }
+    public List<RepositoryRelocationData>? ConfirmedRelocations { get; set; }
 }

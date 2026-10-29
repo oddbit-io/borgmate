@@ -1,7 +1,11 @@
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
+using BorgMate.Domain.Repositories;
 using BorgMate.Presentation.Views;
 
 namespace BorgMate.Presentation.Dialogs;
@@ -15,14 +19,40 @@ public static class DialogHelper
         return null;
     }
 
-    public static async Task<bool> ConfirmAsync(string message)
+    /// <summary>
+    ///     Returns the innermost visible window in the main window's ownership chain, such as the open
+    ///     repository editor. A dialog shown over it blocks every window beneath, including that editor.
+    /// </summary>
+    public static Window? GetDialogOwner()
     {
-        var window = GetMainWindow();
+        var owner = GetMainWindow();
+        while (owner?.OwnedWindows.LastOrDefault(window => window.IsVisible) is { } owned)
+            owner = owned;
+        return owner;
+    }
+
+    public static async Task<bool> ConfirmAsync(string message, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        var window = GetDialogOwner();
         if (window is null) return false;
 
         var dialog = new ConfirmDialogWindow(message);
+        using var cancellation = ct.Register(() => Dispatcher.UIThread.Post(() => dialog.Close()));
         await dialog.ShowDialog(window);
+        ct.ThrowIfCancellationRequested();
         return dialog.Confirmed;
+    }
+
+    /// <summary>Shows Borg's relocated-repository warning and returns true when the user confirms the new location.</summary>
+    public static Task<bool> ConfirmRelocationAsync(string repositoryName, RepositoryRelocation relocation,
+        CancellationToken ct = default)
+    {
+        return ConfirmAsync(string.Format(
+            Strings.Get("RepositoryRelocated.Confirm"),
+            repositoryName,
+            relocation.Location,
+            relocation.PreviousLocation), ct);
     }
 
     /// <summary>

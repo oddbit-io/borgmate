@@ -58,9 +58,11 @@ public class RepositoryOperationRunnerTests
         var orchestrator = new BorgOperationOrchestrator(
             Substitute.For<ILogger<BorgOperationOrchestrator>>(),
             passphrase,
+            factory,
             new TransientRetryPolicy(Substitute.For<ILogger<TransientRetryPolicy>>()),
             queue,
-            journal);
+            journal,
+            new ControlledRepositoryRelocationConfirmation());
         return new RepositoryOperationRunner(
             factory,
             queue,

@@ -171,14 +171,17 @@ public class RepositoryVerificationOperationRunnerTests
         var journal = Substitute.For<IJournalStore>();
         journal.Add(Arg.Any<JournalEventKind>(), Arg.Any<object[]>(), Arg.Any<string>())
             .Returns(_ => new JournalEntry(JournalEventKind.PassphraseFailed));
+        var factory = new StubBorgServiceFactory(service, sshTransport);
         var orchestrator = new BorgOperationOrchestrator(
             Substitute.For<ILogger<BorgOperationOrchestrator>>(),
             provider,
+            factory,
             new TransientRetryPolicy(Substitute.For<ILogger<TransientRetryPolicy>>()),
             queue,
-            journal);
+            journal,
+            new ControlledRepositoryRelocationConfirmation());
         return new RepositoryVerificationOperationRunner(
-            new StubBorgServiceFactory(service, sshTransport), queue, journal, orchestrator, provider, sshTransport);
+            factory, queue, journal, orchestrator, provider, sshTransport);
     }
 
     private sealed class StubBorgServiceFactory : BorgServiceFactory

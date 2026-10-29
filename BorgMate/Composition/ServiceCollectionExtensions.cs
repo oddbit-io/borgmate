@@ -137,6 +137,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<PromptingPassphraseProvider>();
         services.AddSingleton<IPassphraseProvider>(sp => sp.GetRequiredService<PromptingPassphraseProvider>());
         services.AddSingleton<TransientRetryPolicy>();
+        services.AddSingleton<RepositoryRelocationConfirmation>();
         services.AddSingleton<BorgOperationOrchestrator>();
         services.AddSingleton<BorgCapabilityQuery>();
         services.AddSingleton<BorgVersionDeprecationNotice>();

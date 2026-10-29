@@ -1,3 +1,4 @@
+using BorgMate.Domain.Repositories;
 using BorgMate.Infrastructure.Borg;
 using BorgMate.Runtime.Operations;
 using OneOf;
@@ -32,6 +33,14 @@ public static class OperationErrorExtensions
         return result.WasCancelled
             ? new OperationError.Cancelled()
             : new OperationError.BorgFailure(result.ErrorCode, result.ExitCode, result.StandardError);
+    }
+
+    /// <summary>Returns the relocation Borg reported when it refused to access a relocated repository.</summary>
+    public static RepositoryRelocation? ReportedRelocation(this OperationError error)
+    {
+        return error is OperationError.BorgFailure { Code: BorgModernExitCode.RepositoryAccessAborted } failure
+            ? BorgRelocationWarning.TryParse(failure.StderrExcerpt)
+            : null;
     }
 
     /// <summary>Returns a displayable message for a runtime error.</summary>

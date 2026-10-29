@@ -38,12 +38,33 @@ public class Borg1ServiceTests
         var svc = CreateService();
         var repo = LocalRepo();
         repo.EncryptionMode = BorgEncryptionMode.RepokeyBlake2;
+        svc.SetPassphrase(repo, "pass");
 
         await svc.InitAsync(repo);
 
         Assert.Contains("init", svc.LastArgs!);
         Assert.Contains("--encryption repokey-blake2", svc.LastArgs!);
         Assert.Contains(repo.Path, svc.LastArgs!);
+    }
+
+    [Fact]
+    public async Task InitAsync_EncryptedRepoWithoutCachedPassphrase_Throws()
+    {
+        var svc = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            svc.InitAsync(LocalRepo(enc: BorgEncryptionMode.RepokeyBlake2)));
+        Assert.Null(svc.LastArgs);
+    }
+
+    [Fact]
+    public async Task RepositoryCommand_WithoutCachedPassphrase_PassesEmptyPassphrase()
+    {
+        var svc = CreateService();
+
+        await svc.InfoRepoAsync(LocalRepo(enc: BorgEncryptionMode.RepokeyBlake2));
+
+        Assert.Equal(string.Empty, svc.LastEnvVars!["BORG_PASSPHRASE"]);
     }
 
     [Fact]
@@ -360,6 +381,29 @@ public class Borg1ServiceTests
         Assert.NotNull(svc.LastEnvVars);
         Assert.Equal("old-pass", svc.LastEnvVars!["BORG_PASSPHRASE"]);
         Assert.Equal("new-pass", svc.LastEnvVars!["BORG_NEW_PASSPHRASE"]);
+    }
+
+    [Fact]
+    public async Task RepositoryCommand_RefusesRelocatedRepositoryByDefault()
+    {
+        var svc = CreateService();
+
+        await svc.ChangePassphraseAsync(LocalRepo(), "new-pass");
+
+        Assert.Equal("no", svc.LastEnvVars!["BORG_RELOCATED_REPO_ACCESS_IS_OK"]);
+    }
+
+    [Fact]
+    public async Task AcceptRelocationAsync_ListsLastArchiveAcceptingRelocation()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+
+        await svc.AcceptRelocationAsync(repo);
+
+        Assert.StartsWith("list --short --last 1 ", svc.LastArgs);
+        Assert.Contains(repo.Path, svc.LastArgs!);
+        Assert.Equal("yes", svc.LastEnvVars!["BORG_RELOCATED_REPO_ACCESS_IS_OK"]);
     }
 
     /// <summary>

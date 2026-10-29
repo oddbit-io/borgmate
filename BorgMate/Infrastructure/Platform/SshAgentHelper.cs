@@ -389,7 +389,7 @@ public class SshAgentHelper(
         // Dialog must be created and shown on the UI thread
         var (result, saveToKeychain) = await Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            var window = DialogHelper.GetMainWindow();
+            var window = DialogHelper.GetDialogOwner();
             if (window is null) return ((string?)null, false);
 
             return await DialogHelper.ShowPasswordDialogAsync(window,

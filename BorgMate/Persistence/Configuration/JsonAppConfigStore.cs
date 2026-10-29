@@ -624,7 +624,14 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
             BorgVersion = data.BorgVersion,
             BorgRemotePath = data.BorgRemotePath,
             IsLocal = locationKind == BorgRepositoryLocationKind.LocalPath,
-            Mode = data.Mode ?? BackupMode.Manual
+            Mode = data.Mode ?? BackupMode.Manual,
+            ConfirmedRelocations = data.ConfirmedRelocations?
+                .Select(relocation => new RepositoryRelocation
+                {
+                    Location = relocation.Location,
+                    PreviousLocation = relocation.PreviousLocation
+                })
+                .ToList() ?? []
         };
 
         if (data.SourceDirectories is not null)
@@ -714,6 +721,15 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
                     KeepYearly = repo.PruneOptions.KeepYearly,
                     CompactAfterPrune = repo.PruneOptions.CompactAfterPrune
                 }
+                : null,
+            ConfirmedRelocations = repo.ConfirmedRelocations.Count > 0
+                ? repo.ConfirmedRelocations
+                    .Select(relocation => new RepositoryRelocationData
+                    {
+                        Location = relocation.Location,
+                        PreviousLocation = relocation.PreviousLocation
+                    })
+                    .ToList()
                 : null
         };
     }
@@ -741,6 +757,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
             IsLocal = locationKind == BorgRepositoryLocationKind.LocalPath,
             Mode = repo.Mode,
             LastBackupAt = repo.LastBackupAt,
+            ConfirmedRelocations = repo.ConfirmedRelocations,
             Schedule = new BackupSchedule
             {
                 Frequency = repo.Schedule?.Frequency ?? ScheduleFrequency.Daily,

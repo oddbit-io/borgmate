@@ -15,13 +15,15 @@ using OneOf;
 
 namespace BorgMate.Runtime.Orchestration;
 
-/// <summary>Default runtime orchestrator for passphrase and transient retry behavior.</summary>
+/// <summary>Default runtime orchestrator for passphrase, confirmed relocation, and transient retry behavior.</summary>
 public sealed class BorgOperationOrchestrator(
     ILogger<BorgOperationOrchestrator> logger,
     IPassphraseProvider passphraseProvider,
+    BorgServiceFactory borgServiceFactory,
     TransientRetryPolicy transientRetryPolicy,
     BorgJobQueue jobQueue,
-    IJournalStore journalStore)
+    IJournalStore journalStore,
+    RepositoryRelocationConfirmation relocationConfirmation)
 {
     private const int MaxPassphraseAttempts = 3;
 
@@ -45,11 +47,7 @@ public sealed class BorgOperationOrchestrator(
 
             for (var attempt = 0; attempt < MaxPassphraseAttempts; attempt++)
             {
-                var context = new BorgOperationContext(request.Repository, request.ProgressSink);
-                var result = await transientRetryPolicy.ExecuteAsync(
-                    token => operation(context, token),
-                    request.ProgressSink,
-                    ct);
+                var result = await RunAttemptAsync(request, operation, ct);
 
                 if (result.IsT0)
                     return result.AsT0;
@@ -80,6 +78,49 @@ public sealed class BorgOperationOrchestrator(
                 request.Repository.Name);
             return new OperationError.Unexpected(ex);
         }
+    }
+
+    /// <summary>
+    ///     Runs the operation once, confirms a reported relocation according to the request's interaction
+    ///     policy, and repeats after Borg records the approval.
+    /// </summary>
+    private async Task<OneOf<BorgExecutionResult, OperationError>> RunAttemptAsync(
+        BorgOperationRequest request,
+        Func<BorgOperationContext, CancellationToken, Task<BorgResult>> operation,
+        CancellationToken ct)
+    {
+        var result = await RunOnceAsync(request, operation, ct);
+        if (result.IsT0 ||
+            result.AsT1.ReportedRelocation() is not { } relocation ||
+            !await relocationConfirmation.ConfirmAsync(request, relocation, ct))
+            return result;
+
+        return await AcceptRelocationAndRepeatAsync(request, operation, ct);
+    }
+
+    private async Task<OneOf<BorgExecutionResult, OperationError>> AcceptRelocationAndRepeatAsync(
+        BorgOperationRequest request,
+        Func<BorgOperationContext, CancellationToken, Task<BorgResult>> operation,
+        CancellationToken ct)
+    {
+        var service = borgServiceFactory.GetService(request.Repository.BorgVersion);
+        var accepted = await transientRetryPolicy.ExecuteAsync(
+            token => service.AcceptRelocationAsync(request.Repository, token),
+            request.ProgressSink,
+            ct);
+        if (accepted.IsT1)
+            return accepted.AsT1;
+
+        return await RunOnceAsync(request, operation, ct);
+    }
+
+    private Task<OneOf<BorgExecutionResult, OperationError>> RunOnceAsync(
+        BorgOperationRequest request,
+        Func<BorgOperationContext, CancellationToken, Task<BorgResult>> operation,
+        CancellationToken ct)
+    {
+        var context = new BorgOperationContext(request.Repository, request.ProgressSink);
+        return transientRetryPolicy.ExecuteAsync(token => operation(context, token), request.ProgressSink, ct);
     }
 
     private OperationError HandlePassphraseFailure(BorgRepository repo, OperationError error)

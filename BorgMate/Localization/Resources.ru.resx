@@ -369,6 +369,15 @@
   <data name="ExcludeCloudFiles.DisabledReason" xml:space="preserve">
     <value>Недоступно: требуется Borg 1.4.5 или новее.</value>
   </data>
+  <data name="RememberConfirmedRelocations" xml:space="preserve">
+    <value>Помнить подтверждённые перемещения</value>
+  </data>
+  <data name="RememberConfirmedRelocations.Tooltip" xml:space="preserve">
+    <value>BorgMate не спрашивает повторно, если Borg сообщает об одном из перемещений ниже. Снимите галочку и сохраните, чтобы забыть их.</value>
+  </data>
+  <data name="RememberConfirmedRelocations.Empty" xml:space="preserve">
+    <value>Подтверждённых перемещений нет. Они появятся здесь, когда вы подтвердите предупреждение Borg о перемещении.</value>
+  </data>
     <data name="SourceDirectories" xml:space="preserve">
     <value>Исходные каталоги</value>
   </data>
@@ -848,6 +857,15 @@
   </data>
     <data name="RepoExistsOpenInstead" xml:space="preserve">
     <value>Репозиторий по этому пути уже существует. Открыть его?</value>
+  </data>
+  <data name="RepositoryRelocated.Confirm" xml:space="preserve">
+    <value>Borg предупреждает, что репозиторий {0} теперь находится по адресу:
+{1}
+
+Раньше он находился здесь:
+{2}
+
+Продолжайте, только если знаете, почему адрес изменился. BorgMate запомнит это перемещение.</value>
   </data>
     <data name="ValidationRequired" xml:space="preserve">
     <value>Это поле обязательно</value>
@@ -1356,7 +1374,7 @@ Borg использует контрольные точки — повторны
     <value>Метод шифрования репозитория Borg изменился с момента последнего доступа.</value>
   </data>
     <data name="Error.BorgModernExitCode.RepositoryAccessAborted" xml:space="preserve">
-    <value>Доступ к репозиторию Borg был прерван.</value>
+    <value>Borg отказал в доступе: репозиторий находится по новому адресу. Выполните любую операцию с этим репозиторием в BorgMate, чтобы подтвердить новое расположение.</value>
   </data>
     <data name="Error.BorgModernExitCode.RepositoryIDNotUnique" xml:space="preserve">
     <value>Кэш Borg новее репозитория — возможно, из-за неуникальных идентификаторов репозиториев.</value>

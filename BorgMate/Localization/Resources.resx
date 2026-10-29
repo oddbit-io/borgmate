@@ -369,6 +369,15 @@
   <data name="ExcludeCloudFiles.DisabledReason" xml:space="preserve">
     <value>Unavailable because Borg 1.4.5 or newer is required.</value>
   </data>
+  <data name="RememberConfirmedRelocations" xml:space="preserve">
+    <value>Remember confirmed relocations</value>
+  </data>
+  <data name="RememberConfirmedRelocations.Tooltip" xml:space="preserve">
+    <value>BorgMate doesn't ask again when Borg reports one of the relocations below. Uncheck and save to forget them.</value>
+  </data>
+  <data name="RememberConfirmedRelocations.Empty" xml:space="preserve">
+    <value>No confirmed relocations. They appear here after you confirm Borg's relocation warning.</value>
+  </data>
     <data name="SourceDirectories" xml:space="preserve">
     <value>Source Directories</value>
   </data>
@@ -848,6 +857,15 @@
   </data>
     <data name="RepoExistsOpenInstead" xml:space="preserve">
     <value>A repository already exists at this path. Open it instead?</value>
+  </data>
+  <data name="RepositoryRelocated.Confirm" xml:space="preserve">
+    <value>Borg warns that repository {0} is now at:
+{1}
+
+It was previously located at:
+{2}
+
+Continue only if you know why the location changed. BorgMate will remember this relocation.</value>
   </data>
     <data name="ValidationRequired" xml:space="preserve">
     <value>This field is required</value>
@@ -1341,7 +1359,7 @@ Install gvfs-backends (Debian/Ubuntu) or gvfs-smb (Fedora) and try again.</value
     <value>Borg repository encryption method changed since last access.</value>
   </data>
     <data name="Error.BorgModernExitCode.RepositoryAccessAborted" xml:space="preserve">
-    <value>Borg repository access was aborted.</value>
+    <value>Borg refused access because the repository is at a new location. Run any operation on this repository in BorgMate to confirm the new location.</value>
   </data>
     <data name="Error.BorgModernExitCode.RepositoryIDNotUnique" xml:space="preserve">
     <value>Borg cache is newer than the repository, possibly due to duplicate repository IDs.</value>

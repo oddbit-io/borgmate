@@ -153,7 +153,7 @@ public class PromptingPassphraseProvider(ICredentialStore? keychain, INotificati
 
         var (passphrase, saveToKeychain) = await Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            var window = DialogHelper.GetMainWindow();
+            var window = DialogHelper.GetDialogOwner();
             if (window is null) return (null, false);
             return await ShowPassphraseDialog(window, repoName, message);
         });

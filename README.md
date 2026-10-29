@@ -28,6 +28,7 @@ Automatic updates verify the final package against the signed SHA-256 before ins
 - Secure passphrase storage via OS keychain (macOS Keychain, libsecret, Windows Credential Manager)
 - SSH key passphrase support
 - Automatic retry on transient SSH errors and stale repository locks
+- Interactive operations ask before accepting a new repository relocation; scheduled runs use only previously confirmed relocations.
 - Operation journal with history and OS notifications
 - System tray with start at login, start minimized, and background scheduling
 

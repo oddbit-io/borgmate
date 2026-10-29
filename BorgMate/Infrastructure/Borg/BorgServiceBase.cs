@@ -67,6 +67,9 @@ public abstract class BorgServiceBase : IBorgService
     public abstract Task<BorgResult> ListArchivesAsync(
         BorgRepository repo, CancellationToken ct = default);
 
+    public abstract Task<BorgResult> AcceptRelocationAsync(
+        BorgRepository repo, CancellationToken ct = default);
+
     public abstract Task<BorgResult> InfoArchiveAsync(
         BorgRepository repo, string archiveName, CancellationToken ct = default);
 
@@ -184,9 +187,9 @@ public abstract class BorgServiceBase : IBorgService
         environment["BORG_EXIT_CODES"] = "modern";
     }
 
-    private static bool IsSecretEnv(string key)
+    private static bool IsSecretEnv(string key, string value)
     {
-        return key is "BORG_PASSPHRASE" or "BORG_NEW_PASSPHRASE";
+        return key is "BORG_PASSPHRASE" or "BORG_NEW_PASSPHRASE" && value.Length > 0;
     }
 
     private static string SanitizeForDisplay(string value)
@@ -200,7 +203,7 @@ public abstract class BorgServiceBase : IBorgService
         if (BorgJob.Current.Value is not { } job) return;
         job.CommandLine = $"{fileName} {SanitizeForDisplay(arguments)}";
         var safeEnv = environment?
-            .Select(kv => IsSecretEnv(kv.Key) ? $"{kv.Key}=***" : $"{kv.Key}={SanitizeForDisplay(kv.Value)}")
+            .Select(kv => IsSecretEnv(kv.Key, kv.Value) ? $"{kv.Key}=***" : $"{kv.Key}={SanitizeForDisplay(kv.Value)}")
             .ToList();
         job.EnvironmentDisplay = safeEnv is { Count: > 0 } ? string.Join("\n", safeEnv) : null;
     }
@@ -212,7 +215,7 @@ public abstract class BorgServiceBase : IBorgService
         if (workingDirectory is not null)
             logger.LogInformation("  CWD: {WorkingDirectory}", workingDirectory);
         var safeEnv = environment?
-            .Select(kv => IsSecretEnv(kv.Key) ? $"{kv.Key}=***" : $"{kv.Key}={SanitizeForDisplay(kv.Value)}")
+            .Select(kv => IsSecretEnv(kv.Key, kv.Value) ? $"{kv.Key}=***" : $"{kv.Key}={SanitizeForDisplay(kv.Value)}")
             .ToList();
         if (safeEnv is { Count: > 0 })
             logger.LogInformation("  ENV: {Environment}", string.Join(", ", safeEnv));
@@ -232,23 +235,27 @@ public abstract class BorgServiceBase : IBorgService
 
     /// <summary>
     ///     Builds the process environment for a borg command: BORG_PASSPHRASE, BORG_RSH (for SSH repos),
-    ///     BORG_REMOTE_PATH, and loads SSH keys into the agent. When <paramref name="newPassphrase" />
+    ///     BORG_REMOTE_PATH, and loads SSH keys into the agent. BORG_PASSPHRASE is empty when no passphrase
+    ///     is cached for <paramref name="repo" />. When <paramref name="newPassphrase" />
     ///     is non-empty, BORG_NEW_PASSPHRASE is set (used by <c>borg key change-passphrase</c>).
+    ///     Borg's relocated-repository prompt is answered "yes" only when <paramref name="acceptRelocation" /> is set.
     /// </summary>
     protected async Task<BorgEnv> BuildEnvironmentAsync(
         BorgRepository repo,
         string? newPassphrase = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        bool acceptRelocation = false)
     {
         var env = new Dictionary<string, string>();
         List<string>? wslPreCommands = null;
 
-        // Auto-accept relocated repository warnings
-        env["BORG_RELOCATED_REPO_ACCESS_IS_OK"] = "yes";
+        // Answering explicitly keeps the relocation decision independent of how borg reads stdin.
+        env["BORG_RELOCATED_REPO_ACCESS_IS_OK"] = acceptRelocation ? "yes" : "no";
 
+        // With BORG_PASSPHRASE unset, borg asks for the passphrase on the terminal, which WSL always
+        // provides, and the command hangs. An empty passphrase makes borg exit with PassphraseWrong.
         var currentPassphrase = passphrase.GetCachedPassphrase(repo);
-        if (!string.IsNullOrWhiteSpace(currentPassphrase))
-            env["BORG_PASSPHRASE"] = currentPassphrase;
+        env["BORG_PASSPHRASE"] = string.IsNullOrWhiteSpace(currentPassphrase) ? string.Empty : currentPassphrase;
 
         if (!string.IsNullOrEmpty(newPassphrase))
             env["BORG_NEW_PASSPHRASE"] = newPassphrase;
@@ -274,6 +281,18 @@ public abstract class BorgServiceBase : IBorgService
             env["BORG_REMOTE_PATH"] = repo.BorgRemotePath;
 
         return new BorgEnv(env, wslPreCommands);
+    }
+
+    /// <summary>
+    ///     Builds the environment for creating <paramref name="repo" />. An encrypted repository needs a
+    ///     cached passphrase: borg would accept the empty BORG_PASSPHRASE as the new repository's passphrase.
+    /// </summary>
+    protected Task<BorgEnv> BuildInitEnvironmentAsync(BorgRepository repo, CancellationToken ct)
+    {
+        if (repo.IsEncrypted && string.IsNullOrWhiteSpace(passphrase.GetCachedPassphrase(repo)))
+            throw new InvalidOperationException($"No passphrase is cached to initialize repository '{repo.Name}'.");
+
+        return BuildEnvironmentAsync(repo, ct: ct);
     }
 
     protected Dictionary<string, string> BuildEnvironment(string? passphrase, string? remotePath)

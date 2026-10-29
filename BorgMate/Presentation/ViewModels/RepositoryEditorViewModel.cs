@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using BorgMate.Domain.Repositories;
 using BorgMate.Infrastructure.Borg;
@@ -53,6 +55,22 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
     [ObservableProperty]
     private bool _compactAfterPrune;
+
+    /// <summary>
+    ///     Relocations confirmed for this repository, including those confirmed during verification.
+    ///     Saved only while <see cref="RememberConfirmedRelocations" /> is checked.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasConfirmedRelocations))]
+    [NotifyPropertyChangedFor(nameof(ConfirmedRelocationsText))]
+    private IReadOnlyList<RepositoryRelocation> _confirmedRelocations = [];
+
+    public bool HasConfirmedRelocations => ConfirmedRelocations.Count > 0;
+
+    public string ConfirmedRelocationsText => HasConfirmedRelocations
+        ? string.Join(Environment.NewLine,
+            ConfirmedRelocations.Select(relocation => $"{relocation.PreviousLocation} → {relocation.Location}"))
+        : Strings.Get("RememberConfirmedRelocations.Empty");
 
     [ObservableProperty]
     private BorgEncryptionMode _encryptionMode = BorgEncryptionMode.RepokeyBlake2;
@@ -191,6 +209,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     ///     Null for Create/Open/Duplicate, which always verify.
     /// </summary>
     private ReachabilitySnapshot? _reachabilitySnapshot;
+
+    [ObservableProperty]
+    private bool _rememberConfirmedRelocations;
 
     [ObservableProperty]
     private string _repoPath = string.Empty;
@@ -556,8 +577,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, binaryUnits);
         vm.LoadFrom(source);
         vm.Name = newName;
-        // A duplicate initializes a new repository, and new repositories are always Borg 1.
+        // A duplicate initializes a new repository: always Borg 1, with no relocations of its own.
         vm.BorgVersion = BorgVersion.Borg1;
+        vm.ConfirmedRelocations = [];
+        vm.RememberConfirmedRelocations = false;
         vm.IsDuplicate = true;
         return vm;
     }
@@ -623,6 +646,8 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         CompactAfterPrune = repo.PruneOptions.CompactAfterPrune;
 
         _vmLastBackupAt = repo.LastBackupAt;
+        ConfirmedRelocations = repo.ConfirmedRelocations;
+        RememberConfirmedRelocations = HasConfirmedRelocations;
 
         if (locationKind == BorgRepositoryLocationKind.BorgUrl)
             RepoPath = string.Empty;
@@ -662,6 +687,8 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
         repo.Schedule.RunMissed = RunMissed;
         repo.Schedule.RunPruneAfterBackup = RunPruneAfterBackup;
+
+        repo.ConfirmedRelocations = RememberConfirmedRelocations ? ConfirmedRelocations : [];
 
         repo.SourceDirectories.Clear();
         foreach (var dir in SourceDirectories)
@@ -1061,6 +1088,8 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
             // Adopt the encryption mode detected from `borg info` so ApplyTo persists it.
             EncryptionMode = candidate.EncryptionMode;
             Borg2EncryptionMode = candidate.Borg2EncryptionMode;
+            ConfirmedRelocations = candidate.ConfirmedRelocations;
+            RememberConfirmedRelocations = HasConfirmedRelocations;
             CommitResult(candidate);
             return;
         }

@@ -494,6 +494,24 @@
                                 Foreground="{DynamicResource SecondaryTextBrush}"
                                 TextWrapping="Wrap" />
                         </StackPanel>
+
+                        <StackPanel Spacing="4">
+                            <CheckBox IsChecked="{Binding RememberConfirmedRelocations}"
+                                      IsEnabled="{Binding HasConfirmedRelocations}"
+                                      Content="{Binding [RememberConfirmedRelocations], Source={x:Static loc:Strings.Instance}}" />
+                            <TextBlock
+                                Margin="28,0,0,0"
+                                Text="{Binding [RememberConfirmedRelocations.Tooltip], Source={x:Static loc:Strings.Instance}}"
+                                FontSize="{StaticResource SecondaryFontSize}"
+                                Foreground="{DynamicResource SecondaryTextBrush}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="28,4,0,0"
+                                Text="{Binding ConfirmedRelocationsText}"
+                                FontSize="{StaticResource SecondaryFontSize}"
+                                Foreground="{DynamicResource SecondaryTextBrush}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

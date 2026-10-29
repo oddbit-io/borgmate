@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace BorgMate.Domain.Repositories;
@@ -70,6 +71,12 @@ public sealed record BorgRepository
 
     /// <summary>Last successful backup timestamp.</summary>
     public DateTime? LastBackupAt { get; set; }
+
+    /// <summary>
+    ///     Relocations the user confirmed; borg may access the repository when it reports one of them.
+    ///     Job workers read the list while the UI thread replaces it, so it is replaced as a whole.
+    /// </summary>
+    public IReadOnlyList<RepositoryRelocation> ConfirmedRelocations { get; set; } = [];
 
     /// <summary>True when this repository uses the structured SSH fields.</summary>
     public bool IsSsh => LocationKind == BorgRepositoryLocationKind.SshFields ||

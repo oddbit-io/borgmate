@@ -40,6 +40,7 @@ public class Borg2ServiceTests
         var svc = CreateService();
         var repo = LocalRepo();
         repo.Borg2EncryptionMode = Borg2EncryptionMode.RepokeyBlake2AesOcb;
+        svc.SetPassphrase(repo, "pass");
 
         await svc.InitAsync(repo);
 
@@ -331,6 +332,29 @@ public class Borg2ServiceTests
         Assert.Equal("old-pass", svc.LastEnvVars!["BORG_PASSPHRASE"]);
         Assert.Equal("new-pass", svc.LastEnvVars!["BORG_NEW_PASSPHRASE"]);
         Assert.Equal(repo.Path, svc.LastEnvVars!["BORG_REPO"]);
+    }
+
+    [Fact]
+    public async Task RepositoryCommand_RefusesRelocatedRepositoryByDefault()
+    {
+        var svc = CreateService();
+
+        await svc.ChangePassphraseAsync(LocalRepo(), "new-pass");
+
+        Assert.Equal("no", svc.LastEnvVars!["BORG_RELOCATED_REPO_ACCESS_IS_OK"]);
+    }
+
+    [Fact]
+    public async Task AcceptRelocationAsync_ListsLastArchiveAcceptingRelocation()
+    {
+        var svc = CreateService();
+        var repo = LocalRepo();
+
+        await svc.AcceptRelocationAsync(repo);
+
+        Assert.Equal("repo-list --short --last 1", svc.LastArgs);
+        AssertBorgRepo(svc, repo.Path);
+        Assert.Equal("yes", svc.LastEnvVars!["BORG_RELOCATED_REPO_ACCESS_IS_OK"]);
     }
 
     private static void AssertBorgRepo(TestBorg2Service svc, string expectedRepo)

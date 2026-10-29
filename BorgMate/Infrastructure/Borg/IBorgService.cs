@@ -36,6 +36,13 @@ public interface IBorgService
     Task<BorgResult> ListArchivesAsync(
         BorgRepository repo, CancellationToken ct = default);
 
+    /// <summary>
+    ///     Reads the repository answering "yes" to Borg's relocated-repository warning. Borg then records
+    ///     the current location, so later commands no longer report that relocation.
+    /// </summary>
+    Task<BorgResult> AcceptRelocationAsync(
+        BorgRepository repo, CancellationToken ct = default);
+
     /// <summary>Returns per-archive stats (original size, file count) as JSON in stdout.</summary>
     Task<BorgResult> InfoArchiveAsync(
         BorgRepository repo, string archiveName, CancellationToken ct = default);

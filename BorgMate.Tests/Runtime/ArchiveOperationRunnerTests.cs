@@ -75,6 +75,47 @@ public class ArchiveOperationRunnerTests
     }
 
     [Fact]
+    public async Task GetRepositoryStatsAsync_ConfirmsRelocationAndReturnsStatistics()
+    {
+        var repo = Repository();
+        var service = Substitute.For<IBorgService>();
+        service.InfoRepoAsync(repo, Arg.Any<CancellationToken>()).Returns(
+            new BorgResult((int)BorgModernExitCode.RepositoryAccessAborted, "",
+                "Warning: The repository at location /repo was previously located at /old\nRepository access aborted"),
+            new BorgResult(0, "{\"cache\":{\"stats\":{\"unique_csize\":30,\"total_chunks\":12}}}", ""));
+        service.AcceptRelocationAsync(repo, Arg.Any<CancellationToken>()).Returns(new BorgResult(0, "", ""));
+        var confirmation = new ControlledRepositoryRelocationConfirmation { Approved = true };
+        var runner = CreateRunner(service, out _, out _, out _, confirmation);
+
+        var result = await runner.GetRepositoryStatsAsync(
+            new RepositoryStatsOperationOptions(repo, NullOperationProgressSink.Instance));
+
+        Assert.True(result.IsT0);
+        Assert.Equal(30, result.AsT0.TotalSize);
+        Assert.Equal(1, confirmation.PromptCount);
+        await service.Received(1).AcceptRelocationAsync(repo, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetRepositoryStatsAsync_NonInteractive_DoesNotConfirmNewRelocation()
+    {
+        var repo = Repository();
+        var service = Substitute.For<IBorgService>();
+        service.InfoRepoAsync(repo, Arg.Any<CancellationToken>()).Returns(
+            new BorgResult((int)BorgModernExitCode.RepositoryAccessAborted, "",
+                "Warning: The repository at location /repo was previously located at /old\nRepository access aborted"));
+        var confirmation = new ControlledRepositoryRelocationConfirmation { Approved = true };
+        var runner = CreateRunner(service, out _, out _, out _, confirmation);
+
+        var result = await runner.GetRepositoryStatsAsync(
+            new RepositoryStatsOperationOptions(repo, NullOperationProgressSink.Instance) { Interactive = false });
+
+        Assert.True(result.IsT1);
+        Assert.Equal(0, confirmation.PromptCount);
+        await service.DidNotReceive().AcceptRelocationAsync(Arg.Any<BorgRepository>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task GetRepositoryStatsAsync_ReturnsCancelled_WhenStorageProbeIsCancelled()
     {
         var repository = Repository();
@@ -99,7 +140,8 @@ public class ArchiveOperationRunnerTests
         IBorgService service,
         out RepositoryStorageQuery storageQuery,
         out ILogger<ArchiveOperationRunner> logger,
-        out BorgJobQueue queue)
+        out BorgJobQueue queue,
+        RepositoryRelocationConfirmation? confirmation = null)
     {
         var settings = new AppSettings();
         var wsl = new WslHelper(Substitute.For<ILogger<WslHelper>>());
@@ -118,9 +160,11 @@ public class ArchiveOperationRunnerTests
         var orchestrator = new BorgOperationOrchestrator(
             Substitute.For<ILogger<BorgOperationOrchestrator>>(),
             passphrase,
+            factory,
             new TransientRetryPolicy(Substitute.For<ILogger<TransientRetryPolicy>>()),
             queue,
-            journal);
+            journal,
+            confirmation ?? new ControlledRepositoryRelocationConfirmation());
         logger = Substitute.For<ILogger<ArchiveOperationRunner>>();
         return new ArchiveOperationRunner(
             factory,

@@ -68,6 +68,7 @@ public static class ProcessRunner
         var psi = new ProcessStartInfo
         {
             FileName = fileName,
+            RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -90,6 +91,9 @@ public static class ProcessRunner
         try
         {
             using var process = Process.Start(psi)!;
+            // Borg reads [yN] answers from stdin. At end of input it takes the default answer
+            // and exits; an inherited console stdin would keep it waiting forever.
+            process.StandardInput.Close();
             var cancelledTcs = new TaskCompletionSource();
             await using var reg = ct.Register(() =>
             {

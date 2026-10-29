@@ -83,6 +83,7 @@ public class JsonAppConfigStoreTests
         Assert.Equal(2, repo.PruneOptions.KeepLast);
         Assert.Equal(7, repo.PruneOptions.KeepDaily);
         Assert.Equal(new DateTime(2026, 6, 1, 2, 3, 4), repo.LastBackupAt);
+        Assert.Empty(repo.ConfirmedRelocations);
     }
 
     [Fact]
@@ -180,6 +181,36 @@ public class JsonAppConfigStoreTests
         var reloadedRepo = Assert.Single(reloaded.AsT0.Repositories);
         Assert.Equal(new DateTime(2026, 6, 2, 1, 2, 3), reloadedRepo.LastBackupAt);
         Assert.Equal("/home/user/cache", Assert.Single(reloadedRepo.ExcludedPaths));
+    }
+
+    [Fact]
+    public async Task SaveAsync_WritesConfirmedRelocationsToDurableConfig()
+    {
+        var configPath = CreateTempConfigPath();
+        var store = new JsonAppConfigStore(configPath);
+        var relocation = new RepositoryRelocation
+        {
+            Location = "/Volumes/backup-1/borg",
+            PreviousLocation = "/Volumes/backup/borg"
+        };
+        await store.AddAsync(new BorgRepository
+        {
+            Name = "Share",
+            Path = "/repos/share",
+            ConfirmedRelocations = [relocation]
+        });
+
+        var save = await store.SaveAsync();
+
+        Assert.True(save.IsT0);
+        using var document = JsonDocument.Parse(await File.ReadAllTextAsync(configPath));
+        var persisted = document.RootElement.GetProperty("Repositories")[0].GetProperty("ConfirmedRelocations")[0];
+        Assert.Equal("/Volumes/backup-1/borg", persisted.GetProperty("Location").GetString());
+        Assert.Equal("/Volumes/backup/borg", persisted.GetProperty("PreviousLocation").GetString());
+
+        var reloaded = await ((IRepositoryConfigStore)new JsonAppConfigStore(configPath)).LoadAsync();
+        Assert.True(reloaded.IsT0, reloaded.IsT1 ? reloaded.AsT1.ToString() : string.Empty);
+        Assert.Equal(relocation, Assert.Single(Assert.Single(reloaded.AsT0.Repositories).ConfirmedRelocations));
     }
 
     [Fact]
@@ -542,6 +573,22 @@ public class JsonAppConfigStoreTests
 
         Assert.NotNull(repo.LastBackupAt);
         Assert.Equal(new DateTime(2026, 3, 15, 14, 30, 0), repo.LastBackupAt);
+    }
+
+    [Fact]
+    public void Clone_ConfirmedRelocations()
+    {
+        var relocation = new RepositoryRelocation { Location = "/new", PreviousLocation = "/old" };
+        var original = new BorgRepository
+        {
+            Name = "test",
+            Path = "/test",
+            ConfirmedRelocations = [relocation]
+        };
+
+        var repo = JsonAppConfigStore.Clone(original);
+
+        Assert.Equal(relocation, Assert.Single(repo.ConfirmedRelocations));
     }
 
     [Fact]

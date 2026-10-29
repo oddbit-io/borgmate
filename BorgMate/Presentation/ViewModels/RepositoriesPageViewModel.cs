@@ -736,9 +736,8 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         _store.SetLoadingArchives(repo, true);
         try
         {
-            var result = await _archiveOperations.ListArchivesAsync(
-                new ArchiveListOperationOptions(repo, NullOperationProgressSink.Instance));
-
+            var options = new ArchiveListOperationOptions(repo, NullOperationProgressSink.Instance);
+            var result = await _archiveOperations.ListArchivesAsync(options);
             if (result.IsT0)
             {
                 var archives = result.AsT0.Archives.ToList();

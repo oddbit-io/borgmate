@@ -37,6 +37,13 @@ public class BorgResultTests
     }
 
     [Fact]
+    public void ErrorMessage_ReportsExitCode_WhenProcessFailsWithoutOutput()
+    {
+        var result = new BorgResult(-1, "", "");
+        Assert.Equal("Borg failed with unknown exit code -1.", result.ErrorMessage);
+    }
+
+    [Fact]
     public void ErrorMessage_UsesUnknownMessageAndStderr_WhenExitCodeIsUnknown()
     {
         var result = new BorgResult(150, "", "something unexpected");

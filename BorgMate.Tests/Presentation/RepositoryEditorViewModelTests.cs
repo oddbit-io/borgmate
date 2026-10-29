@@ -1,5 +1,8 @@
 using BorgMate.Domain.Repositories;
 using BorgMate.Presentation.Dialogs;
+using BorgMate.Runtime.Operations;
+using BorgMate.Runtime.Orchestration;
+using OneOf;
 using NSubstitute;
 using RepositoryEditorViewModel = BorgMate.Presentation.ViewModels.RepositoryEditorViewModel;
 
@@ -182,6 +185,70 @@ public class RepositoryEditorViewModelTests
     }
 
     [Fact]
+    public void ForDuplicate_StartsWithoutConfirmedRelocations()
+    {
+        var source = new BorgRepository
+        {
+            Name = "Original",
+            Path = "/data/borg",
+            ConfirmedRelocations = [Relocation]
+        };
+
+        var vm = RepositoryEditorViewModel.ForDuplicate(
+            new FilePickerService(), source, "Original (Copy)");
+        vm.SaveCommand.Execute(null);
+
+        Assert.False(vm.HasConfirmedRelocations);
+        Assert.False(vm.RememberConfirmedRelocations);
+        Assert.Empty(vm.Repository!.Model.ConfirmedRelocations);
+    }
+
+    // --- Confirmed relocations ---
+
+    private static readonly RepositoryRelocation Relocation = new()
+    {
+        Location = "/mnt/d/borg",
+        PreviousLocation = "/mnt/e/borg"
+    };
+
+    [Fact]
+    public void ForEdit_ConfirmedRelocations_ChecksRememberAndListsThem()
+    {
+        var repo = new BorgRepository { Name = "Moved", Path = "/data/borg", ConfirmedRelocations = [Relocation] };
+
+        var vm = RepositoryEditorViewModel.ForEdit(new FilePickerService(), repo);
+
+        Assert.True(vm.HasConfirmedRelocations);
+        Assert.True(vm.RememberConfirmedRelocations);
+        Assert.Equal("/mnt/e/borg → /mnt/d/borg", vm.ConfirmedRelocationsText);
+    }
+
+    [Fact]
+    public void Save_Edit_KeepsConfirmedRelocations()
+    {
+        var repo = new BorgRepository { Name = "Moved", Path = "/data/borg", ConfirmedRelocations = [Relocation] };
+        var vm = RepositoryEditorViewModel.ForEdit(new FilePickerService(), repo);
+
+        vm.SaveCommand.Execute(null);
+
+        Assert.True(vm.IsSaved);
+        Assert.Equal([Relocation], repo.ConfirmedRelocations);
+    }
+
+    [Fact]
+    public void Save_Edit_UncheckedRemember_ForgetsConfirmedRelocations()
+    {
+        var repo = new BorgRepository { Name = "Moved", Path = "/data/borg", ConfirmedRelocations = [Relocation] };
+        var vm = RepositoryEditorViewModel.ForEdit(new FilePickerService(), repo);
+
+        vm.RememberConfirmedRelocations = false;
+        vm.SaveCommand.Execute(null);
+
+        Assert.True(vm.IsSaved);
+        Assert.Empty(repo.ConfirmedRelocations);
+    }
+
+    [Fact]
     public void ForDuplicate_Save_NoDeps_ProducesFreshRepoCarryingLastBackupAt()
     {
         var lastBackup = new DateTime(2026, 4, 1, 12, 0, 0);
@@ -292,6 +359,28 @@ public class RepositoryEditorViewModelTests
     }
 
     // --- Save success: New/Open build a fresh repo and expose it via vm.Repository ---
+
+    [Fact]
+    public async Task Save_Open_KeepsRelocationConfirmedDuringVerification()
+    {
+        var runner = Substitute.For<IRepositoryVerificationOperationRunner>();
+        runner.VerifyExistingRepositoryAsync(Arg.Any<RepositoryVerificationOperationOptions>(), Arg.Any<CancellationToken>())
+            .Returns(call =>
+            {
+                call.Arg<RepositoryVerificationOperationOptions>().Repository.ConfirmedRelocations = [Relocation];
+                return Task.FromResult<OneOf<OperationOk, OperationError>>(OperationOk.Instance);
+            });
+        var vm = RepositoryEditorViewModel.ForOpen(new FilePickerService(), runner);
+        vm.Name = "Moved";
+        vm.RepoPath = "/data/borg";
+
+        await vm.SaveCommand.ExecuteAsync(null);
+
+        Assert.True(vm.IsSaved);
+        Assert.NotNull(vm.Repository);
+        Assert.Equal(Relocation, Assert.Single(vm.Repository.Model.ConfirmedRelocations));
+        Assert.True(vm.RememberConfirmedRelocations);
+    }
 
     [Fact]
     public void Save_ValidLocal_NoDeps_ExposesBuiltRepo()

@@ -51,7 +51,7 @@ public class Borg2Service : Borg2ServiceBase
         BorgRepository repo,
         CancellationToken ct = default)
     {
-        var env = await BuildEnvironmentAsync(repo, ct: ct);
+        var env = await BuildInitEnvironmentAsync(repo, ct);
         AddRepositoryEnvironment(repo, env);
         var encryptionArgs = Borg2EncryptionModeMapper.BuildRepoCreateArgs(repo.Borg2EncryptionMode);
         var args = $"repo-create {encryptionArgs}";
@@ -78,6 +78,15 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
         var args = "repo-list --json";
+        return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
+    }
+
+    public override async Task<BorgResult> AcceptRelocationAsync(
+        BorgRepository repo, CancellationToken ct = default)
+    {
+        var env = await BuildEnvironmentAsync(repo, ct: ct, acceptRelocation: true);
+        AddRepositoryEnvironment(repo, env);
+        var args = "repo-list --short --last 1";
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 

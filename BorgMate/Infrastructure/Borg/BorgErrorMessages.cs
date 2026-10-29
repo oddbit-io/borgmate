@@ -17,11 +17,13 @@ public static class BorgErrorMessages
     /// <summary>Returns a localized Borg failure headline with stderr diagnostic detail appended.</summary>
     public static string GetMessage(BorgModernExitCode? code, int exitCode, string detail)
     {
+        // Negative exit codes come from the process host (wsl.exe or the runner), which usually
+        // explains the failure in detail; without detail the exit code is the only clue left.
         var headline = code is { } value
             ? IsMissingRemoteBorg(value, detail)
                 ? Strings.Get("Error.BorgMissingOnRemote")
                 : GetMessage(value)
-            : exitCode > 0
+            : exitCode > 0 || string.IsNullOrWhiteSpace(detail)
                 ? string.Format(Strings.Get("Error.UnknownBorgExitCode"), exitCode)
                 : string.Empty;
 

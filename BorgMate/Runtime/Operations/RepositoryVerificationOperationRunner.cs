@@ -127,7 +127,8 @@ public class RepositoryVerificationOperationRunner : IRepositoryVerificationOper
                 // Probe without prompting first: unencrypted repos must open without a passphrase dialog.
                 var hadPassphrase = !string.IsNullOrWhiteSpace(passphrasePrompt.GetCachedPassphrase(repo));
                 var result = await orchestrator.ExecuteAsync(
-                    new BorgOperationRequest(repo, sink, RequiresPassphrase: false),
+                    new BorgOperationRequest(repo, sink, RequiresPassphrase: false,
+                        Interactive: options.Interactive, PersistRelocations: false),
                     (_, operationToken) => service.InfoRepoAsync(repo, operationToken),
                     token);
 
@@ -136,7 +137,7 @@ public class RepositoryVerificationOperationRunner : IRepositoryVerificationOper
                 {
                     hadPassphrase = true;
                     result = await orchestrator.ExecuteAsync(
-                        new BorgOperationRequest(repo, sink),
+                        new BorgOperationRequest(repo, sink, Interactive: options.Interactive, PersistRelocations: false),
                         (_, operationToken) => service.InfoRepoAsync(repo, operationToken),
                         token);
                 }

@@ -46,6 +46,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
         var result = await RunQueryAsync(
             repo,
             options.ProgressSink,
+            options.Interactive,
             $"{Strings.Get("Job.ListArchives")}: {repo.Name}",
             $"list:{repo.Path}",
             (_, operationToken) => service.ListArchivesAsync(repo, operationToken),
@@ -65,6 +66,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
         var result = await RunQueryAsync(
             repo,
             options.ProgressSink,
+            options.Interactive,
             $"Info: {repo.Name}::{options.ArchiveName}",
             $"info:{repo.Path}::{options.ArchiveName}",
             (_, operationToken) => service.InfoArchiveAsync(repo, options.ArchiveName, operationToken),
@@ -88,6 +90,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
         var result = await RunQueryAsync(
             repo,
             options.ProgressSink,
+            options.Interactive,
             $"{Strings.Get("Statistics")}: {repo.Name}",
             null,
             async (_, operationToken) =>
@@ -142,6 +145,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
             var result = await RunQueryAsync(
                 repo,
                 options.ProgressSink,
+                options.Interactive,
                 $"{Strings.Get("Job.ListContents")}: {repo.Name}::{options.ArchiveName}",
                 $"contents:{repo.Path}::{options.ArchiveName}",
                 (_, operationToken) => service.ListArchiveContentsAsync(repo, options.ArchiveName, operationToken),
@@ -173,6 +177,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
             var result = await RunQueryAsync(
                 repo,
                 options.ProgressSink,
+                options.Interactive,
                 $"{Strings.Get("Job.Diff")}: {repo.Name}::{options.ArchiveName}",
                 $"diff:{tag}",
                 (_, operationToken) => service.DiffArchivesAsync(
@@ -202,6 +207,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
     private async Task<OneOf<BorgExecutionResult, OperationError>> RunQueryAsync(
         BorgRepository repo,
         IOperationProgressSink progressSink,
+        bool interactive,
         string jobName,
         string? tag,
         Func<BorgOperationContext, CancellationToken, Task<BorgResult>> operation,
@@ -213,7 +219,7 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
             {
                 var sink = new BorgJobProgressSink(j, progressSink);
                 var result = await orchestrator.ExecuteAsync(
-                    new BorgOperationRequest(repo, sink),
+                    new BorgOperationRequest(repo, sink, Interactive: interactive),
                     operation,
                     token);
                 return result.ToBorgResult();
