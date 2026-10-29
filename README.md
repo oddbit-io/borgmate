@@ -10,7 +10,9 @@ Attackers are copying legitimate projects on GitHub and distributing malware dis
 
 Check the website address before downloading. Download official BorgMate binaries only from [borgmate.oddbit.io](https://borgmate.oddbit.io) or our official GitHub repository: [github.com/oddbit-io/borgmate](https://github.com/oddbit-io/borgmate).
 
-Official BorgMate download packages are signed with GPG. These signatures cover only the packages; the installed binaries themselves are not signed. The signatures are available in our [GitHub releases](https://github.com/oddbit-io/borgmate/releases). GPG signing key fingerprint: `2D0B01C4BDAAF32BA376AE1E793239019CE4CF26`.
+Official BorgMate download packages are signed with GPG, and automatic updates install only releases whose manifest carries that signature; the installed binaries themselves are not signed. The signatures are available in our [GitHub releases](https://github.com/oddbit-io/borgmate/releases). GPG signing key fingerprint: `2D0B01C4BDAAF32BA376AE1E793239019CE4CF26`.
+
+Automatic updates verify the final package against the signed SHA-256 before installation, including packages already cached locally or reconstructed from delta updates.
 
 <p align="center">
   <img src="screenshots/repositories.png" width="800" alt="BorgMate — Repositories">

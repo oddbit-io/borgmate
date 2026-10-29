@@ -1,0 +1,2 @@
+# Signed and hashed update fixtures must keep their exact bytes.
+BorgMate.Tests/Infrastructure/Fixtures/Updates/** -text

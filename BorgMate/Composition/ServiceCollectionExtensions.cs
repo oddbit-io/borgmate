@@ -145,6 +145,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRepositoryVerificationOperationRunner, RepositoryVerificationOperationRunner>();
         services.AddSingleton<SshAgentHelper>();
         services.AddSingleton<DirectorySizeCalculator>();
+        services.AddSingleton(_ => ReleaseSignatureVerifier.CreateForReleases());
         services.AddSingleton<UpdateService>();
         services.AddSingleton<NotificationService>();
         services.AddTransient<MainWindowViewModel>();

@@ -6,14 +6,26 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Velopack;
+using Velopack.Sources;
 
 namespace BorgMate.Infrastructure.Updates;
 
-public class UpdateService(ILogger<UpdateService> logger)
+public class UpdateService
 {
     private const string UpdateBaseUrl = "https://borgmate.oddbit.io/releases";
 
-    private static string UpdateUrl
+    private readonly ILogger<UpdateService> _logger;
+    private readonly VerifiedUpdateManager _manager;
+    private UpdateInfo? _update;
+
+    public UpdateService(ILogger<UpdateService> logger, ReleaseSignatureVerifier verifier)
+    {
+        _logger = logger;
+        _manager = new VerifiedUpdateManager(new SignedReleaseFeedSource(
+            new Uri($"{UpdateBaseUrl}/{ReleasePlatform}"), ReleasePlatform, new HttpClientFileDownloader(), verifier));
+    }
+
+    private static string ReleasePlatform
     {
         get
         {
@@ -21,62 +33,55 @@ public class UpdateService(ILogger<UpdateService> logger)
                 : OperatingSystem.IsWindows() ? "win"
                 : "linux";
             var arch = RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "x64";
-            return $"{UpdateBaseUrl}/{os}-{arch}";
+            return $"{os}-{arch}";
         }
     }
 
-    public bool IsUpdateAvailable { get; private set; }
-    public string? AvailableVersion { get; private set; }
+    public bool IsUpdateAvailable => _update is not null;
+    public string? AvailableVersion => _update?.TargetFullRelease.Version.ToFullString();
 
     public async Task CheckForUpdatesAsync()
     {
         try
         {
-            var url = UpdateUrl;
-            var mgr = new UpdateManager(url);
-            if (!mgr.IsInstalled)
+            if (!_manager.IsInstalled)
             {
-                logger.LogDebug("App is not installed via Velopack, skipping update check");
+                _logger.LogDebug("App is not installed via Velopack, skipping update check");
                 return;
             }
 
-            logger.LogInformation("Checking for updates at {UpdateUrl}", url);
+            _logger.LogInformation("Checking for updates for {Platform}", ReleasePlatform);
 
-            var update = await mgr.CheckForUpdatesAsync();
-            if (update is not null)
-            {
-                IsUpdateAvailable = true;
-                AvailableVersion = update.TargetFullRelease.Version.ToFullString();
-                logger.LogInformation("Update available: {Version}", AvailableVersion);
-            }
+            _update = await _manager.CheckForUpdatesAsync();
+            if (_update is not null)
+                _logger.LogInformation("Update available: {Version}", AvailableVersion);
             else
-            {
-                logger.LogInformation("No updates available");
-            }
+                _logger.LogInformation("No updates available");
+        }
+        catch (ReleaseVerificationException ex)
+        {
+            _logger.LogWarning(ex, "Update check rejected the release: {Failure}", ex.Failure);
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Update check failed");
+            _logger.LogWarning(ex, "Update check failed");
         }
     }
 
     public async Task<bool> DownloadUpdateAsync(Action<int>? progress = null)
     {
+        var update = _update ?? throw new InvalidOperationException("No update is available to download.");
         try
         {
-            var mgr = new UpdateManager(UpdateUrl);
-            var update = await mgr.CheckForUpdatesAsync();
-            if (update is null) return false;
-
-            logger.LogInformation("Downloading update {Version} from {UpdateUrl} (file: {FileName})",
-                update.TargetFullRelease.Version, UpdateUrl, update.TargetFullRelease.FileName);
-            await mgr.DownloadUpdatesAsync(update, progress);
-            logger.LogInformation("Update downloaded successfully");
+            _logger.LogInformation("Downloading update {Version} (file: {FileName})",
+                update.TargetFullRelease.Version, update.TargetFullRelease.FileName);
+            await _manager.DownloadUpdatesAsync(update, progress);
+            _logger.LogInformation("Update downloaded successfully");
             return true;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to download update");
+            _logger.LogError(ex, "Failed to download update");
             return false;
         }
     }
@@ -95,7 +100,7 @@ public class UpdateService(ILogger<UpdateService> logger)
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to fetch changelog");
+            _logger.LogWarning(ex, "Failed to fetch changelog");
         }
 
         return entries;
@@ -125,20 +130,19 @@ public class UpdateService(ILogger<UpdateService> logger)
         return entries;
     }
 
-    /// <summary>Applies the available Velopack update and restarts the application.</summary>
+    /// <summary>Applies the downloaded update and restarts the application.</summary>
     public async Task ApplyAndRestartAsync()
     {
+        var update = _update ?? throw new InvalidOperationException("No update is available to apply.");
         try
         {
-            var mgr = new UpdateManager(UpdateUrl);
-            logger.LogInformation("Applying update and restarting...");
-            var update = await mgr.CheckForUpdatesAsync();
-            if (update is null) return;
-            mgr.ApplyUpdatesAndRestart(update);
+            await _manager.VerifyReleaseAsync(update.TargetFullRelease);
+            _logger.LogInformation("Applying update and restarting...");
+            _manager.ApplyUpdatesAndRestart(update);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to apply update");
+            _logger.LogError(ex, "Failed to apply update");
         }
     }
 }
