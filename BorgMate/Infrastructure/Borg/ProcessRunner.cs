@@ -82,6 +82,9 @@ public static class ProcessRunner
         // Output of external tools is parsed programmatically — pin the C locale
         // so classification never trips over translated messages.
         psi.Environment["LC_ALL"] = "C";
+        // wsl.exe writes its own error messages in UTF-16 unless asked for UTF-8.
+        if (OperatingSystem.IsWindows())
+            psi.Environment["WSL_UTF8"] = "1";
         return psi;
     }
 

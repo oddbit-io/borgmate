@@ -28,7 +28,12 @@ public record BorgResult(int ExitCode, string StandardOutput, string StandardErr
     /// <summary>
     ///     User-friendly error message from the modern exit code, with stderr diagnostic detail preserved.
     /// </summary>
-    public string ErrorMessage => BorgErrorMessages.GetMessage(ErrorCode, ExitCode, ExtractErrorMessage(StandardError));
+    public string ErrorMessage => BorgErrorMessages.GetMessage(ErrorCode, ExitCode, ExtractErrorMessage(DiagnosticOutput));
+
+    /// <summary>Failure diagnostics, including wsl.exe host errors written to stdout.</summary>
+    public string DiagnosticOutput => ExitCode < 0 && string.IsNullOrWhiteSpace(StandardError)
+        ? StandardOutput
+        : StandardError;
 
     private static string ExtractErrorMessage(string stderr)
     {

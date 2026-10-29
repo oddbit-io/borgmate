@@ -44,6 +44,26 @@ public class BorgResultTests
     }
 
     [Fact]
+    public void ErrorMessage_ShowsWslError_WhenWslFailsBeforeStartingBorg()
+    {
+        var result = new BorgResult(-1,
+            "There is no distribution with the supplied name.\r\nError code: Wsl/Service/WSL_E_DISTRO_NOT_FOUND\r\n",
+            "");
+
+        Assert.Equal(
+            $"There is no distribution with the supplied name.{Environment.NewLine}" +
+            "Error code: Wsl/Service/WSL_E_DISTRO_NOT_FOUND",
+            result.ErrorMessage);
+    }
+
+    [Fact]
+    public void ErrorMessage_IgnoresStdout_WhenBorgFails()
+    {
+        var result = new BorgResult(150, "{\"archives\": []}", "");
+        Assert.Equal("Borg failed with unknown exit code 150.", result.ErrorMessage);
+    }
+
+    [Fact]
     public void ErrorMessage_UsesUnknownMessageAndStderr_WhenExitCodeIsUnknown()
     {
         var result = new BorgResult(150, "", "something unexpected");

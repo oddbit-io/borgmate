@@ -32,7 +32,7 @@ public static class OperationErrorExtensions
     {
         return result.WasCancelled
             ? new OperationError.Cancelled()
-            : new OperationError.BorgFailure(result.ErrorCode, result.ExitCode, result.StandardError);
+            : new OperationError.BorgFailure(result.ErrorCode, result.ExitCode, result.DiagnosticOutput);
     }
 
     /// <summary>Returns the relocation Borg reported when it refused to access a relocated repository.</summary>
