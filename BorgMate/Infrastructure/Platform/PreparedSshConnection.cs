@@ -10,4 +10,7 @@ public class PreparedSshConnection
     public required IReadOnlyList<string> Arguments { get; init; }
 
     public List<string>? WslPreCommands { get; init; }
+
+    /// <summary>Variables the WSL pre-commands read at runtime; they hold secrets and must travel via WSLENV.</summary>
+    public IReadOnlyDictionary<string, string>? WslEnvironment { get; init; }
 }

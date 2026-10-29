@@ -102,7 +102,10 @@ public class SshRepositoryTransportTests
         Assert.DoesNotContain("BatchMode=yes", prepared.Arguments);
         var preCommands = Assert.IsType<List<string>>(prepared.WslPreCommands);
         Assert.Contains(preCommands, command => command.Contains("SSH_ASKPASS_REQUIRE=force"));
-        Assert.Contains(preCommands, command => command.Contains("it'\\''s secret"));
+        Assert.DoesNotContain(preCommands, command => command.Contains("secret"));
+        Assert.DoesNotContain("secret", prepared.BorgRsh);
+        var environment = Assert.IsAssignableFrom<IReadOnlyDictionary<string, string>>(prepared.WslEnvironment);
+        Assert.Equal("it's secret", environment[SshRepositoryTransport.WslKeyPassphraseVariable]);
     }
 
     [Fact]
@@ -135,7 +138,7 @@ public class SshRepositoryTransportTests
             ["--", "backup@example.com", "df -P -k 'repo dir;$(unsafe)'"],
             ["export SSH_ASKPASS=/tmp/askpass"]);
 
-        Assert.Equal(["--", "bash", "-c"], arguments.Take(3));
+        Assert.Equal(["--exec", "bash", "-c"], arguments.Take(3));
         Assert.Contains("export SSH_ASKPASS=/tmp/askpass", arguments[3]);
         Assert.Contains("$'df -P -k \\'repo dir;$(unsafe)\\''", arguments[3]);
     }

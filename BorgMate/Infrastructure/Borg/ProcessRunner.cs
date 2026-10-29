@@ -54,11 +54,16 @@ public static class ProcessRunner
         string fileName,
         IReadOnlyList<string> argumentList,
         CancellationToken ct = default,
-        Action<Process>? onKill = null)
+        Action<Process>? onKill = null,
+        IReadOnlyDictionary<string, string>? environment = null)
     {
         var psi = CreateStartInfo(fileName);
         foreach (var argument in argumentList)
             psi.ArgumentList.Add(argument);
+
+        if (environment is not null)
+            foreach (var (key, value) in environment)
+                psi.Environment[key] = value;
 
         return RunCoreAsync(psi, fileName, null, ct, null, onKill);
     }

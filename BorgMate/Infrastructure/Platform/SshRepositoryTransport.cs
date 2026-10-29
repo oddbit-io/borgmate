@@ -15,6 +15,9 @@ namespace BorgMate.Infrastructure.Platform;
 /// <summary>Prepares repository SSH connections and executes safe remote commands.</summary>
 public class SshRepositoryTransport
 {
+    /// <summary>Carries the WSL key passphrase to the SSH_ASKPASS script.</summary>
+    public const string WslKeyPassphraseVariable = "BORGMATE_SSH_KEY_PASSPHRASE";
+
     private readonly AppSettings _settings;
     private readonly SshAgentHelper _sshAgent;
     private readonly WslHelper _wsl;
@@ -104,8 +107,9 @@ public class SshRepositoryTransport
             return await ProcessRunner.RunAsync("ssh", arguments, ct);
 
         Action<Process> onKill = _ => WslHelper.KillProcesses("ssh");
+        var environment = prepared.WslEnvironment is null ? null : WslHelper.ForwardEnvironment(prepared.WslEnvironment);
         return await ProcessRunner.RunAsync("wsl", BuildWslCommandArguments(arguments, prepared.WslPreCommands), ct,
-            onKill);
+            onKill, environment);
     }
 
     public static string QuoteRemoteArgument(string value)
@@ -148,7 +152,9 @@ public class SshRepositoryTransport
         if (preCommands is { Count: > 0 })
             commands.AddRange(preCommands);
         commands.Add($"ssh {string.Join(' ', sshArguments.Select(WslHelper.ShellEscapePublic))}");
-        return ["--", "bash", "-c", string.Join(" && ", commands)];
+        // "--" would hand the joined command line to the default shell, which expands $variables
+        // before bash -c runs; --exec passes the script to bash untouched.
+        return ["--exec", "bash", "-c", string.Join(" && ", commands)];
     }
 
     private async Task<PreparedSshConnection> PrepareAsync(
@@ -162,6 +168,7 @@ public class SshRepositoryTransport
 
         var arguments = new List<string>();
         List<string>? wslPreCommands = null;
+        Dictionary<string, string>? wslEnvironment = null;
         if (!string.IsNullOrWhiteSpace(repository.SshKeyPath))
         {
             var keyPath = repository.SshKeyPath;
@@ -171,8 +178,11 @@ public class SshRepositoryTransport
                           ?? throw new FileNotFoundException(
                               "The copied SSH key is not available inside WSL.",
                               repository.SshKeyPath);
-                wslPreCommands = BuildWslAskPassCommands(
-                    _sshAgent.GetWslKeyPassphrase(repository.SshKeyPath));
+                if (_sshAgent.GetWslKeyPassphrase(repository.SshKeyPath) is { } keyPassphrase)
+                {
+                    wslPreCommands = BuildWslAskPassCommands();
+                    wslEnvironment = new Dictionary<string, string> { [WslKeyPassphraseVariable] = keyPassphrase };
+                }
             }
 
             arguments.AddRange(["-i", keyPath]);
@@ -198,22 +208,23 @@ public class SshRepositoryTransport
         {
             Arguments = arguments,
             BorgRsh = borgRsh,
-            WslPreCommands = wslPreCommands
+            WslPreCommands = wslPreCommands,
+            WslEnvironment = wslEnvironment
         };
     }
 
-    internal static List<string>? BuildWslAskPassCommands(string? sshKeyPassphrase)
+    /// <summary>
+    ///     Points SSH_ASKPASS at a throwaway script that prints <see cref="WslKeyPassphraseVariable" />.
+    ///     The script holds no secret: ssh hands its own environment to the askpass child.
+    /// </summary>
+    internal static List<string> BuildWslAskPassCommands()
     {
-        if (sshKeyPassphrase is null)
-            return null;
-
-        var safePass = sshKeyPassphrase.Replace("'", "'\\''");
         return
         [
             "_BORGMATE_ASKPASS=$(mktemp -p \"${TMPDIR:-/tmp}\" .borgmate-askpass-XXXXXX)",
             "trap 'rm -f \"$_BORGMATE_ASKPASS\"' EXIT",
             "chmod 700 \"$_BORGMATE_ASKPASS\"",
-            $"printf '#!/bin/sh\\necho '\"'\"'{safePass}'\"'\"'\\n' > \"$_BORGMATE_ASKPASS\"",
+            $"printf '#!/bin/sh\\nprintf \"%%s\\\\n\" \"${WslKeyPassphraseVariable}\"\\n' > \"$_BORGMATE_ASKPASS\"",
             "export SSH_ASKPASS=\"$_BORGMATE_ASKPASS\"",
             "export SSH_ASKPASS_REQUIRE=force",
             "export DISPLAY=:0"

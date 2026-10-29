@@ -168,13 +168,9 @@ public class WindowsWslNetworkShareMounter(
         var command = $"mkdir -p '{mountPoint}'; mountpoint -q '{mountPoint}' || " +
                       $"mount -t cifs '{source}' '{mountPoint}' -o '{options}'";
 
-        Dictionary<string, string>? environment = null;
-        if (password is not null)
-            environment = new Dictionary<string, string>
-            {
-                ["PASSWD"] = password,
-                ["WSLENV"] = "PASSWD"
-            };
+        var environment = password is null
+            ? null
+            : WslHelper.ForwardEnvironment(new Dictionary<string, string> { ["PASSWD"] = password });
 
         var result = await ProcessRunner.RunAsync("wsl",
             $"-u root -- bash -c {WslHelper.ShellEscapePublic(command)}", environment, null, ct);

@@ -16,6 +16,7 @@ namespace BorgMate.Infrastructure.Platform;
 /// </summary>
 public partial class WslHelper
 {
+    private const string WslEnvVariable = "WSLENV";
     private static readonly TimeSpan WslCommandTimeout = TimeSpan.FromSeconds(5);
 
     private readonly IWslAvailabilityProbe _availabilityProbe;
@@ -119,21 +120,16 @@ public partial class WslHelper
 
     /// <summary>
     ///     Wraps a borg command to run inside WSL via bash -c.
-    ///     Environment variables are exported, CWD is set to ~ by default
-    ///     to avoid Windows CWD issues.
+    ///     CWD is set to ~ by default to avoid Windows CWD issues. Environment variables
+    ///     travel separately through <see cref="ForwardEnvironment" />.
     /// </summary>
     public static (string fileName, string arguments) WrapCommand(
         string borgBinary, string arguments,
-        Dictionary<string, string>? environment,
         string? workingDirectory = null,
         List<string>? preCommands = null)
     {
         var cdTarget = workingDirectory is not null ? $"cd {ShellEscape(workingDirectory)}" : "cd ~";
         var parts = new List<string> { cdTarget };
-
-        if (environment is { Count: > 0 })
-            foreach (var (key, value) in environment)
-                parts.Add($"export {key}={ShellEscape(value)}");
 
         if (preCommands is { Count: > 0 })
             parts.AddRange(preCommands);
@@ -143,6 +139,21 @@ public partial class WslHelper
         var cmd = string.Join(" && ", parts);
         var wslArgs = $"-- bash -c {ShellEscape(cmd)}";
         return ("wsl", wslArgs);
+    }
+
+    /// <summary>
+    ///     Returns the environment for a wsl.exe process that forwards <paramref name="variables" />
+    ///     into Linux through WSLENV. Values stay in the process environment, which only the same
+    ///     user can read, so secrets never reach a command line. Entries already listed in the
+    ///     inherited WSLENV keep being forwarded.
+    /// </summary>
+    public static Dictionary<string, string> ForwardEnvironment(IReadOnlyDictionary<string, string> variables)
+    {
+        var environment = new Dictionary<string, string>(variables);
+        var names = string.Join(':', variables.Keys);
+        var inherited = Environment.GetEnvironmentVariable(WslEnvVariable);
+        environment[WslEnvVariable] = string.IsNullOrEmpty(inherited) ? names : $"{inherited}:{names}";
+        return environment;
     }
 
     /// <summary>

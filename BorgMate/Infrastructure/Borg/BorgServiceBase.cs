@@ -139,8 +139,8 @@ public abstract class BorgServiceBase : IBorgService
                 return new BorgResult(-1, "", Strings.Get("Error.WslNotAvailable"));
 
             var wslCwd = workingDirectory is not null ? WslHelper.ToWslPath(workingDirectory) : null;
-            (fileName, arguments) = WslHelper.WrapCommand(fileName, arguments, environment, wslCwd, wslPreCommands);
-            environment = null;
+            (fileName, arguments) = WslHelper.WrapCommand(fileName, arguments, wslCwd, wslPreCommands);
+            environment = WslHelper.ForwardEnvironment(environment);
             workingDirectory = null;
         }
 
@@ -189,7 +189,8 @@ public abstract class BorgServiceBase : IBorgService
 
     private static bool IsSecretEnv(string key, string value)
     {
-        return key is "BORG_PASSPHRASE" or "BORG_NEW_PASSPHRASE" && value.Length > 0;
+        return key is "BORG_PASSPHRASE" or "BORG_NEW_PASSPHRASE" or SshRepositoryTransport.WslKeyPassphraseVariable &&
+               value.Length > 0;
     }
 
     private static string SanitizeForDisplay(string value)
@@ -275,6 +276,9 @@ public abstract class BorgServiceBase : IBorgService
             var preparedSsh = await SshTransport.PrepareForBorgAsync(repo, ct);
             env["BORG_RSH"] = preparedSsh.BorgRsh;
             wslPreCommands = preparedSsh.WslPreCommands;
+            if (preparedSsh.WslEnvironment is not null)
+                foreach (var (key, value) in preparedSsh.WslEnvironment)
+                    env[key] = value;
         }
 
         if (!string.IsNullOrWhiteSpace(repo.BorgRemotePath))

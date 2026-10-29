@@ -105,18 +105,24 @@ public class WslHelperTests
     [Fact]
     public void WrapCommand_ProducesCorrectStructure()
     {
-        var (fileName, arguments) = WslHelper.WrapCommand(
-            "borg", "create /repo::archive /data",
-            new()
-            {
-                ["BORG_PASSPHRASE"] = "secret",
-                ["BORG_EXIT_CODES"] = "modern"
-            });
+        var (fileName, arguments) = WslHelper.WrapCommand("borg", "create /repo::archive /data");
 
         Assert.Equal("wsl", fileName);
         Assert.Contains("bash", arguments);
-        Assert.Contains("BORG_PASSPHRASE", arguments);
-        Assert.Contains("BORG_EXIT_CODES", arguments);
-        Assert.Contains("modern", arguments);
+        Assert.Contains("create /repo::archive /data", arguments);
+    }
+
+    [Fact]
+    public void ForwardEnvironment_ListsVariablesInWslEnv()
+    {
+        var environment = WslHelper.ForwardEnvironment(new Dictionary<string, string>
+        {
+            ["BORG_PASSPHRASE"] = "secret",
+            ["BORG_EXIT_CODES"] = "modern"
+        });
+
+        Assert.Equal("secret", environment["BORG_PASSPHRASE"]);
+        Assert.Equal("modern", environment["BORG_EXIT_CODES"]);
+        Assert.EndsWith("BORG_PASSPHRASE:BORG_EXIT_CODES", environment["WSLENV"]);
     }
 }

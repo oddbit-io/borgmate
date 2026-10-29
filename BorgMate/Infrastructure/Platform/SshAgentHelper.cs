@@ -83,7 +83,7 @@ public class SshAgentHelper(
     /// <summary>
     ///     WSL encrypted keys: prompts for passphrase and stores on repo for inline SSH_ASKPASS use.
     ///     The passphrase must persist on the repo object because WSL has no ssh-agent —
-    ///     it's embedded in an SSH_ASKPASS script on every borg invocation.
+    ///     it reaches an SSH_ASKPASS script through the environment on every borg invocation.
     /// </summary>
     private async Task<bool> PromptWslPassphraseAsync(string sshKeyPath, BorgRepository? repo)
     {
