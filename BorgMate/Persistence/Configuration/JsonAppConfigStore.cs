@@ -760,7 +760,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
                 KeepWeekly = repo.PruneOptions?.KeepWeekly ?? 0,
                 KeepMonthly = repo.PruneOptions?.KeepMonthly ?? 0,
                 KeepYearly = repo.PruneOptions?.KeepYearly ?? 0,
-                CompactAfterPrune = repo.PruneOptions?.CompactAfterPrune ?? true
+                CompactAfterPrune = repo.PruneOptions?.CompactAfterPrune ?? false
             }
         };
 

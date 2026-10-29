@@ -5,7 +5,7 @@ namespace BorgMate.Domain.Repositories;
 public partial class PruneOptions : ObservableObject
 {
     [ObservableProperty]
-    private bool _compactAfterPrune = true;
+    private bool _compactAfterPrune;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasAnyRetention))]

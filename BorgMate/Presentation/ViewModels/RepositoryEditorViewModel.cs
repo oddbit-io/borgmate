@@ -52,7 +52,7 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     private Borg2EncryptionMode _borg2EncryptionMode = Borg2EncryptionMode.RepokeyAesOcb;
 
     [ObservableProperty]
-    private bool _compactAfterPrune = true;
+    private bool _compactAfterPrune;
 
     [ObservableProperty]
     private BorgEncryptionMode _encryptionMode = BorgEncryptionMode.RepokeyBlake2;
