@@ -135,7 +135,7 @@ public class SshAgentHelper(
                 return true;
             }
 
-            if (keychain is not null)
+            if (keychain is not null && OperationInteractivity.IsInteractive)
                 await keychain.DeletePassphraseAsync($"sshkey:{sshKeyPath}");
         }
 
@@ -373,7 +373,7 @@ public class SshAgentHelper(
 
         if (keychain is not null)
         {
-            var stored = await keychain.GetPassphraseAsync(keychainKey);
+            var stored = await keychain.GetPassphraseAsync(keychainKey, OperationInteractivity.IsInteractive);
             if (!string.IsNullOrWhiteSpace(stored))
                 return stored;
         }

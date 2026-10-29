@@ -33,7 +33,7 @@ public class NetworkShareMounterBaseTests
     public async Task EnsureMounted_NonInteractive_WithStoredPassword_Mounts()
     {
         var keychain = Substitute.For<ICredentialStore>();
-        keychain.GetPassphraseAsync(Location.KeychainKey).Returns("stored");
+        keychain.GetPassphraseAsync(Location.KeychainKey, false).Returns("stored");
         var mounter = new FakeMounter(keychain);
         OperationInteractivity.IsInteractive = false;
 

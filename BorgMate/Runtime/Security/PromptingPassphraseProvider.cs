@@ -120,7 +120,7 @@ public class PromptingPassphraseProvider(ICredentialStore? keychain, INotificati
     /// </summary>
     public virtual async Task<bool> RePromptAsync(BorgRepository repo)
     {
-        if (keychain is not null)
+        if (keychain is not null && OperationInteractivity.IsInteractive)
             await keychain.DeletePassphraseAsync(repo.Path);
 
         Clear(repo);
@@ -137,7 +137,7 @@ public class PromptingPassphraseProvider(ICredentialStore? keychain, INotificati
     {
         if (tryKeychain && keychain is not null)
         {
-            var stored = await keychain.GetPassphraseAsync(repoPath);
+            var stored = await keychain.GetPassphraseAsync(repoPath, OperationInteractivity.IsInteractive);
             if (!string.IsNullOrWhiteSpace(stored))
             {
                 setPassphrase(stored);

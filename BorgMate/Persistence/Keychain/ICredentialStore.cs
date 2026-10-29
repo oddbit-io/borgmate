@@ -8,7 +8,8 @@ namespace BorgMate.Persistence.Keychain;
 /// </summary>
 public interface ICredentialStore
 {
-    Task<string?> GetPassphraseAsync(string repoPath);
+    /// <param name="allowInteraction">On macOS, permits system keychain authorization dialogs.</param>
+    Task<string?> GetPassphraseAsync(string repoPath, bool allowInteraction = true);
     Task<bool> SetPassphraseAsync(string repoPath, string passphrase);
     Task DeletePassphraseAsync(string repoPath);
 }

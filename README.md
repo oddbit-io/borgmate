@@ -26,6 +26,9 @@ Automatic updates verify the final package against the signed SHA-256 before ins
 - Browse, compare, restore, and delete archives
 - Repository maintenance (check, compact)
 - Secure passphrase storage via OS keychain (macOS Keychain, libsecret, Windows Credential Manager)
+  - On macOS, earlier versions saved passphrases through the `security` tool, so the keychain trusts only that tool for them. macOS asks once per saved passphrase before BorgMate may read it; choose **Always Allow**.
+  - BorgMate binaries are not code-signed, so the keychain ties that permission to the exact binary. After an update, macOS may ask again for each saved passphrase.
+  - Scheduled macOS backups fail with a credentials-required message when keychain access needs authorization. Run an operation manually to grant access before the next scheduled backup.
 - SSH key passphrase support
 - Automatic retry on transient SSH errors and stale repository locks
 - Interactive operations ask before accepting a new repository relocation; scheduled runs use only previously confirmed relocations.

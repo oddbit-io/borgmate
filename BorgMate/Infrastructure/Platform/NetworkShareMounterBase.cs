@@ -113,7 +113,7 @@ public abstract class NetworkShareMounterBase(
                 throw ToMountException(error, location);
 
             logger.LogWarning("SMB credentials rejected for {Share}", location.DisplayName);
-            if (keychain is not null)
+            if (keychain is not null && OperationInteractivity.IsInteractive)
                 await keychain.DeletePassphraseAsync(location.KeychainKey);
         }
 
@@ -134,7 +134,7 @@ public abstract class NetworkShareMounterBase(
     {
         if (!previousRejected && keychain is not null)
         {
-            var stored = await keychain.GetPassphraseAsync(location.KeychainKey);
+            var stored = await keychain.GetPassphraseAsync(location.KeychainKey, OperationInteractivity.IsInteractive);
             if (!string.IsNullOrWhiteSpace(stored))
                 return stored;
         }

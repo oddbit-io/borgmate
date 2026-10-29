@@ -1,6 +1,8 @@
 using BorgMate.Domain.Repositories;
+using BorgMate.Persistence.Keychain;
 using BorgMate.Runtime.Orchestration;
 using BorgMate.Runtime.Security;
+using NSubstitute;
 
 namespace BorgMate.Tests.Runtime;
 
@@ -72,6 +74,34 @@ public class PassphraseProviderTests
         OperationInteractivity.IsInteractive = false;
 
         await Assert.ThrowsAsync<CredentialsRequiredException>(() => provider.EnsureAsync(repo));
+    }
+
+    [Fact]
+    public async Task EnsureAsync_NonInteractive_DisallowsKeychainAuthorization()
+    {
+        var repo = CreateEncryptedRepo();
+        var keychain = Substitute.For<ICredentialStore>();
+        keychain.GetPassphraseAsync(repo.Path, false).Returns("stored");
+        var provider = new PromptingPassphraseProvider(keychain);
+        OperationInteractivity.IsInteractive = false;
+
+        var result = await provider.EnsureAsync(repo);
+
+        Assert.True(result.IsT0);
+        Assert.Equal("stored", result.AsT0.Passphrase);
+        await keychain.Received(1).GetPassphraseAsync(repo.Path, false);
+    }
+
+    [Fact]
+    public async Task RePromptAsync_NonInteractive_DoesNotAuthorizeKeychainDeletion()
+    {
+        var keychain = Substitute.For<ICredentialStore>();
+        var provider = new PromptingPassphraseProvider(keychain);
+        OperationInteractivity.IsInteractive = false;
+
+        await Assert.ThrowsAsync<CredentialsRequiredException>(() => provider.RePromptAsync(CreateEncryptedRepo()));
+
+        await keychain.DidNotReceiveWithAnyArgs().DeletePassphraseAsync(Arg.Any<string>());
     }
 
     [Fact]

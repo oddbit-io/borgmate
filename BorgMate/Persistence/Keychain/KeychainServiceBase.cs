@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BorgMate.Infrastructure.Platform;
@@ -19,29 +20,7 @@ public abstract class KeychainServiceBase(ILogger logger)
 
     private static string RedactArguments(IEnumerable<string> arguments)
     {
-        var redacted = new List<string>();
-        var redactNext = false;
-
-        foreach (var argument in arguments)
-        {
-            if (redactNext)
-            {
-                redacted.Add("***");
-                redactNext = false;
-                continue;
-            }
-
-            if (argument == "-w")
-            {
-                redacted.Add(argument);
-                redactNext = true;
-                continue;
-            }
-
-            redacted.Add(Regex.Replace(argument, @"/pass:.+", "/pass:***"));
-        }
-
-        return string.Join(" ", redacted);
+        return string.Join(" ", arguments.Select(argument => Regex.Replace(argument, @"/pass:.+", "/pass:***")));
     }
 
     protected Task<ProcessResult> RunAsync(string fileName, params string[] arguments)

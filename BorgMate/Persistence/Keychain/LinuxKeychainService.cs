@@ -7,7 +7,7 @@ namespace BorgMate.Persistence.Keychain;
 public class LinuxKeychainService(ILogger<LinuxKeychainService> logger)
     : KeychainServiceBase(logger), ICredentialStore
 {
-    public async Task<string?> GetPassphraseAsync(string repoPath)
+    public async Task<string?> GetPassphraseAsync(string repoPath, bool allowInteraction = true)
     {
         var account = SanitizeAccount(repoPath);
         try

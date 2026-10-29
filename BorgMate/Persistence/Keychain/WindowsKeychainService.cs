@@ -14,7 +14,7 @@ public class WindowsKeychainService(ILogger<WindowsKeychainService> logger)
     private const int CRED_TYPE_GENERIC = 1;
     private const int CRED_PERSIST_LOCAL_MACHINE = 2;
 
-    public Task<string?> GetPassphraseAsync(string repoPath)
+    public Task<string?> GetPassphraseAsync(string repoPath, bool allowInteraction = true)
     {
         var target = $"BorgMate:{SanitizeAccount(repoPath)}";
         try
