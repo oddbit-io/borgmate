@@ -35,24 +35,29 @@ public class RepositoryEditorViewModelTests
     }
 
     [Fact]
-    public void ForNew_HidesBorgVersionSelection_WhenBorg2SupportDisabled()
+    public void ForNew_UsesBorg1()
     {
         var vm = RepositoryEditorViewModel.ForNew(new FilePickerService());
 
-        Assert.False(vm.IsBorg2SupportEnabled);
-        Assert.False(vm.ShowBorgVersionSelection);
         Assert.Equal(BorgVersion.Borg1, vm.BorgVersion);
+        Assert.False(vm.CanUseBorgUrl);
     }
 
     [Fact]
-    public void ForNew_ShowsBorgVersionSelection_WhenBorg2SupportEnabled()
+    public void ForEdit_KeepsExistingBorg2Repository()
     {
-        var vm = RepositoryEditorViewModel.ForNew(
-            new FilePickerService(),
-            isBorg2SupportEnabled: true);
+        var repo = new BorgRepository
+        {
+            Name = "Borg 2",
+            Path = "/data/borg2",
+            IsLocal = true,
+            BorgVersion = BorgVersion.Borg2
+        };
 
-        Assert.True(vm.IsBorg2SupportEnabled);
-        Assert.True(vm.ShowBorgVersionSelection);
+        var vm = RepositoryEditorViewModel.ForEdit(new FilePickerService(), repo);
+
+        Assert.Equal(BorgVersion.Borg2, vm.BorgVersion);
+        Assert.True(vm.ShowBorg2EncryptionMode);
     }
 
     [Theory]
@@ -160,7 +165,7 @@ public class RepositoryEditorViewModelTests
     }
 
     [Fact]
-    public void ForDuplicate_ResetsBorgVersion_WhenBorg2SupportDisabled()
+    public void ForDuplicate_ResetsBorgVersionToBorg1()
     {
         var source = new BorgRepository
         {
@@ -173,7 +178,6 @@ public class RepositoryEditorViewModelTests
         var vm = RepositoryEditorViewModel.ForDuplicate(
             new FilePickerService(), source, "Original (Copy)");
 
-        Assert.False(vm.ShowBorgVersionSelection);
         Assert.Equal(BorgVersion.Borg1, vm.BorgVersion);
     }
 

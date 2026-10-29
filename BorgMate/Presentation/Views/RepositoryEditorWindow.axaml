@@ -85,13 +85,6 @@
                             </StackPanel>
                         </Grid>
 
-                        <StackPanel Spacing="{StaticResource FieldSpacing}" IsVisible="{Binding ShowBorgVersionSelection}">
-                            <TextBlock Text="{Binding [BorgVersion], Source={x:Static loc:Strings.Instance}}" />
-                            <ComboBox ItemsSource="{Binding BorgVersions}"
-                                      SelectedItem="{Binding BorgVersion}"
-                                      HorizontalAlignment="Stretch" />
-                        </StackPanel>
-
                         <StackPanel Spacing="{StaticResource FieldSpacing}">
                             <TextBlock Text="{Binding [Location], Source={x:Static loc:Strings.Instance}}" />
                             <StackPanel Orientation="Horizontal" Spacing="16">

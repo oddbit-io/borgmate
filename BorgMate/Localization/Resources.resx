@@ -327,9 +327,6 @@
     <data name="ArchiveNamePrefix.Hint" xml:space="preserve">
     <value>Optional. If empty, the repository name is used.</value>
   </data>
-    <data name="BorgVersion" xml:space="preserve">
-    <value>Borg Version</value>
-  </data>
     <data name="Location" xml:space="preserve">
     <value>Location</value>
   </data>
@@ -497,12 +494,6 @@
   </data>
     <data name="Borg1BinaryPath" xml:space="preserve">
     <value>Borg 1 binary path</value>
-  </data>
-    <data name="Borg2BinaryPath" xml:space="preserve">
-    <value>Borg 2 binary path</value>
-  </data>
-    <data name="AppSettings.ExperimentalBorg2Support" xml:space="preserve">
-    <value>Enable experimental Borg 2 support</value>
   </data>
     <data name="BorgPathOverride" xml:space="preserve">
     <value>Borg binary path override</value>

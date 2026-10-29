@@ -408,7 +408,6 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         var vm = RepositoryEditorViewModel.ForNew(
             _filePicker,
             _verificationOperations,
-            isBorg2SupportEnabled: _settings.ExperimentalBorg2Support,
             binaryUnits: _settings.BinaryUnits);
         await ShowEditorAsync(vm);
 
@@ -427,7 +426,6 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         var vm = RepositoryEditorViewModel.ForOpen(
             _filePicker,
             _verificationOperations,
-            isBorg2SupportEnabled: _settings.ExperimentalBorg2Support,
             binaryUnits: _settings.BinaryUnits);
         await ShowEditorAsync(vm);
 
@@ -450,7 +448,6 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             _filePicker,
             repo,
             _verificationOperations,
-            isBorg2SupportEnabled: _settings.ExperimentalBorg2Support,
             binaryUnits: _settings.BinaryUnits);
         await ShowEditorAsync(vm);
 
@@ -487,7 +484,6 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             repo,
             copyName,
             _verificationOperations,
-            isBorg2SupportEnabled: _settings.ExperimentalBorg2Support,
             binaryUnits: _settings.BinaryUnits);
         await ShowEditorAsync(vm);
 

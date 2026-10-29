@@ -273,12 +273,10 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public RepositoryEditorViewModel(
         IFilePickerService filePicker,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false,
         bool binaryUnits = true)
     {
         _filePicker = filePicker;
         _verificationRunner = verificationRunner;
-        IsBorg2SupportEnabled = isBorg2SupportEnabled;
         _binaryUnits = binaryUnits;
     }
 
@@ -303,8 +301,6 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
 
     public bool IsBorg2 => BorgVersion == BorgVersion.Borg2;
     public bool CanUseBorgUrl => IsBorg2;
-    public bool IsBorg2SupportEnabled { get; private set; }
-    public bool ShowBorgVersionSelection => IsBorg2SupportEnabled;
     public string RateLimitLabel => string.Format(
         Strings.Get("RateLimit"),
         $"{Strings.Get(_binaryUnits ? "BytesKB.bin" : "BytesKB.dec")}/{Strings.Get("SpeedPerSec")}");
@@ -429,8 +425,6 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         : IsDuplicate ? Strings.Get("Create")
         : Strings.Get("Save");
 
-    public BorgVersion[] BorgVersions { get; } = Enum.GetValues<BorgVersion>();
-
     public BorgEncryptionMode[] BorgEncryptionModes { get; } = Enum.GetValues<BorgEncryptionMode>();
 
     /// <summary>
@@ -509,10 +503,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public static RepositoryEditorViewModel ForNew(
         IFilePickerService filePicker,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false,
         bool binaryUnits = true)
     {
-        return new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled, binaryUnits)
+        return new RepositoryEditorViewModel(filePicker, verificationRunner, binaryUnits)
         {
             IsNew = true
         };
@@ -522,10 +515,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
     public static RepositoryEditorViewModel ForOpen(
         IFilePickerService filePicker,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false,
         bool binaryUnits = true)
     {
-        return new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled, binaryUnits)
+        return new RepositoryEditorViewModel(filePicker, verificationRunner, binaryUnits)
         {
             IsOpen = true
         };
@@ -541,10 +533,9 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         IFilePickerService filePicker,
         RepositoryViewModel repo,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false,
         bool binaryUnits = true)
     {
-        var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled, binaryUnits);
+        var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, binaryUnits);
         vm.LoadFrom(repo);
         vm._targetRepo = repo;
         vm._reachabilitySnapshot = vm.CaptureReachabilitySnapshot();
@@ -560,14 +551,13 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         RepositoryViewModel source,
         string newName,
         IRepositoryVerificationOperationRunner? verificationRunner = null,
-        bool isBorg2SupportEnabled = false,
         bool binaryUnits = true)
     {
-        var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, isBorg2SupportEnabled, binaryUnits);
+        var vm = new RepositoryEditorViewModel(filePicker, verificationRunner, binaryUnits);
         vm.LoadFrom(source);
         vm.Name = newName;
-        if (!isBorg2SupportEnabled)
-            vm.BorgVersion = BorgVersion.Borg1;
+        // A duplicate initializes a new repository, and new repositories are always Borg 1.
+        vm.BorgVersion = BorgVersion.Borg1;
         vm.IsDuplicate = true;
         return vm;
     }

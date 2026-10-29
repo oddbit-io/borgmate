@@ -34,13 +34,7 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
     private string _borg1BinaryPath = "";
 
     [ObservableProperty]
-    private string _borg2BinaryPath = "";
-
-    [ObservableProperty]
     private bool _checkForUpdates;
-
-    [ObservableProperty]
-    private bool _experimentalBorg2Support;
 
     [ObservableProperty]
     private bool _isJournalRetentionEnabled;
@@ -153,9 +147,7 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
     }
 
     public string DetectedBorg1Path => _settings.DefaultBorg1Path;
-    public string DetectedBorg2Path => _settings.DefaultBorg2Path;
     public string DetectedBorg1PathDisplay => FormatDetectedBorgPath(_settings.DetectedBorg1Path);
-    public string DetectedBorg2PathDisplay => FormatDetectedBorgPath(_settings.DetectedBorg2Path);
     public bool IsWakeSchedulingSupported => _wakeScheduler?.IsSupported ?? false;
     public bool HasWakeSchedulerMessage => !string.IsNullOrWhiteSpace(WakeSchedulerMessage);
 
@@ -202,12 +194,7 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
                           _settings.DefaultBorg1Path
             ? ""
             : _settings.GetEffectiveBorgPath(Domain.Repositories.BorgVersion.Borg1);
-        Borg2BinaryPath = _settings.GetEffectiveBorgPath(Domain.Repositories.BorgVersion.Borg2) ==
-                          _settings.DefaultBorg2Path
-            ? ""
-            : _settings.GetEffectiveBorgPath(Domain.Repositories.BorgVersion.Borg2);
         CheckForUpdates = _settings.CheckForUpdates;
-        ExperimentalBorg2Support = _settings.ExperimentalBorg2Support;
         ShowNotifications = _settings.ShowNotifications;
         StartAtLogin = _settings.StartAtLogin;
         StartMinimized = _settings.StartMinimized;
@@ -237,10 +224,8 @@ public partial class AppSettingsViewModel : ViewModelBase, ISaveable
     {
         _settings.BorgBinaryPath = null;
         _settings.Borg1BinaryPath = string.IsNullOrWhiteSpace(Borg1BinaryPath) ? null : Borg1BinaryPath;
-        _settings.Borg2BinaryPath = string.IsNullOrWhiteSpace(Borg2BinaryPath) ? null : Borg2BinaryPath;
         _settings.Theme = SelectedTheme;
         _settings.CheckForUpdates = CheckForUpdates;
-        _settings.ExperimentalBorg2Support = ExperimentalBorg2Support;
         _settings.ShowNotifications = ShowNotifications;
         _settings.StartAtLogin = StartAtLogin;
         if (_autoStartService is not null && _autoStartService.IsEnabled() != StartAtLogin)

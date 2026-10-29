@@ -64,9 +64,6 @@ public class AppSettings
     /// <summary>Optional user override for Borg 2.x command execution.</summary>
     public string? Borg2BinaryPath { get; set; }
 
-    /// <summary>Enables experimental Borg 2 repository options in the UI.</summary>
-    public bool ExperimentalBorg2Support { get; set; }
-
     public AppTheme Theme { get; set; } = AppTheme.Auto;
     public bool CheckForUpdates { get; set; } = true;
     public bool ShowNotifications { get; set; } = true;

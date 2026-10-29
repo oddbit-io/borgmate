@@ -327,9 +327,6 @@
     <data name="ArchiveNamePrefix.Hint" xml:space="preserve">
     <value>Необязательно. Если пусто, используется имя репозитория.</value>
   </data>
-    <data name="BorgVersion" xml:space="preserve">
-    <value>Версия Borg</value>
-  </data>
     <data name="Location" xml:space="preserve">
     <value>Расположение</value>
   </data>
@@ -497,12 +494,6 @@
   </data>
     <data name="Borg1BinaryPath" xml:space="preserve">
     <value>Путь к Borg 1</value>
-  </data>
-    <data name="Borg2BinaryPath" xml:space="preserve">
-    <value>Путь к Borg 2</value>
-  </data>
-    <data name="AppSettings.ExperimentalBorg2Support" xml:space="preserve">
-    <value>Включить экспериментальную поддержку Borg 2</value>
   </data>
     <data name="BorgPathOverride" xml:space="preserve">
     <value>Переопределение пути к Borg</value>

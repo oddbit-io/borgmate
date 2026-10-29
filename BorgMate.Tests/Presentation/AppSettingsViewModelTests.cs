@@ -22,7 +22,6 @@ public class AppSettingsViewModelTests
         _settings.Theme = AppTheme.Dark;
         _settings.CheckForUpdates = false;
         _settings.ShowNotifications = false;
-        _settings.ExperimentalBorg2Support = true;
         _settings.StartMinimized = true;
         _settings.WakeForScheduledBackups = true;
         _settings.ScheduledBackupsOnlyOnAcPower = false;
@@ -44,7 +43,6 @@ public class AppSettingsViewModelTests
         Assert.Equal(AppTheme.Dark, vm.SelectedTheme);
         Assert.False(vm.CheckForUpdates);
         Assert.False(vm.ShowNotifications);
-        Assert.True(vm.ExperimentalBorg2Support);
         Assert.True(vm.StartMinimized);
         Assert.True(vm.WakeForScheduledBackups);
         Assert.False(vm.ScheduledBackupsOnlyOnAcPower);
@@ -66,7 +64,6 @@ public class AppSettingsViewModelTests
         vm.SelectedTheme = AppTheme.Light;
         vm.CheckForUpdates = false;
         vm.ShowNotifications = false;
-        vm.ExperimentalBorg2Support = true;
         vm.StartMinimized = true;
         vm.WakeForScheduledBackups = true;
         vm.ScheduledBackupsOnlyOnAcPower = false;
@@ -84,7 +81,6 @@ public class AppSettingsViewModelTests
         Assert.Equal(AppTheme.Light, _settings.Theme);
         Assert.False(_settings.CheckForUpdates);
         Assert.False(_settings.ShowNotifications);
-        Assert.True(_settings.ExperimentalBorg2Support);
         Assert.True(_settings.StartMinimized);
         Assert.True(_settings.WakeForScheduledBackups);
         Assert.False(_settings.ScheduledBackupsOnlyOnAcPower);
@@ -144,9 +140,9 @@ public class AppSettingsViewModelTests
     [Fact]
     public void Save_CustomBorgPaths_Preserved()
     {
+        _settings.Borg2BinaryPath = "/usr/local/bin/borg2";
         var vm = CreateVm();
         vm.Borg1BinaryPath = "/usr/local/bin/borg";
-        vm.Borg2BinaryPath = "/usr/local/bin/borg2";
         vm.SaveCommand.Execute(null);
 
         Assert.Null(_settings.BorgBinaryPath);
@@ -155,18 +151,15 @@ public class AppSettingsViewModelTests
     }
 
     [Fact]
-    public void DetectedBorg2PathDisplay_NotDetected_WhenOnlyFallbackExists()
+    public void DetectedBorg1PathDisplay_NotDetected_WhenOnlyFallbackExists()
     {
         var settings = new AppSettings(
-            new BorgPathDetectionResult(
-                "borg",
-                "borg",
-                new BorgCliVersion(1, 4, 5, null, false, "borg 1.4.5")),
+            new BorgPathDetectionResult("borg", null, null),
             new BorgPathDetectionResult("borg2", null, null));
         var vm = new AppSettingsViewModel(settings, _settingsStore, _autoStart, _wakeScheduler);
 
-        Assert.Equal("borg2", vm.DetectedBorg2Path);
-        Assert.Equal("Auto-detected: not found", vm.DetectedBorg2PathDisplay);
+        Assert.Equal("borg", vm.DetectedBorg1Path);
+        Assert.Equal("Auto-detected: not found", vm.DetectedBorg1PathDisplay);
     }
 
     [Fact]

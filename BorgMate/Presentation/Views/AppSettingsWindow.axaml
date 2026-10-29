@@ -157,16 +157,6 @@
                                            Classes="secondary" FontSize="11" />
                                 <TextBox Text="{Binding Borg1BinaryPath}" PlaceholderText="{Binding DetectedBorg1Path}" />
                                 <TextBlock Text="{Binding DetectedBorg1PathDisplay}" Classes="secondary" FontSize="12" />
-                                <CheckBox IsChecked="{Binding ExperimentalBorg2Support}"
-                                          Content="{Binding [AppSettings.ExperimentalBorg2Support], Source={x:Static loc:Strings.Instance}}"
-                                          Margin="0,6,0,0" />
-                                <StackPanel Spacing="{StaticResource FieldSpacing}"
-                                            IsVisible="{Binding ExperimentalBorg2Support}">
-                                    <TextBlock Text="{Binding [Borg2BinaryPath], Source={x:Static loc:Strings.Instance}}"
-                                               Classes="secondary" FontSize="11" Margin="0,6,0,0" />
-                                    <TextBox Text="{Binding Borg2BinaryPath}" PlaceholderText="{Binding DetectedBorg2Path}" />
-                                    <TextBlock Text="{Binding DetectedBorg2PathDisplay}" Classes="secondary" FontSize="12" />
-                                </StackPanel>
                             </StackPanel>
                         </GroupBox>
 

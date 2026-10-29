@@ -20,8 +20,8 @@ Automatic updates verify the final package against the signed SHA-256 before ins
 
 ## Features
 
-- Manage Borg repositories on local disks, SSH servers, and SMB shares, plus raw Borg 2 URLs such as `sftp://`, `rest://`, `rclone:`, `s3:`, and `b2:`
-- Experimental support for Borg 2.0.0b21 repositories alongside Borg 1.4.x
+- Manage Borg repositories on local disks, SSH servers, and SMB shares
+- Experimental Borg 2.0.0b21 repositories added in earlier versions, including raw Borg 2 URLs, keep working; new ones cannot be added
 - Create and schedule backups with real-time progress, speed, and ETA, optional system wake, and AC-power-only runs
 - Browse, compare, restore, and delete archives
 - Repository maintenance (check, compact)
@@ -34,7 +34,7 @@ Automatic updates verify the final package against the signed SHA-256 before ins
 ## Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download) (for building)
-- [BorgBackup 1.4.x](https://www.borgbackup.org/releases/), 1.4.5 or newer recommended (only Borg 2.0.0b21 is supported for experimental Borg 2 repositories — requires a separate `borg2` binary on PATH or a custom path set in Settings)
+- [BorgBackup 1.4.x](https://www.borgbackup.org/releases/), 1.4.5 or newer recommended (existing Borg 2 repositories need Borg 2.0.0b21 as a separate `borg2` binary on PATH)
 - [OpenSSH](https://www.openssh.com/) (for remote repositories)
 - **Windows:** [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) with borg installed inside it
 
