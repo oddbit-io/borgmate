@@ -500,6 +500,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
         data.Settings.WindowHeight = _state.WindowHeight;
         data.Settings.IsMaximized = _state.IsMaximized;
         data.Settings.SidebarExpanded = _state.SidebarExpanded;
+        data.Settings.ReportedDeprecatedBorgVersion = _state.ReportedDeprecatedBorgVersion;
     }
 
     private void CaptureState()
@@ -510,6 +511,7 @@ public class JsonAppConfigStore : ISettingsStore, IRepositoryConfigStore
         _state.WindowHeight = _data.Settings.WindowHeight;
         _state.IsMaximized = _data.Settings.IsMaximized;
         _state.SidebarExpanded = _data.Settings.SidebarExpanded;
+        _state.ReportedDeprecatedBorgVersion = _data.Settings.ReportedDeprecatedBorgVersion;
     }
 
     private void UpdateRepositoryState(BorgRepository repo)

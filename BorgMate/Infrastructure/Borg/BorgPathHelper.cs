@@ -122,7 +122,8 @@ public static class BorgPathHelper
             candidates.Add(path);
     }
 
-    private static BorgCliVersion? TryReadCliVersion(string candidate)
+    /// <summary>Probes the specified executable, including configured overrides, with a bounded timeout.</summary>
+    public static BorgCliVersion? TryReadCliVersion(string candidate)
     {
         var output = OperatingSystem.IsWindows()
             ? RunWslVersion(candidate)

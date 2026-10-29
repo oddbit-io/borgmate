@@ -195,6 +195,12 @@
     <data name="Notif.ChangePassphrase" xml:space="preserve">
     <value>Change passphrase &#x27;{0}&#x27;</value>
   </data>
+    <data name="Notif.BorgVersionDeprecated" xml:space="preserve">
+    <value>Borg {0} will not be supported by the next BorgMate version</value>
+  </data>
+    <data name="BorgVersionDeprecated.Message" xml:space="preserve">
+    <value>Borg {0} will not be supported by the next BorgMate version. Update Borg to 1.4.5 or newer.</value>
+  </data>
     <data name="Job.Running" xml:space="preserve">
     <value>Running...</value>
   </data>

@@ -273,6 +273,12 @@
     <data name="Notif.ChangePassphrase" xml:space="preserve">
     <value>Смена пароля «{0}»</value>
   </data>
+    <data name="Notif.BorgVersionDeprecated" xml:space="preserve">
+    <value>Borg {0} не будет поддерживаться следующей версией BorgMate</value>
+  </data>
+    <data name="BorgVersionDeprecated.Message" xml:space="preserve">
+    <value>Borg {0} не будет поддерживаться следующей версией BorgMate. Обновите Borg до версии 1.4.5 или новее.</value>
+  </data>
     <data name="Repositories" xml:space="preserve">
     <value>Репозитории</value>
   </data>

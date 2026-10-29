@@ -1,16 +1,25 @@
+using System;
 using BorgMate.Domain.Settings;
 using BorgMate.Infrastructure.Borg;
 
 namespace BorgMate.Runtime.Operations;
 
-/// <summary>Exposes optional features discovered while probing the Borg executable path.</summary>
+/// <summary>Exposes the version and features of the configured Borg 1 executable at startup.</summary>
 public class BorgCapabilityQuery
 {
     public BorgCapabilityQuery(AppSettings settings)
+        : this(settings, BorgPathHelper.TryReadCliVersion)
     {
-        SupportsExcludeDataless =
-            settings.DetectedBorg1Version?.Supports(BorgCliFeature.ExcludeDataless) == true;
     }
 
-    public bool SupportsExcludeDataless { get; }
+    internal BorgCapabilityQuery(AppSettings settings, Func<string, BorgCliVersion?> versionProbe)
+    {
+        Borg1Version = string.IsNullOrWhiteSpace(settings.Borg1BinaryPath)
+            ? settings.DetectedBorg1Version
+            : versionProbe(settings.Borg1BinaryPath);
+    }
+
+    public BorgCliVersion? Borg1Version { get; }
+
+    public bool SupportsExcludeDataless => Borg1Version?.Supports(BorgCliFeature.ExcludeDataless) == true;
 }

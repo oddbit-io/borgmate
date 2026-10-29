@@ -22,6 +22,7 @@ using BorgMate.Presentation.Dialogs;
 using BorgMate.Presentation.State;
 using BorgMate.Presentation.Theming;
 using BorgMate.Runtime.Jobs;
+using BorgMate.Runtime.Operations;
 using BorgMate.Runtime.Scheduling;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -102,6 +103,7 @@ public class App : Application
                 RuntimeInformation.OSArchitecture);
             var journal = Services.GetRequiredService<IJournalStore>();
             journal.Load();
+            Services.GetRequiredService<BorgVersionDeprecationNotice>().ReportOnce();
 
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             desktop.ShutdownRequested += async (_, e) =>

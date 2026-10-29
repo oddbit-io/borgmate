@@ -14,5 +14,6 @@ public enum JournalEventKind
     PassphraseFailed = 6,
     Restore = 7,
     ChangePassphrase = 8,
-    BackupDeferred = 9
+    BackupDeferred = 9,
+    BorgVersionDeprecated = 10
 }

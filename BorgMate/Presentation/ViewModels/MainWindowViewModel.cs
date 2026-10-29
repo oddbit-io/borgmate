@@ -12,6 +12,7 @@ using BorgMate.Presentation.Dialogs;
 using BorgMate.Presentation.State;
 using BorgMate.Presentation.Views;
 using BorgMate.Runtime.Jobs;
+using BorgMate.Runtime.Operations;
 using BorgMate.Runtime.Scheduling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -60,6 +61,7 @@ public partial class MainWindowViewModel : ViewModelBase
         NotificationsViewModel notifications,
         IJournalStore journalService,
         UpdateStatusState status,
+        BorgVersionDeprecationNotice borgVersionDeprecation,
         IJobController jobController,
         RepositoryPresentationState store,
         IAutoStartService autoStartService,
@@ -76,6 +78,7 @@ public partial class MainWindowViewModel : ViewModelBase
         RepositoriesPage = repositoriesPage;
         Notifications = notifications;
         Status = status;
+        BorgVersionWarning = borgVersionDeprecation.Message;
         JobController = jobController;
         _scheduler = scheduler;
 
@@ -92,6 +95,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public RepositoriesPageViewModel RepositoriesPage { get; } = null!;
     public NotificationsViewModel Notifications { get; } = null!;
     public UpdateStatusState Status { get; } = null!;
+    public string? BorgVersionWarning { get; }
     public IJobController JobController { get; } = null!;
 
     public bool HasSelectedJob => SelectedJob is not null;

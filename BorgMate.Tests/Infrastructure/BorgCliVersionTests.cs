@@ -15,6 +15,28 @@ public class BorgCliVersionTests
         Assert.Equal(4, version.Patch);
     }
 
+    [Theory]
+    [InlineData("borg 1.2.8", true)]
+    [InlineData("borg 1.4.4", true)]
+    [InlineData("borg 1.4.5", false)]
+    [InlineData("borg 1.5.0", false)]
+    [InlineData("borg 2.0.0b21", false)]
+    public void IsDeprecatedBorg1_FlagsBorg1OlderThan145(string versionText, bool expected)
+    {
+        var version = BorgCliVersion.Parse(versionText);
+
+        Assert.NotNull(version);
+        Assert.Equal(expected, version.IsDeprecatedBorg1);
+    }
+
+    [Theory]
+    [InlineData("borg 1.4.4", "1.4.4")]
+    [InlineData("borg 2.0.0b21", "2.0.0b21")]
+    public void VersionNumber_OmitsProgramName(string versionText, string expected)
+    {
+        Assert.Equal(expected, BorgCliVersion.Parse(versionText)?.VersionNumber);
+    }
+
     [Fact]
     public void Parse_Borg20Beta21_IsSupported()
     {

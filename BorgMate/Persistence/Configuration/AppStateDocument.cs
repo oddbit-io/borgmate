@@ -11,5 +11,6 @@ public class AppStateDocument
     public double? WindowHeight { get; set; }
     public bool IsMaximized { get; set; }
     public bool SidebarExpanded { get; set; }
+    public string? ReportedDeprecatedBorgVersion { get; set; }
     public Dictionary<string, DateTime> LastBackupAtByRepositoryPath { get; set; } = [];
 }

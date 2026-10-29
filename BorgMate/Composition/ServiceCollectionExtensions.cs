@@ -139,6 +139,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<TransientRetryPolicy>();
         services.AddSingleton<BorgOperationOrchestrator>();
         services.AddSingleton<BorgCapabilityQuery>();
+        services.AddSingleton<BorgVersionDeprecationNotice>();
         services.AddSingleton<RepositoryStorageQuery>();
         services.AddSingleton<IRepositoryOperationRunner, RepositoryOperationRunner>();
         services.AddSingleton<IArchiveOperationRunner, ArchiveOperationRunner>();

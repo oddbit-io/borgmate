@@ -89,6 +89,10 @@ public class AppSettings
     [JsonIgnore]
     public bool IsMaximized { get; set; }
 
+    /// <summary>Deprecated Borg version already journaled, so each old version is reported once.</summary>
+    [JsonIgnore]
+    public string? ReportedDeprecatedBorgVersion { get; set; }
+
     /// <summary>True = binary units (KiB/MiB/GiB, base 1024). False = decimal units (KB/MB/GB, base 1000).</summary>
     public bool BinaryUnits { get; set; } = true;
 

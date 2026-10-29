@@ -31,7 +31,7 @@ public class Strings : INotifyPropertyChanged
     [
         "Notif.Backup", "Notif.Prune", "Notif.Check", "Notif.Compact",
         "Notif.Delete", "Notif.Create", "Notif.PassphraseFailed", "Notif.Restore",
-        "Notif.ChangePassphrase", "Notif.BackupDeferred"
+        "Notif.ChangePassphrase", "Notif.BackupDeferred", "Notif.BorgVersionDeprecated"
     ];
 
     public static Strings Instance { get; } = new();
