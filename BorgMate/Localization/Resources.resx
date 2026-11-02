@@ -624,6 +624,9 @@
     <data name="UpdateNoChangelog" xml:space="preserve">
     <value>No changelog available.</value>
   </data>
+    <data name="ReleaseNotes" xml:space="preserve">
+    <value>Release Notes</value>
+  </data>
     <data name="UpdateDownload" xml:space="preserve">
     <value>Download</value>
   </data>

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:BorgMate.Presentation.Controls"
         mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="600"
-        x:Class="BorgMate.Presentation.Views.UpdateChangelogWindow"
+        x:Class="BorgMate.Presentation.Views.ChangelogWindow"
         Width="560"
         Height="600"
         CanResize="False"
@@ -49,8 +49,7 @@
 
     <DockPanel>
         <Border Classes="changelog-header">
-            <TextBlock Text="{Binding [UpdateChangelogTitle], Source={x:Static loc:Strings.Instance}}"
-                       FontSize="22" FontWeight="Bold" />
+            <TextBlock Name="HeaderText" FontSize="22" FontWeight="Bold" />
         </Border>
 
         <Border Classes="changelog-footer">

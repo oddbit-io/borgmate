@@ -10,35 +10,29 @@ using BorgMate.Presentation.Controls;
 
 namespace BorgMate.Presentation.Views;
 
-public partial class UpdateChangelogWindow : ModalWindow
+/// <summary>
+///     Shows changelog entries either as an update offer that the user confirms with Download,
+///     or as read-only release notes.
+/// </summary>
+public partial class ChangelogWindow : ModalWindow
 {
     private const string ReleaseDateFormat = "d MMMM yyyy";
 
-    public UpdateChangelogWindow()
+    public ChangelogWindow()
     {
         InitializeComponent();
     }
 
-    public UpdateChangelogWindow(string version, List<ChangelogEntry> changelog) : this()
+    /// <summary>Offers the update to <paramref name="version" /> with the entries it brings.</summary>
+    public ChangelogWindow(string version, List<ChangelogEntry> changelog) : this()
     {
         Title = Strings.Get("UpdateTitle");
+        HeaderText.Text = Strings.Get("UpdateChangelogTitle");
 
         if (changelog.Count > 0)
-        {
-            foreach (var entry in changelog)
-                ChangelogPanel.Children.Add(CreateEntrySection(entry));
-        }
+            AddEntries(changelog);
         else
-        {
-            var section = new StackPanel { Spacing = 12 };
-            section.Children.Add(CreateVersionHeader(version, null));
-            section.Children.Add(new TextBlock
-            {
-                Text = Strings.Get("UpdateNoChangelog"),
-                Classes = { "secondary" }
-            });
-            ChangelogPanel.Children.Add(section);
-        }
+            AddNoChangelog(CreateVersionHeader(version, null));
 
         DownloadButton.Click += (_, _) =>
         {
@@ -48,7 +42,42 @@ public partial class UpdateChangelogWindow : ModalWindow
         CancelButton.Click += (_, _) => Close();
     }
 
+    /// <summary>Shows <paramref name="changelog" /> as read-only release notes.</summary>
+    public ChangelogWindow(List<ChangelogEntry> changelog) : this()
+    {
+        Title = Strings.Get("ReleaseNotes");
+        HeaderText.Text = Strings.Get("ReleaseNotes");
+
+        if (changelog.Count > 0)
+            AddEntries(changelog);
+        else
+            AddNoChangelog(null);
+
+        DownloadButton.IsVisible = false;
+        CancelButton.Content = Strings.Get("Close");
+        CancelButton.Click += (_, _) => Close();
+    }
+
     public bool Confirmed { get; private set; }
+
+    private void AddEntries(List<ChangelogEntry> changelog)
+    {
+        foreach (var entry in changelog)
+            ChangelogPanel.Children.Add(CreateEntrySection(entry));
+    }
+
+    private void AddNoChangelog(DockPanel? versionHeader)
+    {
+        var section = new StackPanel { Spacing = 12 };
+        if (versionHeader is not null)
+            section.Children.Add(versionHeader);
+        section.Children.Add(new TextBlock
+        {
+            Text = Strings.Get("UpdateNoChangelog"),
+            Classes = { "secondary" }
+        });
+        ChangelogPanel.Children.Add(section);
+    }
 
     private static StackPanel CreateEntrySection(ChangelogEntry entry)
     {

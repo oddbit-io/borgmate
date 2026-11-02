@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Velopack;
@@ -96,35 +95,11 @@ public class UpdateService
         {
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
             var json = await http.GetStringAsync("https://borgmate.oddbit.io/changelog-v2.json");
-            entries.AddRange(ParseChangelog(json, currentVersion, targetVersion));
+            entries.AddRange(ChangelogParser.ParseBetween(json, currentVersion, targetVersion));
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to fetch changelog");
-        }
-
-        return entries;
-    }
-
-    internal static List<ChangelogEntry> ParseChangelog(string json, string currentVersion, string targetVersion)
-    {
-        var current = SemVerParser.Parse(currentVersion);
-        var target = SemVerParser.Parse(targetVersion);
-        var changelog = JsonSerializer.Deserialize<List<ChangelogEntry>>(json, JsonSerializerOptions.Web)
-                        ?? throw new JsonException("Changelog is null.");
-        var entries = new List<ChangelogEntry>();
-
-        foreach (var entry in changelog)
-        {
-            if (string.IsNullOrWhiteSpace(entry.Version))
-                throw new JsonException("Changelog version is empty.");
-            if (entry.Changes is null)
-                throw new JsonException($"Changelog changes are null for version {entry.Version}.");
-
-            var version = SemVerParser.Parse(entry.Version);
-            if (version <= current || version > target) continue;
-
-            entries.Add(entry);
         }
 
         return entries;

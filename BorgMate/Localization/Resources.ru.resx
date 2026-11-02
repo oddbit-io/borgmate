@@ -624,6 +624,9 @@
     <data name="UpdateNoChangelog" xml:space="preserve">
     <value>Список изменений недоступен.</value>
   </data>
+    <data name="ReleaseNotes" xml:space="preserve">
+    <value>История изменений</value>
+  </data>
     <data name="UpdateDownload" xml:space="preserve">
     <value>Загрузить</value>
   </data>

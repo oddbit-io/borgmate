@@ -3,6 +3,9 @@
     "version": "1.3.0",
     "date": "2026-11-02",
     "changes": {
+      "features": [
+        "View the full release history from the About window, also offline."
+      ],
       "improvements": [
         "Warn when the installed Borg is older than 1.4.5, which the next BorgMate version will no longer support.",
         "Turn off compact after prune by default.",

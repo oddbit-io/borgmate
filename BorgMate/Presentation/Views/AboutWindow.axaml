@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:BorgMate.Localization"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="350" d:DesignHeight="280"
@@ -31,6 +32,10 @@
                        HorizontalAlignment="Center" />
             <TextBlock Name="VersionText" Classes="secondary"
                        HorizontalAlignment="Center" />
+            <Button Name="ReleaseNotesLink"
+                    Content="{Binding [ReleaseNotes], Source={x:Static loc:Strings.Instance}}"
+                    Classes="hyperlink" Padding="0" MinWidth="0" MinHeight="0" HorizontalAlignment="Center"
+                    Background="Transparent" BorderThickness="0" Cursor="Hand" />
         </StackPanel>
 
         <TextBlock TextWrapping="Wrap" TextAlignment="Center"

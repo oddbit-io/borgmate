@@ -29,7 +29,7 @@ using Microsoft.Extensions.Logging;
 using AboutWindow = BorgMate.Presentation.Views.AboutWindow;
 using MainWindow = BorgMate.Presentation.Views.MainWindow;
 using MainWindowViewModel = BorgMate.Presentation.ViewModels.MainWindowViewModel;
-using UpdateChangelogWindow = BorgMate.Presentation.Views.UpdateChangelogWindow;
+using ChangelogWindow = BorgMate.Presentation.Views.ChangelogWindow;
 
 namespace BorgMate;
 
@@ -211,7 +211,7 @@ public class App : Application
         var window = DialogHelper.GetMainWindow();
         if (window is null) return false;
 
-        var dialog = new UpdateChangelogWindow(version, changelog);
+        var dialog = new ChangelogWindow(version, changelog);
         await dialog.ShowDialog(window);
         return dialog.Confirmed;
     }

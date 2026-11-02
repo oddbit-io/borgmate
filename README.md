@@ -41,6 +41,7 @@ Automatic updates verify the final package against the signed SHA-256 before ins
 - SSH key passphrase support
 - Automatic retry on transient SSH errors and stale repository locks
 - Operation journal with history and OS notifications
+- Full release history in the About window, bundled with the app
 - System tray with start at login, start minimized, and background scheduling
 
 ## Requirements

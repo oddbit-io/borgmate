@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia.Input;
+using BorgMate.Infrastructure.Updates;
 
 namespace BorgMate.Presentation.Views;
 
@@ -10,6 +11,8 @@ public partial class AboutWindow : ModalWindow
     {
         InitializeComponent();
         VersionText.Text = $"Version {App.BuildInfo.DisplayVersion}";
+        ReleaseNotesLink.Click += async (_, _) =>
+            await new ChangelogWindow(BundledChangelog.Load()).ShowDialog(this);
         WebsiteLink.Click += (_, _) => OpenUrl("https://borgmate.oddbit.io");
         StudioLink.Click += (_, _) => OpenUrl("https://oddbit.io/");
         LicenseLink.Click += async (_, _) => await new LicenseWindow().ShowDialog(this);

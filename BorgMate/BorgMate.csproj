@@ -18,6 +18,7 @@
         <AvaloniaResource Include="Assets\**"/>
         <EmbeddedResource Include="Resources\Platform\**"/>
         <EmbeddedResource Include="Resources\Updates\**"/>
+        <EmbeddedResource Include="..\changelog-v2.json" LogicalName="BorgMate.Resources.Updates.changelog-v2.json"/>
         <None Include="..\THIRD-PARTY-NOTICES" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
         <None Include="..\COPYING" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
     </ItemGroup>
