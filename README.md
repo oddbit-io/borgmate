@@ -12,7 +12,16 @@ Check the website address before downloading. Download official BorgMate binarie
 
 Official BorgMate download packages are signed with GPG, and automatic updates install only releases whose manifest carries that signature; the installed binaries themselves are not signed. The signatures are available in our [GitHub releases](https://github.com/oddbit-io/borgmate/releases). GPG signing key fingerprint: `2D0B01C4BDAAF32BA376AE1E793239019CE4CF26`.
 
-Automatic updates verify the final package against the signed SHA-256 before installation, including packages already cached locally or reconstructed from delta updates.
+Automatic updates verify the final package against the signed SHA-256 before installation, including packages already cached locally.
+
+## Security changes since 1.2.0
+
+- **Signed update manifests.** Each platform's update feed now ships a `release-manifest.json` with a detached GPG signature. The manifest names the platform, the channel, and the feed's SHA-256. BorgMate verifies the signature against release-signing subkeys embedded in the app and offers an update only if every check passes. A tampered or foreign-signed feed, or a feed for another platform, is ignored.
+- **Full update packages only.** Updates no longer use delta packages. Each update is a complete package checked against the signed SHA-256 before installation.
+- **No secrets on WSL command lines.** On Windows, the Borg passphrase and the SMB password are passed into WSL through `WSLENV`. Earlier versions put them on the `wsl.exe` command line, where other processes could read them.
+- **No secrets on macOS command lines.** On macOS, passphrases are now stored and read through Security.framework. Earlier versions called the `security` tool and passed the passphrase as an argument. Network share mounting uses native APIs too.
+- **Relocated repositories need confirmation.** Earlier versions accepted a repository that had moved to a new location without asking. Now an interactive operation asks before accepting the new location. Scheduled runs use only relocations you have already confirmed and fail on any other.
+- **Borg never waits for hidden input.** Borg now always gets an explicit passphrase and explicit answers, and its stdin is closed. It used to be able to stop at a prompt nobody could see, especially under WSL. Now it fails with a clear error. An encrypted repository is never initialized without a passphrase.
 
 <p align="center">
   <img src="screenshots/repositories.png" width="800" alt="BorgMate — Repositories">
@@ -31,7 +40,6 @@ Automatic updates verify the final package against the signed SHA-256 before ins
   - Scheduled macOS backups fail with a credentials-required message when keychain access needs authorization. Run an operation manually to grant access before the next scheduled backup.
 - SSH key passphrase support
 - Automatic retry on transient SSH errors and stale repository locks
-- Interactive operations ask before accepting a new repository relocation; scheduled runs use only previously confirmed relocations.
 - Operation journal with history and OS notifications
 - System tray with start at login, start minimized, and background scheduling
 
