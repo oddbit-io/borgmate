@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BorgMate.Infrastructure.Platform;
 
 namespace BorgMate.Tests.Infrastructure;
@@ -5,71 +6,86 @@ namespace BorgMate.Tests.Infrastructure;
 public class SshAgentHelperTests
 {
     [Fact]
-    public void EscapeForExpect_PlainString_Unchanged()
+    public void BuildExpectScript_MovesEnvironmentValuesIntoVariablesBeforeSpawn()
     {
-        Assert.Equal("simplepassword", SshAgentHelper.EscapeForExpect("simplepassword"));
+        var script = SshAgentHelper.BuildExpectScript();
+
+        var unset = script.IndexOf("unset env(" + SshAgentHelper.ExpectKeyPathVariable + ") env("
+                                   + SshAgentHelper.ExpectPassphraseVariable + ")", StringComparison.Ordinal);
+        var spawn = script.IndexOf("spawn ssh-add -- $keyPath", StringComparison.Ordinal);
+        Assert.InRange(unset, 0, spawn - 1);
+        Assert.Contains("send -- \"$passphrase\\r\"", script);
     }
 
     [Fact]
-    public void EscapeForExpect_Backslashes_Escaped()
+    public void BuildExpectEnvironment_CarriesValuesVerbatim()
     {
-        Assert.Equal("pass\\\\word", SshAgentHelper.EscapeForExpect("pass\\word"));
+        var environment = SshAgentHelper.BuildExpectEnvironment("/k/[exec x]\"", "-p$a[b]");
+
+        Assert.Equal("/k/[exec x]\"", environment[SshAgentHelper.ExpectKeyPathVariable]);
+        Assert.Equal("-p$a[b]", environment[SshAgentHelper.ExpectPassphraseVariable]);
     }
 
-    [Fact]
-    public void EscapeForExpect_DoubleQuotes_Escaped()
+    [SkippableFact]
+    public async Task BuildExpectScript_TclSubstitutionInKeyPath_IsNotEvaluatedAndEnvironmentIsClearedBeforeSpawn()
     {
-        Assert.Equal("pass\\\"word", SshAgentHelper.EscapeForExpect("pass\"word"));
-    }
+        var tclsh = BashHarness.FindOnPath("tclsh");
+        if (tclsh is null)
+            throw new SkipException("tclsh is not on PATH.");
 
-    [Fact]
-    public void EscapeForExpect_Brackets_Escaped()
-    {
-        Assert.Equal("pass\\[word\\]", SshAgentHelper.EscapeForExpect("pass[word]"));
-    }
+        using var temp = new TempDirectory();
+        var directory = temp.Path;
+        var keyPath = $"/k/[exec touch {directory}/tcl-marker] $HOME \"q\"";
+        var passphrase = $"-p$a[exec touch {directory}/tcl-marker2]\\\"";
+        var spawnLog = directory + "/spawn.txt";
+        var sendLog = directory + "/send.txt";
+        var spawnEnvironmentLog = directory + "/spawn-env.txt";
+        var scriptFile = directory + "/run.tcl";
+        var prelude = $$"""
+                        proc spawn {args} {
+                            set f [open {{{spawnLog}}} w]; puts $f [join $args \n]; close $f
+                            set f [open {{{spawnEnvironmentLog}}} w]
+                            puts $f "[info exists ::env({{SshAgentHelper.ExpectKeyPathVariable}})] [info exists ::env({{SshAgentHelper.ExpectPassphraseVariable}})]"
+                            close $f
+                        }
+                        proc send {args} {
+                            set f [open {{{sendLog}}} w]
+                            fconfigure $f -translation binary
+                            puts -nonewline $f [join $args \x1f]
+                            close $f
+                        }
+                        proc exp_continue {} {}
+                        proc expect {clauses} {
+                            set i [lsearch -exact $clauses "passphrase|password"]
+                            uplevel #0 [lindex $clauses [expr {$i + 1}]]
+                        }
 
-    [Fact]
-    public void EscapeForExpect_DollarSign_Escaped()
-    {
-        Assert.Equal("pass\\$word", SshAgentHelper.EscapeForExpect("pass$word"));
-    }
+                        """;
+        await File.WriteAllTextAsync(scriptFile, prelude + SshAgentHelper.BuildExpectScript());
 
-    [Fact]
-    public void EscapeForExpect_AllSpecialChars_Escaped()
-    {
-        var input = "p\\a\"s[s$w]ord";
-        var expected = "p\\\\a\\\"s\\[s\\$w\\]ord";
-        Assert.Equal(expected, SshAgentHelper.EscapeForExpect(input));
-    }
+        var psi = new ProcessStartInfo
+        {
+            FileName = tclsh,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+        psi.ArgumentList.Add(scriptFile);
+        foreach (var (key, value) in SshAgentHelper.BuildExpectEnvironment(keyPath, passphrase))
+            psi.Environment[key] = value;
+        using var process = Process.Start(psi)!;
+        await process.StandardOutput.ReadToEndAsync();
+        var stderr = await process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync();
 
-    [Fact]
-    public void BuildExpectScript_ContainsSpawn()
-    {
-        var script = SshAgentHelper.BuildExpectScript("/home/user/.ssh/id_ed25519", "mypass");
-        Assert.Contains("spawn ssh-add", script);
-        Assert.Contains("/home/user/.ssh/id_ed25519", script);
-    }
-
-    [Fact]
-    public void BuildExpectScript_ContainsPassphrase()
-    {
-        var script = SshAgentHelper.BuildExpectScript("/key", "secret123");
-        Assert.Contains("secret123", script);
-    }
-
-    [Fact]
-    public void BuildExpectScript_EscapesSpecialCharsInPassphrase()
-    {
-        var script = SshAgentHelper.BuildExpectScript("/key", "p$a[ss]");
-        Assert.Contains("p\\$a\\[ss\\]", script);
-        Assert.DoesNotContain("p$a[ss]", script);
-    }
-
-    [Fact]
-    public void BuildExpectScript_EscapesKeyPathQuotes()
-    {
-        var script = SshAgentHelper.BuildExpectScript("/path/with \"quotes\"", "pass");
-        Assert.Contains("/path/with \\\"quotes\\\"", script);
+        Assert.True(process.ExitCode == 0, stderr);
+        Assert.False(File.Exists(directory + "/tcl-marker"));
+        Assert.False(File.Exists(directory + "/tcl-marker2"));
+        Assert.Equal(["--", passphrase + "\r"], (await File.ReadAllTextAsync(sendLog)).Split('\x1f'));
+        var spawned = (await File.ReadAllTextAsync(spawnLog)).Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.TrimEnd('\r'));
+        Assert.Equal(["ssh-add", "--", keyPath], spawned);
+        Assert.Equal("0 0", (await File.ReadAllTextAsync(spawnEnvironmentLog)).Trim());
     }
 
     [Fact]

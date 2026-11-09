@@ -24,6 +24,8 @@ public class SshAgentHelper(
     ILogger<SshAgentHelper> logger, ICredentialStore? keychain, WslHelper wsl,
     INotificationService? notifier = null)
 {
+    internal const string ExpectKeyPathVariable = "BORGMATE_SSH_KEY_PATH";
+    internal const string ExpectPassphraseVariable = "BORGMATE_SSH_PASSPHRASE";
     private const string WslExecScript = "exec \"$@\"";
 
     private readonly ConcurrentDictionary<string, string> _wslKeyPassphrases = new(StringComparer.Ordinal);
@@ -274,7 +276,8 @@ public class SshAgentHelper(
         try
         {
             var expectResult = await RunProcessAsync(
-                new ProcessInvocation { FileName = "expect", Arguments = [] }, BuildExpectScript(keyPath, passphrase));
+                new ProcessInvocation { FileName = "expect", Arguments = [] }, BuildExpectScript(),
+                BuildExpectEnvironment(keyPath, passphrase));
             return ParseSshAddResult(expectResult);
         }
         catch (Exception ex)
@@ -283,20 +286,32 @@ public class SshAgentHelper(
         }
     }
 
-    /// <summary>
-    ///     Builds an expect script that spawns ssh-add and sends the passphrase.
-    ///     Escapes special Tcl/expect characters in both key path and passphrase.
-    /// </summary>
-    internal static string BuildExpectScript(string keyPath, string passphrase)
+    internal static IReadOnlyDictionary<string, string> BuildExpectEnvironment(string keyPath, string passphrase)
     {
-        var escapedPass = EscapeForExpect(passphrase);
-        var escapedKey = keyPath.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        return new Dictionary<string, string>
+        {
+            [ExpectKeyPathVariable] = keyPath,
+            [ExpectPassphraseVariable] = passphrase
+        };
+    }
 
+    /// <summary>
+    ///     Builds the constant expect script that spawns ssh-add and sends the passphrase. The key path and
+    ///     passphrase arrive through the <see cref="ExpectKeyPathVariable" /> and <see cref="ExpectPassphraseVariable" />
+    ///     environment variables; Tcl does not re-parse substituted values, so no escaping is needed. The script
+    ///     moves both values into Tcl variables and unsets the environment entries before spawning, so ssh-add
+    ///     does not inherit the passphrase.
+    /// </summary>
+    internal static string BuildExpectScript()
+    {
         return $$"""
                  set timeout 10
-                 spawn ssh-add "{{escapedKey}}"
+                 set keyPath $env({{ExpectKeyPathVariable}})
+                 set passphrase $env({{ExpectPassphraseVariable}})
+                 unset env({{ExpectKeyPathVariable}}) env({{ExpectPassphraseVariable}})
+                 spawn ssh-add -- $keyPath
                  expect {
-                     -re "passphrase|password" { send "{{escapedPass}}\r"; exp_continue }
+                     -re "passphrase|password" { send -- "$passphrase\r"; exp_continue }
                      "Identity added" { exit 0 }
                      -re "Bad|incorrect" { exit 1 }
                      timeout { exit 2 }
@@ -306,16 +321,6 @@ public class SshAgentHelper(
                      }
                  }
                  """;
-    }
-
-    /// <summary>
-    ///     Escapes a string for use inside an expect script double-quoted context.
-    ///     Must handle Tcl special characters: backslash, double-quote, brackets, dollar sign.
-    /// </summary>
-    internal static string EscapeForExpect(string value)
-    {
-        return value.Replace("\\", "\\\\").Replace("\"", "\\\"")
-            .Replace("[", "\\[").Replace("]", "\\]").Replace("$", "\\$");
     }
 
     private static OneOf<SshKeyAdded, SshAddError> ParseSshAddResult(ProcessOutput output)
@@ -348,9 +353,13 @@ public class SshAgentHelper(
         return psi;
     }
 
-    private static async Task<ProcessOutput> RunProcessAsync(ProcessInvocation invocation, string? stdinData = null)
+    private static async Task<ProcessOutput> RunProcessAsync(ProcessInvocation invocation,
+        string? stdinData = null, IReadOnlyDictionary<string, string>? environment = null)
     {
         var psi = CreateStartInfo(invocation);
+        if (environment is not null)
+            foreach (var (key, value) in environment)
+                psi.Environment[key] = value;
 
         using var process = Process.Start(psi)!;
         if (stdinData is not null)
