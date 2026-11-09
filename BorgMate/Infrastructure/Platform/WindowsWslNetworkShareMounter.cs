@@ -25,6 +25,19 @@ public class WindowsWslNetworkShareMounter(
     private const int ResourceTypeDisk = 1;
     private const int ConnectTemporary = 4;
 
+    private const string DrvfsMountScript =
+        "mkdir -p -- \"$2\"; mountpoint -q -- \"$2\" || mount -t drvfs \"$1\" \"$2\"";
+
+    private const string CifsMountScript =
+        "mkdir -p -- \"$2\"; mountpoint -q -- \"$2\" || mount -t cifs \"$1\" \"$2\" -o \"$3\"";
+
+    private const char CifsOptionSeparator = ',';
+
+    // noperm: the share is a single-user backup target and server-side ACLs still apply;
+    // without it root-mounted cifs would block the borg user by client-side uid checks.
+    private const string CifsCommonOptions = "noperm,iocharset=utf8";
+    private const string CifsGuestOptions = "guest," + CifsCommonOptions;
+
     private const int NoError = 0;
     private const int ErrorAccessDenied = 5;
     private const int ErrorBadNetPath = 53;
@@ -42,7 +55,7 @@ public class WindowsWslNetworkShareMounter(
             throw new NetworkShareMountException(Strings.Get("Error.WslNotAvailable"));
 
         var mountPoint = BuildWslMountPoint(location.Host, location.Share);
-        var result = await ProcessRunner.RunAsync("wsl", $"-- mountpoint -q \"{mountPoint}\"", null, null, ct);
+        var result = await ProcessRunner.RunAsync("wsl", BuildMountPointCheckArguments(mountPoint), ct);
         return result.ExitCode == 0 ? mountPoint : null;
     }
 
@@ -66,7 +79,39 @@ public class WindowsWslNetworkShareMounter(
 
     internal static IReadOnlyList<string> BuildStorageQueryArguments(string mountedPath)
     {
-        return ["--", "df", "-P", "-k", mountedPath];
+        return ["--exec", "df", "-P", "-k", mountedPath];
+    }
+
+    internal static IReadOnlyList<string> BuildMountPointCheckArguments(string mountPoint)
+    {
+        return ["--exec", "mountpoint", "-q", mountPoint];
+    }
+
+    /// <summary>The mount source, mountpoint and options travel as positional parameters of a constant script.</summary>
+    internal static IReadOnlyList<string> BuildDrvfsMountArguments(string unc, string mountPoint)
+    {
+        return ["-u", "root", "--exec", "bash", "-c", DrvfsMountScript, "bash", unc, mountPoint];
+    }
+
+    internal static IReadOnlyList<string> BuildCifsMountArguments(string source, string mountPoint, string options)
+    {
+        return ["-u", "root", "--exec", "bash", "-c", CifsMountScript, "bash", source, mountPoint, options];
+    }
+
+    /// <summary>
+    ///     Builds the comma-separated mount.cifs option list. A comma in the username would add options
+    ///     of the caller's choosing, so such a username is rejected.
+    /// </summary>
+    internal static OneOf<string, MountError> BuildCifsOptions(SmbLocation location, bool authenticated)
+    {
+        if (!authenticated)
+            return CifsGuestOptions;
+
+        if (location.Username.Contains(CifsOptionSeparator))
+            return new MountError.Failed(string.Format(
+                Strings.Get("Error.SmbUsernameInvalid"), location.DisplayName));
+
+        return $"username={location.Username},{CifsCommonOptions}";
     }
 
     protected override async Task<OneOf<MountedShare, MountError>> MountOnceAsync(
@@ -135,9 +180,7 @@ public class WindowsWslNetworkShareMounter(
         SmbLocation location, string unc, CancellationToken ct)
     {
         var mountPoint = BuildWslMountPoint(location.Host, location.Share);
-        var command = $"mkdir -p '{mountPoint}'; mountpoint -q '{mountPoint}' || mount -t drvfs '{unc}' '{mountPoint}'";
-        var result = await ProcessRunner.RunAsync("wsl",
-            $"-u root -- bash -c {WslHelper.ShellEscapePublic(command)}", null, null, ct);
+        var result = await ProcessRunner.RunAsync("wsl", BuildDrvfsMountArguments(unc, mountPoint), ct);
 
         Logger.LogDebug("WSL drvfs mount for {Share}: exit={ExitCode}, stderr={Stderr}",
             location.DisplayName, result.ExitCode, result.StandardError.Trim());
@@ -160,20 +203,15 @@ public class WindowsWslNetworkShareMounter(
     {
         var mountPoint = BuildWslMountPoint(location.Host, location.Share);
         var source = $"//{location.Host}/{location.Share}";
-        // noperm: the share is a single-user backup target and server-side ACLs still apply;
-        // without it root-mounted cifs would block the borg user by client-side uid checks.
-        var options = password is null
-            ? "guest,noperm,iocharset=utf8"
-            : $"username={location.Username},noperm,iocharset=utf8";
-        var command = $"mkdir -p '{mountPoint}'; mountpoint -q '{mountPoint}' || " +
-                      $"mount -t cifs '{source}' '{mountPoint}' -o '{options}'";
+        if (!BuildCifsOptions(location, password is not null).TryPickT0(out var options, out var optionsError))
+            return optionsError;
 
         var environment = password is null
             ? null
             : WslHelper.ForwardEnvironment(new Dictionary<string, string> { ["PASSWD"] = password });
 
-        var result = await ProcessRunner.RunAsync("wsl",
-            $"-u root -- bash -c {WslHelper.ShellEscapePublic(command)}", environment, null, ct);
+        var result = await ProcessRunner.RunAsync(
+            "wsl", BuildCifsMountArguments(source, mountPoint, options), ct, environment: environment);
 
         Logger.LogDebug("WSL cifs mount for {Share}: exit={ExitCode}, stderr={Stderr}",
             location.DisplayName, result.ExitCode, result.StandardError.Trim());

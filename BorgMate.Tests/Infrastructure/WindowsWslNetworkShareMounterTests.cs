@@ -1,9 +1,12 @@
+using BorgMate.Domain.Repositories;
 using BorgMate.Infrastructure.Platform;
 
 namespace BorgMate.Tests.Infrastructure;
 
 public class WindowsWslNetworkShareMounterTests
 {
+    private const string UntrustedMountPoint = "/mnt/it's \"q\" $(touch MARKER)";
+
     [Fact]
     public void BuildStorageQueryArguments_PreservesMountedPathAsOneArgument()
     {
@@ -11,8 +14,103 @@ public class WindowsWslNetworkShareMounterTests
             "/mnt/borgmate/nas/share/repo with 'quotes';$(unsafe)");
 
         Assert.Equal(
-            ["--", "df", "-P", "-k", "/mnt/borgmate/nas/share/repo with 'quotes';$(unsafe)"],
+            ["--exec", "df", "-P", "-k", "/mnt/borgmate/nas/share/repo with 'quotes';$(unsafe)"],
             arguments);
+    }
+
+    [Fact]
+    public void BuildMountPointCheckArguments_ExecsMountpointWithoutDefaultShell()
+    {
+        Assert.Equal(
+            ["--exec", "mountpoint", "-q", "/mnt/$(unsafe)"],
+            WindowsWslNetworkShareMounter.BuildMountPointCheckArguments("/mnt/$(unsafe)"));
+    }
+
+    [Fact]
+    public void BuildDrvfsMountArguments_ScriptContainsNoUntrustedValues()
+    {
+        var arguments = WindowsWslNetworkShareMounter.BuildDrvfsMountArguments(@"\\h\s'$(x)", UntrustedMountPoint);
+
+        Assert.Equal(["-u", "root", "--exec", "bash", "-c"], arguments.Take(5));
+        Assert.Equal(["bash", @"\\h\s'$(x)", UntrustedMountPoint], arguments.Skip(6));
+        Assert.DoesNotContain("$(x)", arguments[5]);
+        Assert.DoesNotContain("MARKER", arguments[5]);
+    }
+
+    [Fact]
+    public void BuildCifsMountArguments_ScriptContainsNoUntrustedValues()
+    {
+        var arguments = WindowsWslNetworkShareMounter.BuildCifsMountArguments(
+            "//h/s'$(x)", UntrustedMountPoint, "username=u$(y),noperm");
+
+        Assert.Equal(["-u", "root", "--exec", "bash", "-c"], arguments.Take(5));
+        Assert.Equal(["bash", "//h/s'$(x)", UntrustedMountPoint, "username=u$(y),noperm"], arguments.Skip(6));
+        Assert.DoesNotContain("$(x)", arguments[5]);
+        Assert.DoesNotContain("$(y)", arguments[5]);
+    }
+
+    [SkippableFact]
+    public async Task BuildDrvfsMountArguments_ShellMetacharactersReachMountVerbatimAndAreNotExecuted()
+    {
+        BashHarness.RequireBash();
+
+        using var stubs = new MountStubs();
+        var marker = stubs.RootPath + "/marker";
+        var mountPoint = UntrustedMountPoint.Replace("MARKER", marker);
+        // The msys runtime on Windows collapses a leading double backslash and re-parses single quotes.
+        var unc = $@"h\s$(touch {marker}2)`touch {marker}3`";
+
+        var result = await BashHarness.RunWslArgumentsAsync(
+            WindowsWslNetworkShareMounter.BuildDrvfsMountArguments(unc, mountPoint), stubs.EnvironmentVariables);
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(["mkdir -p -- " + mountPoint, "mount -t drvfs " + unc + " " + mountPoint], stubs.ReadLog());
+        Assert.False(File.Exists(marker));
+        Assert.False(File.Exists(marker + "2"));
+        Assert.False(File.Exists(marker + "3"));
+    }
+
+    [SkippableFact]
+    public async Task BuildCifsMountArguments_ShellMetacharactersReachMountVerbatimAndAreNotExecuted()
+    {
+        BashHarness.RequireBash();
+
+        using var stubs = new MountStubs();
+        var marker = stubs.RootPath + "/marker";
+        var mountPoint = UntrustedMountPoint.Replace("MARKER", marker);
+        var source = $"//h/s'$(touch {marker}2)";
+        var options = $"username=u`touch {marker}3`,noperm";
+
+        var result = await BashHarness.RunWslArgumentsAsync(
+            WindowsWslNetworkShareMounter.BuildCifsMountArguments(source, mountPoint, options),
+            stubs.EnvironmentVariables);
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(["mkdir -p -- " + mountPoint, $"mount -t cifs {source} {mountPoint} -o {options}"],
+            stubs.ReadLog());
+        Assert.False(File.Exists(marker));
+        Assert.False(File.Exists(marker + "2"));
+        Assert.False(File.Exists(marker + "3"));
+    }
+
+    [Fact]
+    public void BuildCifsOptions_UsernameWithComma_IsRejectedBeforeReachingOptions()
+    {
+        var location = new SmbLocation { Host = "nas", Share = "s", Username = "u,uid=0,sec=none" };
+
+        var result = WindowsWslNetworkShareMounter.BuildCifsOptions(location, true);
+
+        Assert.True(result.IsT1);
+        Assert.IsType<MountError.Failed>(result.AsT1);
+    }
+
+    [Fact]
+    public void BuildCifsOptions_PlainUsername_BecomesOneUsernameOption()
+    {
+        var location = new SmbLocation { Host = "nas", Share = "s", Username = "DOM\\user=1" };
+
+        Assert.Equal("username=DOM\\user=1,noperm,iocharset=utf8",
+            WindowsWslNetworkShareMounter.BuildCifsOptions(location, true).AsT0);
     }
 
     [Fact]

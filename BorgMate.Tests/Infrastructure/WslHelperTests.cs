@@ -112,6 +112,34 @@ public class WslHelperTests
         Assert.Contains("create /repo::archive /data", arguments);
     }
 
+    [SkippableFact]
+    public async Task BuildCopySshKeyArguments_ShellMetacharactersInPathsAreCopiedLiterally()
+    {
+        BashHarness.RequireBash();
+
+        using var temp = new TempDirectory();
+        var directory = temp.Path;
+        var source = directory + "/key$(touch $MARKER1)`touch $MARKER2`";
+        var destination = directory + "/home/.ssh/copy$(touch $MARKER3)";
+        await File.WriteAllTextAsync(source, "key-data");
+
+        var result = await BashHarness.RunWslArgumentsAsync(
+            WslHelper.BuildCopySshKeyArguments(source, destination),
+            new Dictionary<string, string>
+            {
+                ["HOME"] = directory + "/home",
+                ["MARKER1"] = directory + "/marker1",
+                ["MARKER2"] = directory + "/marker2",
+                ["MARKER3"] = directory + "/marker3"
+            });
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal("key-data", await File.ReadAllTextAsync(destination));
+        Assert.False(File.Exists(directory + "/marker1"));
+        Assert.False(File.Exists(directory + "/marker2"));
+        Assert.False(File.Exists(directory + "/marker3"));
+    }
+
     [Fact]
     public void ForwardEnvironment_ListsVariablesInWslEnv()
     {

@@ -1235,6 +1235,9 @@ Borg использует контрольные точки — повторны
 
 Установите gvfs-backends (Debian/Ubuntu) или gvfs-smb (Fedora) и повторите попытку.</value>
   </data>
+    <data name="Error.SmbUsernameInvalid" xml:space="preserve">
+    <value>Недопустимое имя пользователя для SMB-ресурса {0}: запятая не допускается.</value>
+  </data>
     <data name="Error.SmbWslMountFailed" xml:space="preserve">
     <value>Не удалось смонтировать SMB-ресурс {0} внутри WSL: {1}</value>
   </data>

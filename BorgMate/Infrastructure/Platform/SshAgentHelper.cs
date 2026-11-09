@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -23,6 +24,8 @@ public class SshAgentHelper(
     ILogger<SshAgentHelper> logger, ICredentialStore? keychain, WslHelper wsl,
     INotificationService? notifier = null)
 {
+    private const string WslExecScript = "exec \"$@\"";
+
     private readonly ConcurrentDictionary<string, string> _wslKeyPassphrases = new(StringComparer.Ordinal);
 
     public virtual string? GetWslKeyPassphrase(string sshKeyPath)
@@ -150,8 +153,8 @@ public class SshAgentHelper(
     {
         try
         {
-            var (fileName, arguments) = WrapCommand("ssh-keygen", $"-lf {Quote(keyPath)}");
-            var result = await RunProcessAsync(fileName, arguments);
+            var invocation = WrapCommand("ssh-keygen", ["-lf", keyPath], WslHelper.IsRequired);
+            var result = await RunProcessAsync(invocation);
             if (result.ExitCode != 0) return null;
 
             // Output: "256 SHA256:xxxxx comment (ED25519)"
@@ -172,8 +175,8 @@ public class SshAgentHelper(
     {
         try
         {
-            var (fileName, arguments) = WrapCommand("ssh-add", "-l");
-            var result = await RunProcessAsync(fileName, arguments);
+            var invocation = WrapCommand("ssh-add", ["-l"], WslHelper.IsRequired);
+            var result = await RunProcessAsync(invocation);
             logger.LogDebug("ssh-add -l exit={ExitCode}, stdout={Stdout}", result.ExitCode, result.Stdout.TrimEnd());
             return result.ExitCode == 0 && result.Stdout.Contains(fingerprint);
         }
@@ -192,10 +195,8 @@ public class SshAgentHelper(
     {
         try
         {
-            // Use -P '' with single quotes for reliable empty string across shells
-            var passArg = WslHelper.IsRequired ? "-P ''" : "-P \"\"";
-            var (fileName, arguments) = WrapCommand("ssh-keygen", $"-y {passArg} -f {Quote(keyPath)}");
-            var result = await RunProcessAsync(fileName, arguments);
+            var invocation = WrapCommand("ssh-keygen", ["-y", "-P", "", "-f", keyPath], WslHelper.IsRequired);
+            var result = await RunProcessAsync(invocation);
             logger.LogDebug("ssh-keygen encryption check: exit={ExitCode}, stderr={Stderr}",
                 result.ExitCode, result.Stderr.TrimEnd());
             // Exit 0 = key is unencrypted (public key printed)
@@ -223,8 +224,7 @@ public class SshAgentHelper(
         if (passphrase is null)
         {
             // Unencrypted key — just run ssh-add directly with stdin closed
-            var (fn, args) = WrapCommand("ssh-add", Quote(keyPath));
-            var directResult = await RunProcessAsync(fn, args);
+            var directResult = await RunProcessAsync(BuildSshAddInvocation(keyPath));
             if (directResult.ExitCode == 0)
                 return new SshKeyAdded(directResult.Stderr);
 
@@ -244,18 +244,7 @@ public class SshAgentHelper(
     {
         try
         {
-            var (fileName, arguments) = WrapCommand("ssh-add", Quote(keyPath));
-            var psi = new ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            psi.Environment["LC_ALL"] = "C";
+            var psi = CreateStartInfo(BuildSshAddInvocation(keyPath));
 
             using var process = Process.Start(psi)!;
             await process.StandardInput.WriteLineAsync(passphrase);
@@ -284,8 +273,8 @@ public class SshAgentHelper(
     {
         try
         {
-            var script = BuildExpectScript(keyPath, passphrase);
-            var expectResult = await RunProcessAsync("expect", "", script);
+            var expectResult = await RunProcessAsync(
+                new ProcessInvocation { FileName = "expect", Arguments = [] }, BuildExpectScript(keyPath, passphrase));
             return ParseSshAddResult(expectResult);
         }
         catch (Exception ex)
@@ -342,20 +331,26 @@ public class SshAgentHelper(
         return new SshAddError.Failed(output.Stderr);
     }
 
-    private static async Task<ProcessOutput> RunProcessAsync(string fileName, string arguments,
-        string? stdinData = null)
+    private static ProcessStartInfo CreateStartInfo(ProcessInvocation invocation)
     {
         var psi = new ProcessStartInfo
         {
-            FileName = fileName,
-            Arguments = arguments,
+            FileName = invocation.FileName,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        foreach (var argument in invocation.Arguments)
+            psi.ArgumentList.Add(argument);
         psi.Environment["LC_ALL"] = "C";
+        return psi;
+    }
+
+    private static async Task<ProcessOutput> RunProcessAsync(ProcessInvocation invocation, string? stdinData = null)
+    {
+        var psi = CreateStartInfo(invocation);
 
         using var process = Process.Start(psi)!;
         if (stdinData is not null)
@@ -407,21 +402,23 @@ public class SshAgentHelper(
         return result;
     }
 
-    private static (string fileName, string arguments) WrapCommand(string command, string arguments)
+    private static ProcessInvocation BuildSshAddInvocation(string keyPath)
     {
-        if (WslHelper.IsRequired)
-        {
-            // Use bash -l (login shell) so PATH includes /usr/bin etc.
-            var inner = $"{command} {arguments}".Replace("'", "'\\''");
-            return ("wsl", $"-- bash -lc '{inner}'");
-        }
-
-        return (command, arguments);
+        return WrapCommand("ssh-add", ["--", keyPath], WslHelper.IsRequired);
     }
 
-    private static string Quote(string value)
+    /// <summary>
+    ///     Under WSL the command runs through a login bash (PATH includes /usr/bin etc.) whose constant script
+    ///     execs the command with the remaining argv elements.
+    /// </summary>
+    internal static ProcessInvocation WrapCommand(string command, IReadOnlyList<string> arguments, bool viaWsl)
     {
-        return $"\"{value}\"";
+        if (!viaWsl)
+            return new ProcessInvocation { FileName = command, Arguments = arguments };
+
+        List<string> wslArguments = ["--exec", "bash", "-lc", WslExecScript, "bash", command];
+        wslArguments.AddRange(arguments);
+        return new ProcessInvocation { FileName = "wsl", Arguments = wslArguments };
     }
 
     private record ProcessOutput(int ExitCode, string Stdout, string Stderr);

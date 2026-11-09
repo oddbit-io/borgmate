@@ -17,6 +17,10 @@ namespace BorgMate.Infrastructure.Platform;
 public partial class WslHelper
 {
     private const string WslEnvVariable = "WSLENV";
+
+    private const string CopySshKeyScript =
+        "mkdir -p ~/.ssh && cp -- \"$1\" \"$2\" && chmod 600 -- \"$2\"";
+
     private static readonly TimeSpan WslCommandTimeout = TimeSpan.FromSeconds(5);
 
     private readonly IWslAvailabilityProbe _availabilityProbe;
@@ -169,6 +173,12 @@ public partial class WslHelper
         return "$'" + value.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\n", "\\n") + "'";
     }
 
+    /// <summary>The key paths travel as positional parameters of a constant script.</summary>
+    internal static IReadOnlyList<string> BuildCopySshKeyArguments(string wslSource, string wslDestination)
+    {
+        return ["--exec", "bash", "-c", CopySshKeyScript, "bash", wslSource, wslDestination];
+    }
+
     /// <summary>
     ///     Copies a Windows SSH key into WSL's ~/.ssh/ with correct permissions (chmod 600).
     ///     Call this when saving repo config so the key is ready for borg operations.
@@ -188,13 +198,13 @@ public partial class WslHelper
         var psi = new ProcessStartInfo
         {
             FileName = "wsl",
-            Arguments =
-                $"-- bash -c {ShellEscape($"mkdir -p ~/.ssh && cp \"{wslSrc}\" \"{wslDest}\" && chmod 600 \"{wslDest}\"")}",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        foreach (var argument in BuildCopySshKeyArguments(wslSrc, wslDest))
+            psi.ArgumentList.Add(argument);
 
         try
         {

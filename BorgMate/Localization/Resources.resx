@@ -1235,6 +1235,9 @@ Check the server name and that SMB file sharing is enabled on it.</value>
 
 Install gvfs-backends (Debian/Ubuntu) or gvfs-smb (Fedora) and try again.</value>
   </data>
+    <data name="Error.SmbUsernameInvalid" xml:space="preserve">
+    <value>Invalid user name for SMB share {0}: a comma is not allowed.</value>
+  </data>
     <data name="Error.SmbWslMountFailed" xml:space="preserve">
     <value>Failed to mount SMB share {0} inside WSL: {1}</value>
   </data>

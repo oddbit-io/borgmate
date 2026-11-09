@@ -71,4 +71,42 @@ public class SshAgentHelperTests
         var script = SshAgentHelper.BuildExpectScript("/path/with \"quotes\"", "pass");
         Assert.Contains("/path/with \\\"quotes\\\"", script);
     }
+
+    [Fact]
+    public void WrapCommand_Local_PassesArgumentsUntouched()
+    {
+        var invocation = SshAgentHelper.WrapCommand("ssh-keygen", ["-y", "-P", "", "-f", "/k/$(x)"], false);
+
+        Assert.Equal("ssh-keygen", invocation.FileName);
+        Assert.Equal(["-y", "-P", "", "-f", "/k/$(x)"], invocation.Arguments);
+    }
+
+    [SkippableFact]
+    public async Task WrapCommand_Wsl_ShellMetacharactersArriveVerbatimAndAreNotExecuted()
+    {
+        BashHarness.RequireBash();
+
+        using var temp = new TempDirectory();
+        var directory = temp.Path;
+        string[] values =
+        [
+            $"$(touch {directory}/marker)",
+            $"`touch {directory}/marker2`",
+            "a\"b",
+            "",
+            "-n"
+        ];
+        // The msys runtime on Windows re-parses single quotes in its command line; Linux runs the real value.
+        if (!OperatingSystem.IsWindows())
+            values = [.. values, "it's"];
+
+        var invocation = SshAgentHelper.WrapCommand("printf", ["%s\n", .. values], true);
+        Assert.Equal("wsl", invocation.FileName);
+        var result = await BashHarness.RunWslArgumentsAsync(invocation.Arguments);
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(values, result.Stdout.Split('\n').SkipLast(1));
+        Assert.False(File.Exists(directory + "/marker"));
+        Assert.False(File.Exists(directory + "/marker2"));
+    }
 }
