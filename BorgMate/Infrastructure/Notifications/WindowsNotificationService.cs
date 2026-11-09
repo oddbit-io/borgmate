@@ -12,15 +12,32 @@ namespace BorgMate.Infrastructure.Notifications;
 [SupportedOSPlatform("windows")]
 public class WindowsNotificationService : INotificationService
 {
+    internal const string ToastXmlVariable = "BORGMATE_TOAST_XML";
+    internal const string ToastAppIdVariable = "BORGMATE_TOAST_APP_ID";
+
+    // Notification data reaches PowerShell only through environment variables, so the script text stays constant.
+    internal const string ToastScript =
+        "[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null\n" +
+        "[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null\n" +
+        "$xd = [Windows.Data.Xml.Dom.XmlDocument]::new()\n" +
+        $"$xd.LoadXml($env:{ToastXmlVariable})\n" +
+        "$t = [Windows.UI.Notifications.ToastNotification]::new($xd)\n" +
+        $"[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($env:{ToastAppIdVariable}).Show($t)";
+
     private static bool _registered;
     private static string? _iconPath;
 
     public void Send(string title, string body)
     {
         EnsureRegistered();
+        Process.Start(BuildToastStartInfo(StringHelpers.AppName, _iconPath, title, body))?.Dispose();
+    }
 
-        var iconAttr = _iconPath is not null
-            ? $" hint-crop=\"circle\" src=\"file:///{_iconPath.Replace('\\', '/')}\""
+    internal static ProcessStartInfo BuildToastStartInfo(string appUserModelId, string? iconPath, string title,
+        string body)
+    {
+        var iconAttr = iconPath is not null
+            ? $" hint-crop=\"circle\" src=\"file:///{StringHelpers.EscapeXml(iconPath.Replace('\\', '/'))}\""
             : "";
         var xml = "<toast><visual><binding template=\"ToastGeneric\">" +
                   $"<image placement=\"appLogoOverride\"{iconAttr}/>" +
@@ -28,22 +45,15 @@ public class WindowsNotificationService : INotificationService
                   $"<text>{StringHelpers.EscapeXml(body)}</text>" +
                   "</binding></visual></toast>";
 
-        var psXml = xml.Replace("'", "''");
-        var ps =
-            "[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null\n" +
-            "[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null\n" +
-            "$xd = [Windows.Data.Xml.Dom.XmlDocument]::new()\n" +
-            $"$xd.LoadXml('{psXml}')\n" +
-            "$t = [Windows.UI.Notifications.ToastNotification]::new($xd)\n" +
-            $"[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('{StringHelpers.AppName}').Show($t)";
-
-        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(ps));
-
-        Process.Start(new ProcessStartInfo("powershell", $"-NoProfile -EncodedCommand {encoded}")
+        var encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(ToastScript));
+        var startInfo = new ProcessStartInfo("powershell", $"-NoProfile -NonInteractive -EncodedCommand {encoded}")
         {
             UseShellExecute = false,
             CreateNoWindow = true
-        })?.Dispose();
+        };
+        startInfo.Environment[ToastXmlVariable] = xml;
+        startInfo.Environment[ToastAppIdVariable] = appUserModelId;
+        return startInfo;
     }
 
     private static void EnsureRegistered()
