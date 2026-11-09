@@ -212,13 +212,13 @@ public class RepositoryVerificationOperationRunnerTests
 
         protected override Task<BorgResult> RunCommandAsync(
             string fileName,
-            string arguments,
+            IReadOnlyList<string> arguments,
             BorgEnv? env = null,
             string? workingDirectory = null,
             CancellationToken ct = default,
             Action<string>? onStderrLine = null)
         {
-            return Task.FromResult(arguments == "--version"
+            return Task.FromResult(arguments is ["--version"]
                 ? new BorgResult(0, "borg 1.4.4", "")
                 : _infoResults.Dequeue());
         }
@@ -257,7 +257,7 @@ public class RepositoryVerificationOperationRunnerTests
     {
         protected override Task<BorgResult> RunCommandAsync(
             string fileName,
-            string arguments,
+            IReadOnlyList<string> arguments,
             BorgEnv? env = null,
             string? workingDirectory = null,
             CancellationToken ct = default,
@@ -278,7 +278,7 @@ public class RepositoryVerificationOperationRunnerTests
     {
         protected override Task<BorgResult> RunCommandAsync(
             string fileName,
-            string arguments,
+            IReadOnlyList<string> arguments,
             BorgEnv? env = null,
             string? workingDirectory = null,
             CancellationToken ct = default,

@@ -38,7 +38,7 @@ public class MacOsNetworkShareMounter(
     protected override async Task<string?> TryGetExistingMountPointAsync(
         SmbLocation location, CancellationToken ct)
     {
-        var result = await ProcessRunner.RunAsync("mount", "", null, null, ct);
+        var result = await ProcessRunner.RunAsync("mount", [], ct);
         return result.ExitCode == 0
             ? FindSmbMountPoint(result.StandardOutput, location.Host, location.Share)
             : null;

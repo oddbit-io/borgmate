@@ -11,40 +11,24 @@ namespace BorgMate.Infrastructure.Borg;
 
 public static class ProcessRunner
 {
-    public static Task<BorgResult> RunAsync(
-        string fileName,
-        string arguments,
-        Dictionary<string, string>? environment = null,
-        string? workingDirectory = null,
-        CancellationToken ct = default)
-    {
-        return RunAsync(fileName, arguments, environment, workingDirectory, null, ct);
-    }
-
     /// <summary>
-    ///     Runs a process and captures stdout/stderr. On cancellation, kills the process tree
-    ///     and races stream reads against a cancellation TCS to avoid blocked pipe reads on macOS.
+    ///     Runs a process with argv-style arguments and captures stdout/stderr. On cancellation, kills the
+    ///     process tree and races stream reads against a cancellation TCS to avoid blocked pipe reads on macOS.
     /// </summary>
     /// <param name="onKill">Optional callback before process kill, e.g. for WSL pkill cleanup.</param>
     public static Task<BorgResult> RunAsync(
         string fileName,
-        string arguments,
-        Dictionary<string, string>? environment,
+        IReadOnlyList<string> argumentList,
+        IReadOnlyDictionary<string, string>? environment,
         string? workingDirectory,
         Action<string>? onStderrLine,
         CancellationToken ct = default,
         Action<string>? onStdoutLine = null,
         Action<Process>? onKill = null)
     {
-        var psi = CreateStartInfo(fileName);
-        psi.Arguments = arguments;
-
-        if (workingDirectory is not null)
-            psi.WorkingDirectory = workingDirectory;
-
-        if (environment is not null)
-            foreach (var (key, value) in environment)
-                psi.Environment[key] = value;
+        var psi = CreateStartInfo(fileName, environment, workingDirectory);
+        foreach (var argument in argumentList)
+            psi.ArgumentList.Add(argument);
 
         return RunCoreAsync(psi, fileName, onStderrLine, ct, onStdoutLine, onKill);
     }
@@ -57,18 +41,17 @@ public static class ProcessRunner
         Action<Process>? onKill = null,
         IReadOnlyDictionary<string, string>? environment = null)
     {
-        var psi = CreateStartInfo(fileName);
+        var psi = CreateStartInfo(fileName, environment, null);
         foreach (var argument in argumentList)
             psi.ArgumentList.Add(argument);
-
-        if (environment is not null)
-            foreach (var (key, value) in environment)
-                psi.Environment[key] = value;
 
         return RunCoreAsync(psi, fileName, null, ct, null, onKill);
     }
 
-    private static ProcessStartInfo CreateStartInfo(string fileName)
+    private static ProcessStartInfo CreateStartInfo(
+        string fileName,
+        IReadOnlyDictionary<string, string>? environment,
+        string? workingDirectory)
     {
         var psi = new ProcessStartInfo
         {
@@ -85,6 +68,14 @@ public static class ProcessRunner
         // wsl.exe writes its own error messages in UTF-16 unless asked for UTF-8.
         if (OperatingSystem.IsWindows())
             psi.Environment["WSL_UTF8"] = "1";
+
+        if (workingDirectory is not null)
+            psi.WorkingDirectory = workingDirectory;
+
+        if (environment is not null)
+            foreach (var (key, value) in environment)
+                psi.Environment[key] = value;
+
         return psi;
     }
 

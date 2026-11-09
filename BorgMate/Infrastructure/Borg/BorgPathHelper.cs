@@ -17,6 +17,8 @@ public static class BorgPathHelper
         return DetectWithStatus(borgVersion).EffectivePath;
     }
 
+    private const string WslVersionScript = "\"$1\" --version";
+
     /// <summary>Auto-detects an executable by name without validating its Borg generation.</summary>
     public static string Detect(string binary = "borg")
     {
@@ -145,6 +147,11 @@ public static class BorgPathHelper
         return RunProcess(psi);
     }
 
+    internal static IReadOnlyList<string> BuildWslVersionArguments(string candidate)
+    {
+        return ["--exec", "bash", "-lc", WslVersionScript, "bash", candidate];
+    }
+
     private static string? RunWslVersion(string candidate)
     {
         var psi = new ProcessStartInfo("wsl")
@@ -154,10 +161,8 @@ public static class BorgPathHelper
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        psi.ArgumentList.Add("--");
-        psi.ArgumentList.Add("bash");
-        psi.ArgumentList.Add("-lc");
-        psi.ArgumentList.Add($"{ShellQuote(candidate)} --version");
+        foreach (var argument in BuildWslVersionArguments(candidate))
+            psi.ArgumentList.Add(argument);
         return RunProcess(psi);
     }
 
@@ -234,10 +239,5 @@ public static class BorgPathHelper
         {
             // The process exited between timeout detection and kill.
         }
-    }
-
-    private static string ShellQuote(string value)
-    {
-        return "'" + value.Replace("'", "'\\''") + "'";
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,7 +55,7 @@ public class Borg2Service : Borg2ServiceBase
         var env = await BuildInitEnvironmentAsync(repo, ct);
         AddRepositoryEnvironment(repo, env);
         var encryptionArgs = Borg2EncryptionModeMapper.BuildRepoCreateArgs(repo.Borg2EncryptionMode);
-        var args = $"repo-create {encryptionArgs}";
+        var args = new List<string> { "repo-create", encryptionArgs };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -65,10 +66,12 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var paths = string.Join(" ", sourcePaths.Select(p => $"\"{P(p)}\""));
-        var rateLimit = repo.RateLimit > 0 ? $" --upload-ratelimit {repo.RateLimit}" : "";
-        var excludes = BuildExcludeArgs(repo.ExcludedPaths);
-        var args = $"create --progress{BackupLockWaitArgs}{rateLimit}{excludes} \"{archiveName}\" {paths}";
+        var args = new List<string> { "create", "--progress" };
+        args.AddRange(BackupLockWaitArgs);
+        if (repo.RateLimit > 0)
+            args.AddRange(["--upload-ratelimit", repo.RateLimit.ToString(CultureInfo.InvariantCulture)]);
+        args.AddRange(BuildExcludeArgs(repo.ExcludedPaths));
+        args.AddRange(["--", archiveName, .. sourcePaths.Select(P)]);
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 
@@ -77,7 +80,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var args = "repo-list --json";
+        var args = new List<string> { "repo-list", "--json" };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -86,7 +89,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct, acceptRelocation: true);
         AddRepositoryEnvironment(repo, env);
-        var args = "repo-list --short --last 1";
+        var args = new List<string> { "repo-list", "--short", "--last", "1" };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -95,7 +98,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var args = $"info --json \"{archiveName}\"";
+        var args = new List<string> { "info", "--json", "--", archiveName };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -104,7 +107,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var args = $"list --json-lines \"{archiveName}\"";
+        var args = new List<string> { "list", "--json-lines", "--", archiveName };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -117,11 +120,9 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var optionArgs = BuildExtractOptionArgs(extractOptions);
-        var pathArgs = paths is { Count: > 0 }
-            ? " " + string.Join(" ", paths.Select(p => $"\"{p}\""))
-            : "";
-        var args = $"extract --progress{optionArgs} \"{archiveName}\"{pathArgs}";
+        var args = new List<string> { "extract", "--progress" };
+        args.AddRange(BuildExtractOptionArgs(extractOptions));
+        args.AddRange(["--", archiveName, .. paths ?? []]);
         return await RunSupportedCommandAsync(BorgBinary, args, env, P(restorePath), ct, onStderrLine);
     }
 
@@ -131,7 +132,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var args = $"delete \"{archiveName}\"";
+        var args = new List<string> { "delete", "--", archiveName };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -141,8 +142,8 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var retention = BuildPruneRetentionArgs(repo.PruneOptions);
-        var args = $"prune --list{retention}";
+        var args = new List<string> { "prune", "--list" };
+        args.AddRange(BuildPruneRetentionArgs(repo.PruneOptions));
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -153,7 +154,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var args = "check --progress";
+        var args = new List<string> { "check", "--progress" };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 
@@ -164,7 +165,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var args = "compact --progress";
+        var args = new List<string> { "compact", "--progress" };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct, onStderrLine: onStderrLine);
     }
 
@@ -174,7 +175,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, newPassphrase, ct);
         AddRepositoryEnvironment(repo, env);
-        var args = "key change-passphrase";
+        var args = new List<string> { "key", "change-passphrase" };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -184,7 +185,7 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var args = "repo-info --json";
+        var args = new List<string> { "repo-info", "--json" };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -194,13 +195,13 @@ public class Borg2Service : Borg2ServiceBase
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         AddRepositoryEnvironment(repo, env);
-        var args = $"diff \"{archive1}\" \"{archive2}\"";
+        var args = new List<string> { "diff", "--", archive1, archive2 };
         return await RunSupportedCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
     private async Task<BorgResult> RunSupportedCommandAsync(
         string fileName,
-        string arguments,
+        IReadOnlyList<string> arguments,
         BorgEnv? env = null,
         string? workingDirectory = null,
         CancellationToken ct = default,

@@ -105,11 +105,69 @@ public class WslHelperTests
     [Fact]
     public void WrapCommand_ProducesCorrectStructure()
     {
-        var (fileName, arguments) = WslHelper.WrapCommand("borg", "create /repo::archive /data");
+        var arguments = WslHelper.WrapCommand("borg", ["create", "/repo::archive", "/data"]);
 
-        Assert.Equal("wsl", fileName);
-        Assert.Contains("bash", arguments);
-        Assert.Contains("create /repo::archive /data", arguments);
+        Assert.Equal(["--exec", "bash", "-c", "cd ~ && \"$@\"", "bash", "borg", "create", "/repo::archive", "/data"],
+            arguments);
+    }
+
+    [Fact]
+    public void WrapCommand_WorkingDirectoryAndPreCommands_ReachBashAsPositionalParameters()
+    {
+        var arguments = WslHelper.WrapCommand("borg", ["extract"], "/mnt/c/a b", ["export X=1"]);
+
+        Assert.Equal(
+            ["--exec", "bash", "-c", "cd -- \"$1\" && shift && export X=1 && \"$@\"", "bash", "/mnt/c/a b", "borg",
+                "extract"],
+            arguments);
+    }
+
+    [SkippableFact]
+    public async Task WrapCommand_HostileArguments_ArriveVerbatimWithoutExecutingShellSyntax()
+    {
+        BashHarness.RequireBash();
+
+        using var temp = new TempDirectory();
+        var workingDirectory = temp.Path + "/wrap $dir";
+        Directory.CreateDirectory(workingDirectory);
+        var hostile = new List<string>
+        {
+            $"$(touch {temp.Path}/marker)", $"`touch {temp.Path}/marker2`", "a\"b", "$HOME", "", "-n"
+        };
+        // The msys runtime on Windows re-parses single quotes in its command line; Linux runs the real value.
+        if (!OperatingSystem.IsWindows())
+            hostile.Add("it's");
+
+        var result = await BashHarness.RunWslArgumentsAsync(
+            WslHelper.WrapCommand("printf", ["%s\n", .. hostile], workingDirectory));
+
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(hostile, result.Stdout.Split('\n').SkipLast(1));
+        Assert.False(File.Exists(temp.Path + "/marker"));
+        Assert.False(File.Exists(temp.Path + "/marker2"));
+    }
+
+    [SkippableFact]
+    public async Task WrapCommand_PreCommandExitTrap_RunsAndExitCodeIsPropagated()
+    {
+        BashHarness.RequireBash();
+
+        using var temp = new TempDirectory();
+        var recorded = temp.Path + "/path";
+        var preCommands = new List<string>
+        {
+            $"f=$(mktemp) && trap \"rm -f \\\"$f\\\"\" EXIT && printf %s \"$f\" > \"{recorded}\""
+        };
+
+        var result = await BashHarness.RunWslArgumentsAsync(
+            WslHelper.WrapCommand("sh", ["-c", "exit 3"], null, preCommands));
+
+        Assert.Equal(3, result.ExitCode);
+        var temporaryFile = await File.ReadAllTextAsync(recorded);
+        Assert.NotEmpty(temporaryFile);
+        var existsResult = await BashHarness.RunWslArgumentsAsync(
+            ["--exec", "bash", "-c", "test -e \"$1\" && echo present || echo absent", "bash", temporaryFile]);
+        Assert.Equal("absent", existsResult.Stdout.Trim());
     }
 
     [SkippableFact]

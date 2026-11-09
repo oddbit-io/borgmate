@@ -132,6 +132,16 @@ public class BorgPathHelperTests
         Assert.Equal("borg", result.DetectedPath);
     }
 
+    [Fact]
+    public void BuildWslVersionArguments_CandidateIsPositionalParameterOfConstantScript()
+    {
+        const string candidate = "/opt/b'org $(touch x)";
+
+        var arguments = BorgPathHelper.BuildWslVersionArguments(candidate);
+
+        Assert.Equal(["--exec", "bash", "-lc", "\"$1\" --version", "bash", candidate], arguments);
+    }
+
     private static BorgPathDetectionResult Detect(
         BorgVersion borgVersion,
         Dictionary<string, string[]> candidates,

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ namespace BorgMate.Infrastructure.Borg;
 
 public abstract class BorgServiceBase : IBorgService
 {
+    private const string WslCommand = "wsl";
+
     private readonly ILogger logger;
     private readonly AppSettings settings;
     private readonly BorgVersion borgVersion;
@@ -47,7 +50,7 @@ public abstract class BorgServiceBase : IBorgService
 
     public Task<BorgResult> GetVersionAsync(CancellationToken ct = default)
     {
-        return RunCommandAsync(BorgBinary, "--version", ct: ct);
+        return RunCommandAsync(BorgBinary, ["--version"], ct: ct);
     }
 
     public abstract Task<BorgCliVersionValidationResult> ValidateCliVersionAsync(CancellationToken ct = default);
@@ -116,7 +119,7 @@ public abstract class BorgServiceBase : IBorgService
 
     protected virtual async Task<BorgResult> RunCommandAsync(
         string fileName,
-        string arguments,
+        IReadOnlyList<string> arguments,
         BorgEnv? env = null,
         string? workingDirectory = null,
         CancellationToken ct = default,
@@ -125,7 +128,7 @@ public abstract class BorgServiceBase : IBorgService
         var environment = env?.Variables;
         var wslPreCommands = env?.WslPreCommands;
         var logFileName = fileName;
-        var logArguments = arguments;
+        var logArguments = FormatArgumentsForDisplay(arguments);
 
         LogCommand(logFileName, logArguments, environment, workingDirectory);
         PopulateJobDebugInfo(logFileName, logArguments, environment);
@@ -133,13 +136,14 @@ public abstract class BorgServiceBase : IBorgService
         environment ??= new Dictionary<string, string>();
         ApplyDefaultEnvironment(environment);
 
-        if (WslHelper.IsRequired && fileName != "wsl")
+        if (WslHelper.IsRequired && fileName != WslCommand)
         {
             if (!await wsl.IsAvailableAsync(ct))
                 return new BorgResult(-1, "", Strings.Get("Error.WslNotAvailable"));
 
             var wslCwd = workingDirectory is not null ? WslHelper.ToWslPath(workingDirectory) : null;
-            (fileName, arguments) = WslHelper.WrapCommand(fileName, arguments, wslCwd, wslPreCommands);
+            arguments = WslHelper.WrapCommand(fileName, arguments, wslCwd, wslPreCommands);
+            fileName = WslCommand;
             environment = WslHelper.ForwardEnvironment(environment);
             workingDirectory = null;
         }
@@ -198,11 +202,23 @@ public abstract class BorgServiceBase : IBorgService
         return BorgCommandRedactor.Redact(value);
     }
 
+    /// <summary>Renders argv for logs and the debug view only; the process receives the elements unchanged.</summary>
+    private static string FormatArgumentsForDisplay(IEnumerable<string> arguments)
+    {
+        return string.Join(' ', arguments.Select(argument =>
+        {
+            var redacted = SanitizeForDisplay(argument);
+            return redacted.Length == 0 || redacted.Any(c => char.IsWhiteSpace(c) || c is '"' or '\\')
+                ? $"\"{redacted.Replace("\"", "\\\"")}\""
+                : redacted;
+        }));
+    }
+
     private static void PopulateJobDebugInfo(string fileName, string arguments,
         Dictionary<string, string>? environment)
     {
         if (BorgJob.Current.Value is not { } job) return;
-        job.CommandLine = $"{fileName} {SanitizeForDisplay(arguments)}";
+        job.CommandLine = $"{fileName} {arguments}";
         var safeEnv = environment?
             .Select(kv => IsSecretEnv(kv.Key, kv.Value) ? $"{kv.Key}=***" : $"{kv.Key}={SanitizeForDisplay(kv.Value)}")
             .ToList();
@@ -212,7 +228,7 @@ public abstract class BorgServiceBase : IBorgService
     private void LogCommand(string fileName, string arguments,
         Dictionary<string, string>? environment, string? workingDirectory)
     {
-        logger.LogInformation("Executing: {FileName} {Arguments}", fileName, SanitizeForDisplay(arguments));
+        logger.LogInformation("Executing: {FileName} {Arguments}", fileName, arguments);
         if (workingDirectory is not null)
             logger.LogInformation("  CWD: {WorkingDirectory}", workingDirectory);
         var safeEnv = environment?
@@ -226,10 +242,10 @@ public abstract class BorgServiceBase : IBorgService
     {
         if (result.Success)
             logger.LogInformation("Completed: {FileName} {Arguments} (exit code: {ExitCode})",
-                fileName, SanitizeForDisplay(arguments), result.ExitCode);
+                fileName, arguments, result.ExitCode);
         else
             logger.LogWarning("Failed: {FileName} {Arguments} (exit code: {ExitCode})",
-                fileName, SanitizeForDisplay(arguments), result.ExitCode);
+                fileName, arguments, result.ExitCode);
 
         // stdout/stderr already logged line-by-line via streaming callbacks
     }
@@ -332,6 +348,12 @@ public abstract class BorgServiceBase : IBorgService
             : P(repo.Path);
     }
 
+    /// <summary>Borg 1.x <c>REPO::ARCHIVE</c> argument as a single argv element.</summary>
+    protected string ArchiveLocation(BorgRepository repo, string archiveName)
+    {
+        return $"{Location(repo)}::{archiveName}";
+    }
+
     private static SmbLocation ParseSmbLocation(BorgRepository repo)
     {
         return SmbLocation.TryParse(repo.Path)
@@ -344,16 +366,21 @@ public abstract class BorgServiceBase : IBorgService
     ///     empty string when no retention rule is set; callers must validate that
     ///     at least one rule is set before invoking prune (borg errors otherwise).
     /// </summary>
-    protected static string BuildPruneRetentionArgs(PruneOptions p)
+    protected static List<string> BuildPruneRetentionArgs(PruneOptions p)
     {
-        var parts = new List<string>();
-        if (p.KeepLast > 0) parts.Add($"--keep-last {p.KeepLast}");
-        if (p.KeepHourly > 0) parts.Add($"--keep-hourly {p.KeepHourly}");
-        if (p.KeepDaily > 0) parts.Add($"--keep-daily {p.KeepDaily}");
-        if (p.KeepWeekly > 0) parts.Add($"--keep-weekly {p.KeepWeekly}");
-        if (p.KeepMonthly > 0) parts.Add($"--keep-monthly {p.KeepMonthly}");
-        if (p.KeepYearly > 0) parts.Add($"--keep-yearly {p.KeepYearly}");
-        return parts.Count == 0 ? "" : " " + string.Join(" ", parts);
+        var args = new List<string>();
+        AddRetention(args, "--keep-last", p.KeepLast);
+        AddRetention(args, "--keep-hourly", p.KeepHourly);
+        AddRetention(args, "--keep-daily", p.KeepDaily);
+        AddRetention(args, "--keep-weekly", p.KeepWeekly);
+        AddRetention(args, "--keep-monthly", p.KeepMonthly);
+        AddRetention(args, "--keep-yearly", p.KeepYearly);
+        return args;
+    }
+
+    private static void AddRetention(List<string> args, string option, int count)
+    {
+        if (count > 0) args.AddRange([option, count.ToString(CultureInfo.InvariantCulture)]);
     }
 
     /// <summary>
@@ -361,24 +388,25 @@ public abstract class BorgServiceBase : IBorgService
     ///     the repository lock until the server notices the dead client, which outlasts borg's
     ///     one-second default and the retry delays.
     /// </summary>
-    protected static string BackupLockWaitArgs => $" --lock-wait {(int)BackupLockWait.TotalSeconds}";
+    protected static string[] BackupLockWaitArgs =>
+        ["--lock-wait", ((int)BackupLockWait.TotalSeconds).ToString(CultureInfo.InvariantCulture)];
 
     private static readonly TimeSpan BackupLockWait = TimeSpan.FromMinutes(10);
 
-    protected static string BuildExcludeArgs(IEnumerable<string> excludedPaths)
+    protected static IEnumerable<string> BuildExcludeArgs(IEnumerable<string> excludedPaths)
     {
-        return string.Concat(excludedPaths.Select(path => $" --exclude \"pp:{P(path)}\""));
+        return excludedPaths.SelectMany(path => new[] { "--exclude", $"pp:{P(path)}" });
     }
 
     /// <summary>Builds optional metadata flags for <c>borg extract</c>.</summary>
-    protected static string BuildExtractOptionArgs(BorgExtractOptions options)
+    protected static List<string> BuildExtractOptionArgs(BorgExtractOptions options)
     {
-        var parts = new List<string>();
-        if (options.NoFlags) parts.Add("--noflags");
-        if (options.NoAcls) parts.Add("--noacls");
-        if (options.NoXattrs) parts.Add("--noxattrs");
-        if (options.Sparse) parts.Add("--sparse");
-        return parts.Count == 0 ? "" : " " + string.Join(" ", parts);
+        var args = new List<string>();
+        if (options.NoFlags) args.Add("--noflags");
+        if (options.NoAcls) args.Add("--noacls");
+        if (options.NoXattrs) args.Add("--noxattrs");
+        if (options.Sparse) args.Add("--sparse");
+        return args;
     }
 
     /// <summary>

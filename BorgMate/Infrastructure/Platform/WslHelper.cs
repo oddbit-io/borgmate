@@ -89,7 +89,7 @@ public partial class WslHelper
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeout.CancelAfter(WslCommandTimeout);
-        var result = await ProcessRunner.RunAsync("wsl", "-- uname -r", null, null, timeout.Token);
+        var result = await ProcessRunner.RunAsync("wsl", ["--exec", "uname", "-r"], timeout.Token);
         // Concurrent probes compute the same value, so an unsynchronized cache write is benign.
         _isWsl2 = result.ExitCode == 0 &&
                   result.StandardOutput.Contains("WSL2", StringComparison.OrdinalIgnoreCase);
@@ -123,26 +123,30 @@ public partial class WslHelper
     }
 
     /// <summary>
-    ///     Wraps a borg command to run inside WSL via bash -c.
-    ///     CWD is set to ~ by default to avoid Windows CWD issues. Environment variables
-    ///     travel separately through <see cref="ForwardEnvironment" />.
+    ///     Builds the wsl.exe arguments that run a command inside WSL. The bash script is constant text
+    ///     plus <paramref name="preCommands" />; the working directory, binary and arguments reach bash
+    ///     only as positional parameters, so no value is ever parsed as shell syntax. <c>--exec</c> skips
+    ///     the default shell of the distribution. Without a working directory the command starts in ~.
+    ///     Environment variables travel separately through <see cref="ForwardEnvironment" />.
     /// </summary>
-    public static (string fileName, string arguments) WrapCommand(
-        string borgBinary, string arguments,
+    public static List<string> WrapCommand(
+        string binary, IReadOnlyList<string> arguments,
         string? workingDirectory = null,
         List<string>? preCommands = null)
     {
-        var cdTarget = workingDirectory is not null ? $"cd {ShellEscape(workingDirectory)}" : "cd ~";
-        var parts = new List<string> { cdTarget };
+        var script = new List<string> { workingDirectory is not null ? "cd -- \"$1\" && shift" : "cd ~" };
 
         if (preCommands is { Count: > 0 })
-            parts.AddRange(preCommands);
+            script.AddRange(preCommands);
 
-        parts.Add($"{borgBinary} {arguments}");
+        script.Add("\"$@\"");
 
-        var cmd = string.Join(" && ", parts);
-        var wslArgs = $"-- bash -c {ShellEscape(cmd)}";
-        return ("wsl", wslArgs);
+        var wslArguments = new List<string> { "--exec", "bash", "-c", string.Join(" && ", script), "bash" };
+        if (workingDirectory is not null)
+            wslArguments.Add(workingDirectory);
+        wslArguments.Add(binary);
+        wslArguments.AddRange(arguments);
+        return wslArguments;
     }
 
     /// <summary>
@@ -318,7 +322,7 @@ public partial class WslHelper
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        psi.ArgumentList.Add("--");
+        psi.ArgumentList.Add("--exec");
         psi.ArgumentList.Add("pkill");
         psi.ArgumentList.Add("-f");
         psi.ArgumentList.Add(processName);

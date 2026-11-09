@@ -44,7 +44,7 @@ public class Borg2ServiceTests
 
         await svc.InitAsync(repo);
 
-        Assert.Equal("repo-create --encryption=repokey-blake2-aes-ocb", svc.LastArgs);
+        Assert.Equal(["repo-create", "--encryption=repokey-blake2-aes-ocb"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -73,7 +73,7 @@ public class Borg2ServiceTests
 
         await svc.ListArchivesAsync(repo);
 
-        Assert.Equal("repo-list --json", svc.LastArgs);
+        Assert.Equal(["repo-list", "--json"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -86,7 +86,7 @@ public class Borg2ServiceTests
 
         await svc.DeleteArchiveAsync(repo, "old-archive");
 
-        Assert.Equal("delete \"old-archive\"", svc.LastArgs);
+        Assert.Equal(["delete", "--", "old-archive"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -99,7 +99,7 @@ public class Borg2ServiceTests
 
         await svc.PruneAsync(repo);
 
-        Assert.Equal("prune --list", svc.LastArgs);
+        Assert.Equal(["prune", "--list"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         Assert.DoesNotContain("--stats", svc.LastArgs);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
@@ -128,7 +128,7 @@ public class Borg2ServiceTests
 
         await svc.CheckAsync(repo);
 
-        Assert.Equal("check --progress", svc.LastArgs);
+        Assert.Equal(["check", "--progress"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -141,7 +141,7 @@ public class Borg2ServiceTests
 
         await svc.CompactAsync(repo);
 
-        Assert.Equal("compact --progress", svc.LastArgs);
+        Assert.Equal(["compact", "--progress"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -170,7 +170,7 @@ public class Borg2ServiceTests
 
         await svc.CreateBackupAsync(repo, "archive", ["/data"]);
 
-        Assert.Contains("--exclude \"pp:/data/cache\"", svc.LastArgs!);
+        Assert.Contains("pp:/data/cache", svc.LastArgv!);
         AssertBorgRepo(svc, repo.Path);
     }
 
@@ -231,7 +231,7 @@ public class Borg2ServiceTests
 
         await svc.InfoRepoAsync(repo);
 
-        Assert.Equal("repo-info --json", svc.LastArgs);
+        Assert.Equal(["repo-info", "--json"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -244,7 +244,7 @@ public class Borg2ServiceTests
 
         await svc.DiffArchivesAsync(repo, "a1", "a2");
 
-        Assert.Equal("diff \"a1\" \"a2\"", svc.LastArgs);
+        Assert.Equal(["diff", "--", "a1", "a2"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -257,7 +257,7 @@ public class Borg2ServiceTests
 
         await svc.ListArchiveContentsAsync(repo, "archive");
 
-        Assert.Equal("list --json-lines \"archive\"", svc.LastArgs);
+        Assert.Equal(["list", "--json-lines", "--", "archive"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -313,7 +313,7 @@ public class Borg2ServiceTests
 
         await svc.ChangePassphraseAsync(repo, "new-pass");
 
-        Assert.Equal("key change-passphrase", svc.LastArgs);
+        Assert.Equal(["key", "change-passphrase"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         AssertNoObsoleteBorg2Syntax(svc.LastArgs);
     }
@@ -352,7 +352,7 @@ public class Borg2ServiceTests
 
         await svc.AcceptRelocationAsync(repo);
 
-        Assert.Equal("repo-list --short --last 1", svc.LastArgs);
+        Assert.Equal(["repo-list", "--short", "--last", "1"], svc.LastArgv);
         AssertBorgRepo(svc, repo.Path);
         Assert.Equal("yes", svc.LastEnvVars!["BORG_RELOCATED_REPO_ACCESS_IS_OK"]);
     }
@@ -371,6 +371,44 @@ public class Borg2ServiceTests
         Assert.DoesNotContain("rinfo", args);
         Assert.DoesNotContain("--repo", args);
         Assert.DoesNotContain("::", args);
+    }
+
+    public static TheoryData<string> HostileValues => new()
+    {
+        "x$(touch marker)", "a\"b --rsh=evil", "-rf", "it's"
+    };
+
+    [Theory]
+    [MemberData(nameof(HostileValues))]
+    public async Task CreateBackupAsync_HostileSourcePath_IsOneVerbatimElementAfterDoubleDash(string value)
+    {
+        var svc = CreateService();
+
+        await svc.CreateBackupAsync(LocalRepo(), "archive", [value]);
+
+        Assert.Equal(["--", "archive", value], svc.LastArgv!.TakeLast(3));
+    }
+
+    [Theory]
+    [MemberData(nameof(HostileValues))]
+    public async Task ExtractAsync_HostileMemberPath_IsOneVerbatimElementAfterDoubleDash(string value)
+    {
+        var svc = CreateService();
+
+        await svc.ExtractAsync(LocalRepo(), "archive", "/restore", new BorgExtractOptions(), [value]);
+
+        Assert.Equal(["--", "archive", value], svc.LastArgv!.TakeLast(3));
+    }
+
+    [Theory]
+    [MemberData(nameof(HostileValues))]
+    public async Task DeleteArchiveAsync_HostileArchiveName_IsOneVerbatimElementAfterDoubleDash(string value)
+    {
+        var svc = CreateService();
+
+        await svc.DeleteArchiveAsync(LocalRepo(), value);
+
+        Assert.Equal(["delete", "--", value], svc.LastArgv);
     }
 
     /// <summary>
@@ -396,21 +434,23 @@ public class Borg2ServiceTests
         }
 
         public string? LastFileName { get; private set; }
+        public IReadOnlyList<string>? LastArgv { get; private set; }
         public string? LastArgs { get; private set; }
         public IReadOnlyDictionary<string, string>? LastEnvVars { get; private set; }
 
         public void SetPassphrase(BorgRepository repo, string value) => _passphrase.Set(repo, value);
 
         protected override Task<BorgResult> RunCommandAsync(
-            string fileName, string arguments, BorgEnv? env = null,
+            string fileName, IReadOnlyList<string> arguments, BorgEnv? env = null,
             string? workingDirectory = null, CancellationToken ct = default,
             Action<string>? onStderrLine = null)
         {
-            if (arguments == "--version")
+            if (arguments is ["--version"])
                 return Task.FromResult(new BorgResult(0, _versionText, ""));
 
             LastFileName = fileName;
-            LastArgs = arguments;
+            LastArgv = arguments;
+            LastArgs = string.Join(' ', arguments);
             LastEnvVars = env?.Variables;
             return Task.FromResult(new BorgResult(0, "", ""));
         }
