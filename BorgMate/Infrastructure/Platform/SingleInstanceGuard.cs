@@ -1,41 +1,39 @@
 using System;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
+using System.IO.Pipes;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BorgMate.Infrastructure.Platform;
 
 /// <summary>
-///     Cross-platform single-instance guard using a lock file + TCP loopback.
-///     First instance writes a TCP port to a lock file and listens for activation signals.
-///     Second instance reads the port, sends "ACTIVATE", and exits.
+///     Single-instance guard built on a per-user named mutex and a named pipe that only the same user
+///     can open. The first instance owns the mutex and listens on the pipe; a later launch signals it
+///     and exits.
 /// </summary>
 public class SingleInstanceGuard : IDisposable
 {
-    private static readonly string LockFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "BorgMate", ".lock");
+    private const string ActivateMessage = "ACTIVATE";
+    private const string WakeMessage = "WAKE";
+    private const int MaxMessageBytes = 16;
+    private static readonly TimeSpan SignalTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan ListenerRetryDelay = TimeSpan.FromSeconds(1);
+
+    private static readonly string InstanceName = "BorgMate-" + Environment.UserName.Replace('\\', '_')
+        .Replace('/', '_');
 
     private CancellationTokenSource? _cts;
-
-    private TcpListener? _listener;
+    private Mutex? _mutex;
+    private bool _ownsMutex;
 
     public void Dispose()
     {
         _cts?.Cancel();
-        _listener?.Stop();
-        _listener?.Dispose();
         _cts?.Dispose();
-        try
-        {
-            File.Delete(LockFilePath);
-        }
-        catch
-        {
-            /* best effort */
-        }
+        if (_ownsMutex)
+            _mutex?.ReleaseMutex();
+        _mutex?.Dispose();
     }
 
     public event Action? ActivationRequested;
@@ -45,49 +43,48 @@ public class SingleInstanceGuard : IDisposable
 
     /// <summary>
     ///     Returns true if this is the first instance (caller should proceed).
-    ///     Returns false if another instance is running (caller should exit).
+    ///     Returns false if another instance is running (caller should exit after it was signaled).
     /// </summary>
     public bool TryAcquire(bool activateExisting = true)
     {
-        // Check if another instance is running
-        if (File.Exists(LockFilePath))
-            if (int.TryParse(File.ReadAllText(LockFilePath).Trim(), out var port) && port > 0)
-                if (TrySignalExisting(port, activateExisting))
-                    return false; // Other instance responded, exit
+        _mutex = new Mutex(false, InstanceName,
+            new NamedWaitHandleOptions { CurrentUserOnly = true, CurrentSessionOnly = true });
+        try
+        {
+            _ownsMutex = _mutex.WaitOne(TimeSpan.Zero);
+        }
+        catch (AbandonedMutexException)
+        {
+            // The previous owner crashed; the mutex now belongs to this instance.
+            _ownsMutex = true;
+        }
 
-        // Stale lock file — other instance crashed
-        // We are the first instance
-        StartListener();
+        if (!_ownsMutex)
+        {
+            SignalExisting(activateExisting ? ActivateMessage : WakeMessage);
+            return false;
+        }
+
+        _cts = new CancellationTokenSource();
+        _ = Task.Run(() => ListenLoop(_cts.Token));
         return true;
     }
 
-    private static bool TrySignalExisting(int port, bool activateExisting)
+    private static void SignalExisting(string message)
     {
         try
         {
-            using var client = new TcpClient();
-            client.Connect(IPAddress.Loopback, port);
-            using var writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
-            writer.WriteLine(activateExisting ? "ACTIVATE" : "WAKE");
-            return true;
+            using var client = new NamedPipeClientStream(".", InstanceName, PipeDirection.Out,
+                PipeOptions.CurrentUserOnly);
+            client.Connect(SignalTimeout);
+            client.Write(Encoding.ASCII.GetBytes(message + "\n"));
         }
-        catch
+        catch (Exception ex) when (ex is TimeoutException or IOException or UnauthorizedAccessException)
         {
-            return false; // Can't connect — stale lock
+            // The running instance owns the mutex but is not listening yet (still starting) or is
+            // exiting; it shows its window or checks schedules on its own, so this launch only exits.
+            Console.Error.WriteLine($"SingleInstanceGuard could not signal the running instance: {ex.Message}");
         }
-    }
-
-    private void StartListener()
-    {
-        _cts = new CancellationTokenSource();
-        _listener = new TcpListener(IPAddress.Loopback, 0);
-        _listener.Start();
-        var port = ((IPEndPoint)_listener.LocalEndpoint).Port;
-
-        Directory.CreateDirectory(Path.GetDirectoryName(LockFilePath)!);
-        File.WriteAllText(LockFilePath, port.ToString());
-
-        _ = Task.Run(() => ListenLoop(_cts.Token));
     }
 
     private async Task ListenLoop(CancellationToken ct)
@@ -95,24 +92,55 @@ public class SingleInstanceGuard : IDisposable
         while (!ct.IsCancellationRequested)
             try
             {
-                var client = await _listener!.AcceptTcpClientAsync(ct);
-                using (client)
-                {
-                    using var reader = new StreamReader(client.GetStream());
-                    var line = await reader.ReadLineAsync(ct);
-                    if (line == "ACTIVATE")
-                        ActivationRequested?.Invoke();
-                    else if (line == "WAKE")
-                        WakeRequested?.Invoke();
-                }
+                await using var server = new NamedPipeServerStream(InstanceName, PipeDirection.In, 1,
+                    PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+                await server.WaitForConnectionAsync(ct);
+                var message = await ReadMessageAsync(server, ct);
+                if (message == ActivateMessage)
+                    ActivationRequested?.Invoke();
+                else if (message == WakeMessage)
+                    WakeRequested?.Invoke();
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
                 break;
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"SingleInstanceGuard listener error: {ex.Message}");
+                // A pipe that cannot be created fails again at once; pausing keeps the loop from spinning.
+                await Task.Delay(ListenerRetryDelay, ct).ConfigureAwait(false);
             }
+    }
+
+    /// <summary>
+    ///     Reads one newline-terminated message. A client that sends more than a message's length or
+    ///     stays silent is dropped, so it cannot hold the single listener or grow memory.
+    /// </summary>
+    internal static async Task<string?> ReadMessageAsync(Stream stream, CancellationToken ct)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(SignalTimeout);
+        var buffer = new byte[MaxMessageBytes + 1];
+        var length = 0;
+        try
+        {
+            while (length < buffer.Length)
+            {
+                var read = await stream.ReadAsync(buffer.AsMemory(length), timeout.Token);
+                if (read == 0)
+                    break;
+                var newline = Array.IndexOf(buffer, (byte)'\n', length, read);
+                if (newline >= 0)
+                    return Encoding.ASCII.GetString(buffer, 0, newline).TrimEnd('\r');
+                length += read;
+            }
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            return null;
+        }
+
+        return null;
     }
 }
