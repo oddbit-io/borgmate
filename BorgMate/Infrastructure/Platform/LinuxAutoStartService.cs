@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace BorgMate.Infrastructure.Platform;
 
@@ -37,7 +38,29 @@ internal class LinuxAutoStartService : IAutoStartService
     {
         return Environment.GetEnvironmentVariable("APPIMAGE")
                ?? Environment.ProcessPath
-               ?? StringHelpers.AppName;
+               ?? throw new InvalidOperationException("The BorgMate executable path is unknown.");
+    }
+
+    /// <summary>
+    ///     Quotes one argument of a Desktop Entry <c>Exec</c> key. A raw path with spaces would split
+    ///     into several arguments, and <c>%</c> or a line break would add field codes or keys.
+    /// </summary>
+    internal static string QuoteExecArgument(string argument)
+    {
+        if (argument.IndexOfAny(['\n', '\r']) >= 0)
+            throw new InvalidOperationException("A line break cannot appear in a desktop entry Exec value.");
+
+        var quoted = new StringBuilder("\"");
+        foreach (var c in argument)
+        {
+            if (c is '"' or '`' or '$' or '\\')
+                quoted.Append('\\');
+            quoted.Append(c);
+        }
+
+        quoted.Append('"');
+        // Exec is also a string value, whose own escaping doubles every backslash.
+        return quoted.ToString().Replace("\\", "\\\\").Replace("%", "%%");
     }
 
     private static void WriteDesktopEntry()
@@ -49,7 +72,7 @@ internal class LinuxAutoStartService : IAutoStartService
         using var reader = new StreamReader(stream);
         var template = reader.ReadToEnd();
 
-        var content = template.Replace("{{APP_PATH}}", GetLauncherPath());
+        var content = template.Replace("{{APP_PATH}}", QuoteExecArgument(GetLauncherPath()));
 
         var dir = Path.GetDirectoryName(AutoStartPath)!;
         Directory.CreateDirectory(dir);
