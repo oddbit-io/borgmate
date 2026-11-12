@@ -148,7 +148,8 @@ public abstract class BorgServiceBase : IBorgService
             workingDirectory = null;
         }
 
-        // Stream stdout/stderr to log and to current BorgJob for real-time debug view.
+        // Stream stderr to the log and both streams to the current BorgJob for the real-time debug view.
+        // Stdout stays out of the log: it carries archive and file listings.
         {
             var origStderr = onStderrLine;
             onStderrLine = line =>
@@ -158,11 +159,7 @@ public abstract class BorgServiceBase : IBorgService
                 BorgJob.Current.Value?.AppendStderr(line);
             };
         }
-        Action<string>? stdoutCallback = line =>
-        {
-            logger.LogDebug("  STDOUT: {Line}", line);
-            BorgJob.Current.Value?.AppendStdout(line);
-        };
+        Action<string>? stdoutCallback = line => BorgJob.Current.Value?.AppendStdout(line);
 
         // On WSL, kill borg inside the Linux namespace before killing wsl.exe
         Action<Process>? onKill = WslHelper.IsRequired
@@ -241,13 +238,11 @@ public abstract class BorgServiceBase : IBorgService
     private void LogResult(string fileName, string arguments, BorgResult result)
     {
         if (result.Success)
-            logger.LogInformation("Completed: {FileName} {Arguments} (exit code: {ExitCode})",
-                fileName, arguments, result.ExitCode);
+            logger.LogInformation("Completed: {FileName} {Arguments} (exit code: {ExitCode}, stdout: {StdoutLength} chars)",
+                fileName, arguments, result.ExitCode, result.StandardOutput.Length);
         else
-            logger.LogWarning("Failed: {FileName} {Arguments} (exit code: {ExitCode})",
-                fileName, arguments, result.ExitCode);
-
-        // stdout/stderr already logged line-by-line via streaming callbacks
+            logger.LogWarning("Failed: {FileName} {Arguments} (exit code: {ExitCode}, stdout: {StdoutLength} chars)",
+                fileName, arguments, result.ExitCode, result.StandardOutput.Length);
     }
 
     /// <summary>

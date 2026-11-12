@@ -43,6 +43,10 @@ internal sealed class Program
             e.SetObserved();
         };
 
+        // Config, state, journal and logs all live here; restricting the root covers files made by earlier versions.
+        PrivateDirectory.Ensure(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BorgMate"));
+
         VelopackApp.Build().Run();
 
         InstanceGuard = new SingleInstanceGuard();
