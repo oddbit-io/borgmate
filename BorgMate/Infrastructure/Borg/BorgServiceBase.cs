@@ -136,10 +136,14 @@ public abstract class BorgServiceBase : IBorgService
         environment ??= new Dictionary<string, string>();
         ApplyDefaultEnvironment(environment);
 
+        string? wslJobId = null;
         if (WslHelper.IsRequired && fileName != WslCommand)
         {
             if (!await wsl.IsAvailableAsync(ct))
                 return new BorgResult(-1, "", Strings.Get("Error.WslNotAvailable"));
+
+            wslJobId = WslHelper.NewJobId();
+            environment[WslHelper.JobIdVariable] = wslJobId;
 
             var wslCwd = workingDirectory is not null ? WslHelper.ToWslPath(workingDirectory) : null;
             arguments = WslHelper.WrapCommand(fileName, arguments, wslCwd, wslPreCommands);
@@ -162,12 +166,12 @@ public abstract class BorgServiceBase : IBorgService
         Action<string>? stdoutCallback = line => BorgJob.Current.Value?.AppendStdout(line);
 
         // On WSL, kill borg inside the Linux namespace before killing wsl.exe
-        Action<Process>? onKill = WslHelper.IsRequired
+        Action<Process>? onKill = wslJobId is not null
             ? _ =>
             {
                 try
                 {
-                    WslHelper.KillProcesses(logFileName);
+                    WslHelper.KillJob(wslJobId);
                 }
                 catch (Exception ex)
                 {

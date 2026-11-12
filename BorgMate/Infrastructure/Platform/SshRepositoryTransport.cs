@@ -116,10 +116,13 @@ public class SshRepositoryTransport
         if (!_wsl.RequiresWsl)
             return await ProcessRunner.RunAsync("ssh", arguments, ct);
 
-        Action<Process> onKill = _ => WslHelper.KillProcesses("ssh");
-        var environment = prepared.WslEnvironment is null ? null : WslHelper.ForwardEnvironment(prepared.WslEnvironment);
+        var jobId = WslHelper.NewJobId();
+        var variables = new Dictionary<string, string>(prepared.WslEnvironment ?? new Dictionary<string, string>())
+        {
+            [WslHelper.JobIdVariable] = jobId
+        };
         return await ProcessRunner.RunAsync("wsl", BuildWslCommandArguments(arguments, prepared.WslPreCommands), ct,
-            onKill, environment);
+            _ => WslHelper.KillJob(jobId), WslHelper.ForwardEnvironment(variables));
     }
 
     public static string QuoteRemoteArgument(string value)

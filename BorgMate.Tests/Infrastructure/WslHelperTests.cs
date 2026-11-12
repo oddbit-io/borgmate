@@ -6,6 +6,25 @@ namespace BorgMate.Tests.Infrastructure;
 
 public class WslHelperTests
 {
+    [SkippableFact]
+    public async Task KillJob_StopsOnlyProcessesOfThatJob()
+    {
+        BashHarness.RequireBash();
+        var killScript = WslHelper.BuildKillJobArguments("cancelled")[3];
+        const string script =
+            "BORGMATE_JOB_ID=cancelled sleep 30 & cancelled=$!; " +
+            "BORGMATE_JOB_ID=other sleep 30 & other=$!; " +
+            "sleep 1; bash -c \"$1\" bash BORGMATE_JOB_ID cancelled; sleep 1; " +
+            "kill -0 \"$cancelled\" 2>/dev/null && echo cancelled-alive; " +
+            "kill -0 \"$other\" 2>/dev/null && echo other-alive; " +
+            "kill \"$other\" \"$cancelled\" 2>/dev/null; true";
+
+        var result = await BashHarness.RunWslArgumentsAsync(["--exec", "bash", "-c", script, "bash", killScript]);
+
+        Assert.DoesNotContain("cancelled-alive", result.Stdout);
+        Assert.Contains("other-alive", result.Stdout);
+    }
+
     [Fact]
     public async Task IsAvailableAsync_AwaitsProbeWithoutBlockingAndCachesResult()
     {

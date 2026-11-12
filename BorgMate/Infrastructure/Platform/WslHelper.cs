@@ -18,6 +18,13 @@ public partial class WslHelper
 {
     private const string WslEnvVariable = "WSLENV";
 
+    /// <summary>Marks every Linux process of one WSL command, including the ssh children borg starts.</summary>
+    public const string JobIdVariable = "BORGMATE_JOB_ID";
+
+    // Signals only processes whose environment carries the job id; the kill script itself never has it.
+    private const string KillJobScript =
+        """for p in /proc/[0-9]*; do tr '\0' '\n' < "$p/environ" 2>/dev/null | grep -qxF -- "$1=$2" && kill -TERM "${p#/proc/}" 2>/dev/null; done; true""";
+
     private const string CopySshKeyScript =
         "mkdir -p ~/.ssh && cp -- \"$1\" \"$2\" && chmod 600 -- \"$2\"";
 
@@ -308,11 +315,22 @@ public partial class WslHelper
         }
     }
 
+    /// <summary>Returns a new id for <see cref="JobIdVariable" />, so cancelling one command spares the others.</summary>
+    public static string NewJobId()
+    {
+        return Guid.NewGuid().ToString("N");
+    }
+
+    internal static IReadOnlyList<string> BuildKillJobArguments(string jobId)
+    {
+        return ["--exec", "bash", "-c", KillJobScript, "bash", JobIdVariable, jobId];
+    }
+
     /// <summary>
-    ///     Kills matching processes running inside WSL. Called on cancellation
-    ///     because Process.Kill on wsl.exe doesn't reach the Linux namespace.
+    ///     Kills the Linux processes of the WSL command started with <paramref name="jobId" />. Called on
+    ///     cancellation because Process.Kill on wsl.exe doesn't reach the Linux namespace.
     /// </summary>
-    public static void KillProcesses(string processName)
+    public static void KillJob(string jobId)
     {
         var psi = new ProcessStartInfo
         {
@@ -322,10 +340,8 @@ public partial class WslHelper
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        psi.ArgumentList.Add("--exec");
-        psi.ArgumentList.Add("pkill");
-        psi.ArgumentList.Add("-f");
-        psi.ArgumentList.Add(processName);
+        foreach (var argument in BuildKillJobArguments(jobId))
+            psi.ArgumentList.Add(argument);
         using var process = Process.Start(psi);
         process?.WaitForExit(3000);
     }
