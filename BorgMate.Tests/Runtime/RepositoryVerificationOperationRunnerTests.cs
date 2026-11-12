@@ -23,7 +23,8 @@ public class RepositoryVerificationOperationRunnerTests
     private static readonly INetworkShareMounter Mounter = Substitute.For<INetworkShareMounter>();
     private static readonly AppSettings Settings = new();
     private static readonly SshRepositoryTransport SharedSshTransport = new(
-        Settings, SshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+        Settings, SshAgent, Wsl, Substitute.For<WslSshHostKeyTrust>(Substitute.For<ILogger<WslSshHostKeyTrust>>()),
+            Substitute.For<ILogger<SshRepositoryTransport>>());
 
     [Fact]
     public async Task ValidateConfiguredBorgAsync_AcceptsBorg14ForBorg1Repository()
@@ -132,7 +133,8 @@ public class RepositoryVerificationOperationRunnerTests
     public async Task CheckRemotePathAsync_UsesConfiguredPortAndSafelyQuotedPath()
     {
         var transport = Substitute.For<SshRepositoryTransport>(
-            Settings, SshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+            Settings, SshAgent, Wsl, Substitute.For<WslSshHostKeyTrust>(Substitute.For<ILogger<WslSshHostKeyTrust>>()),
+            Substitute.For<ILogger<SshRepositoryTransport>>());
         transport.RunAsync(
                 Arg.Any<BorgRepository>(),
                 Arg.Any<SshRepositoryTarget>(),

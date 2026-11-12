@@ -80,8 +80,9 @@ public class SshRepositoryTransportTests
         agent.EnsureKeyLoadedAsync(Arg.Any<string>(), Arg.Any<BorgRepository>(), Arg.Any<CancellationToken>())
             .Returns(true);
         agent.GetWslKeyPassphrase("C:\\keys\\backup key").Returns("it's secret");
+        var hostKeys = Substitute.For<WslSshHostKeyTrust>(Substitute.For<ILogger<WslSshHostKeyTrust>>());
         var transport = new SshRepositoryTransport(
-            new AppSettings(), agent, wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+            new AppSettings(), agent, wsl, hostKeys, Substitute.For<ILogger<SshRepositoryTransport>>());
         var repository = new BorgRepository
         {
             Path = "backup@example.com:repo",
@@ -95,6 +96,8 @@ public class SshRepositoryTransportTests
         var prepared = await transport.PrepareForBorgAsync(repository);
 
         await wsl.Received(1).CopySshKeyAsync(repository.SshKeyPath, Arg.Any<CancellationToken>());
+        await hostKeys.Received(1).EnsureTrustedAsync("backup@example.com", 2202, Arg.Any<CancellationToken>());
+        Assert.Contains("StrictHostKeyChecking=yes", prepared.Arguments);
         Assert.Contains("/home/user/.ssh/backup key", prepared.Arguments);
         Assert.Contains("2202", prepared.Arguments);
         Assert.Contains("PasswordAuthentication=no", prepared.Arguments);
@@ -148,6 +151,7 @@ public class SshRepositoryTransportTests
         var wsl = new WslHelper(Substitute.For<ILogger<WslHelper>>());
         var agent = new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, wsl);
         return new SshRepositoryTransport(
-            new AppSettings(), agent, wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+            new AppSettings(), agent, wsl, Substitute.For<WslSshHostKeyTrust>(Substitute.For<ILogger<WslSshHostKeyTrust>>()),
+            Substitute.For<ILogger<SshRepositoryTransport>>());
     }
 }

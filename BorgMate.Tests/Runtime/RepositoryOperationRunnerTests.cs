@@ -49,7 +49,8 @@ public class RepositoryOperationRunnerTests
         var wsl = new WslHelper(Substitute.For<ILogger<WslHelper>>());
         var agent = new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, wsl);
         var transport = new SshRepositoryTransport(
-            settings, agent, wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+            settings, agent, wsl, Substitute.For<WslSshHostKeyTrust>(Substitute.For<ILogger<WslSshHostKeyTrust>>()),
+            Substitute.For<ILogger<SshRepositoryTransport>>());
         var factory = Substitute.For<BorgServiceFactory>(
             Substitute.For<ILoggerFactory>(), settings, transport, wsl, Substitute.For<INetworkShareMounter>(), null);
         factory.GetService(Arg.Any<BorgVersion>()).Returns(service);

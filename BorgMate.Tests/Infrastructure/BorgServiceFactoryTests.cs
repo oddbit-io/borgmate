@@ -18,7 +18,8 @@ public class BorgServiceFactoryTests
         var settings = new AppSettings();
         var sshAgent = new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, Wsl);
         var transport = new SshRepositoryTransport(
-            settings, sshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+            settings, sshAgent, Wsl, Substitute.For<WslSshHostKeyTrust>(Substitute.For<ILogger<WslSshHostKeyTrust>>()),
+            Substitute.For<ILogger<SshRepositoryTransport>>());
         _factory = new BorgServiceFactory(
             Substitute.For<ILoggerFactory>(), settings, transport, Wsl,
             Substitute.For<INetworkShareMounter>());

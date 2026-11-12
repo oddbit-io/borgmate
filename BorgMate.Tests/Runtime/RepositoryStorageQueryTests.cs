@@ -211,7 +211,8 @@ public class RepositoryStorageQueryTests
         var wsl = new WslHelper(Substitute.For<ILogger<WslHelper>>());
         var agent = new SshAgentHelper(Substitute.For<ILogger<SshAgentHelper>>(), null, wsl);
         transport = Substitute.For<SshRepositoryTransport>(
-            new AppSettings(), agent, wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+            new AppSettings(), agent, wsl, Substitute.For<WslSshHostKeyTrust>(Substitute.For<ILogger<WslSshHostKeyTrust>>()),
+            Substitute.For<ILogger<SshRepositoryTransport>>());
         logger = Substitute.For<ILogger<RepositoryStorageQuery>>();
         return new RepositoryStorageQuery(mounter, transport, logger);
     }

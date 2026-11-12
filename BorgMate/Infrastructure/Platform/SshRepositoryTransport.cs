@@ -21,17 +21,20 @@ public class SshRepositoryTransport
     private readonly AppSettings _settings;
     private readonly SshAgentHelper _sshAgent;
     private readonly WslHelper _wsl;
+    private readonly WslSshHostKeyTrust _hostKeys;
     private readonly ILogger<SshRepositoryTransport> _logger;
 
     public SshRepositoryTransport(
         AppSettings settings,
         SshAgentHelper sshAgent,
         WslHelper wsl,
+        WslSshHostKeyTrust hostKeys,
         ILogger<SshRepositoryTransport> logger)
     {
         _settings = settings;
         _sshAgent = sshAgent;
         _wsl = wsl;
+        _hostKeys = hostKeys;
         _logger = logger;
     }
 
@@ -80,9 +83,10 @@ public class SshRepositoryTransport
         BorgRepository repository,
         CancellationToken ct = default)
     {
-        _ = ResolveTarget(repository);
-        var port = repository.LocationKind == BorgRepositoryLocationKind.BorgUrl ? 22 : repository.SshPort;
-        return PrepareAsync(repository, port, ct);
+        var target = ResolveTarget(repository);
+        // A Borg URL carries its own port, so ssh must not get another -p.
+        var sshPort = repository.LocationKind == BorgRepositoryLocationKind.BorgUrl ? 22 : repository.SshPort;
+        return PrepareAsync(repository, target, sshPort, ct);
     }
 
     public virtual async Task PrepareKeyAsync(
@@ -103,7 +107,7 @@ public class SshRepositoryTransport
         CancellationToken ct = default)
     {
         ValidateHost(target.Host);
-        var prepared = await PrepareAsync(repository, target.Port, ct);
+        var prepared = await PrepareAsync(repository, target, target.Port, ct);
         var arguments = BuildCommandArguments(prepared, target, remoteCommand, _wsl.RequiresWsl);
 
         _logger.LogDebug("Executing SSH command for {Host}: {Command}", target.Host,
@@ -163,11 +167,16 @@ public class SshRepositoryTransport
         return ["--exec", "bash", "-c", string.Join(" && ", commands)];
     }
 
+    /// <param name="port">Port for ssh's <c>-p</c>; 22 omits it.</param>
     private async Task<PreparedSshConnection> PrepareAsync(
         BorgRepository repository,
+        SshRepositoryTarget target,
         int port,
         CancellationToken ct)
     {
+        if (_wsl.RequiresWsl)
+            await _hostKeys.EnsureTrustedAsync(target.Host, target.Port, ct);
+
         if (!string.IsNullOrWhiteSpace(repository.SshKeyPath) &&
             !await _sshAgent.EnsureKeyLoadedAsync(repository.SshKeyPath, repository, ct))
             throw new OperationCanceledException(ct);
@@ -205,7 +214,7 @@ public class SshRepositoryTransport
 
         if (_wsl.RequiresWsl)
         {
-            arguments.AddRange(["-o", "StrictHostKeyChecking=accept-new"]);
+            arguments.AddRange(["-o", "StrictHostKeyChecking=yes"]);
             arguments.AddRange(["-o", "PasswordAuthentication=no", "-o", "KbdInteractiveAuthentication=no"]);
         }
 

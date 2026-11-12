@@ -69,6 +69,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton(settings);
+        services.AddSingleton<WslSshHostKeyTrust>();
         services.AddSingleton<SshRepositoryTransport>();
         services.AddSingleton<BorgServiceFactory>();
         services.AddSingleton(configStore);

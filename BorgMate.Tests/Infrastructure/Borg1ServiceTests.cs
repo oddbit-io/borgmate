@@ -23,7 +23,8 @@ public class Borg1ServiceTests
     {
         var appSettings = settings ?? new AppSettings();
         var transport = new SshRepositoryTransport(
-            appSettings, SshAgent, Wsl, Substitute.For<ILogger<SshRepositoryTransport>>());
+            appSettings, SshAgent, Wsl, Substitute.For<WslSshHostKeyTrust>(Substitute.For<ILogger<WslSshHostKeyTrust>>()),
+            Substitute.For<ILogger<SshRepositoryTransport>>());
         return new TestBorg1Service(
             Substitute.For<ILogger<Borg1Service>>(), appSettings, transport, Wsl, Mounter,
             new PromptingPassphraseProvider(null));
