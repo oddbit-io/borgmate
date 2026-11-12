@@ -13,9 +13,9 @@ namespace BorgMate.Infrastructure.Platform;
 
 /// <summary>
 ///     Schedules a system wake via pmset (root required) plus a LaunchAgent that starts
-///     BorgMate at the wake time. Passwordless pmset access is granted once, interactively,
-///     through a narrow /etc/sudoers.d rule — background reschedules then run unattended
-///     via `sudo -n` with no prompts.
+///     BorgMate at the wake time. Passwordless access is granted once, interactively, through
+///     an /etc/sudoers.d rule for a root-owned helper that only schedules or cancels BorgMate's
+///     wake events — background reschedules then run unattended via `sudo -n` with no prompts.
 /// </summary>
 internal class MacOsWakeScheduler : WakeSchedulerBase
 {
@@ -23,6 +23,9 @@ internal class MacOsWakeScheduler : WakeSchedulerBase
     private const string Owner = "BorgMate";
     private const string PmsetPath = "/usr/bin/pmset";
     private const string SudoersPath = "/etc/sudoers.d/borgmate";
+    private const string HelperDirectory = "/Library/PrivilegedHelperTools";
+    private const string HelperPath = HelperDirectory + "/borgmate-pmset";
+    private const string HelperResource = "BorgMate.Resources.Platform.borgmate-pmset.sh";
 
     private static readonly TimeSpan ProcessTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan PromptTimeout = TimeSpan.FromMinutes(5);
@@ -79,20 +82,22 @@ internal class MacOsWakeScheduler : WakeSchedulerBase
 
         foreach (var stale in existing)
         {
-            var cancel = await RunPmsetAsync(interactive, CancelArguments(stale));
+            var cancel = await RunHelperAsync(interactive, "cancel", stale);
             if (!cancel.IsSuccess) return cancel;
         }
 
-        return await RunPmsetAsync(interactive, ["schedule", "wakeorpoweron", FormatPmsetDate(wakeAt), Owner]);
+        return await RunHelperAsync(interactive, "schedule", wakeAt);
     }
 
     /// <summary>
-    ///     Runs `sudo -n pmset …`. When sudo denies (no sudoers rule yet) and the call is
-    ///     interactive, installs the rule via a single admin prompt and retries.
+    ///     Runs `sudo -n borgmate-pmset …`. When sudo denies (no helper or sudoers rule yet, or
+    ///     the rule of an earlier version) and the call is interactive, installs both via a
+    ///     single admin prompt and retries.
     /// </summary>
-    private async Task<WakeScheduleResult> RunPmsetAsync(bool interactive, string[] pmsetArguments)
+    private async Task<WakeScheduleResult> RunHelperAsync(bool interactive, string action, DateTime wake)
     {
-        var result = await RunProcessAsync("sudo", ["-n", PmsetPath, .. pmsetArguments], ProcessTimeout);
+        string[] arguments = ["-n", HelperPath, action, FormatPmsetDate(wake)];
+        var result = await RunProcessAsync("sudo", arguments, ProcessTimeout);
         if (result.Success)
             return Ok();
 
@@ -102,46 +107,49 @@ internal class MacOsWakeScheduler : WakeSchedulerBase
         if (!interactive)
             return Fail(Strings.Get("WakeForScheduledBackups.PermissionRequired"));
 
-        var install = await InstallSudoersRuleAsync();
+        var install = await InstallHelperAsync();
         if (!install.IsSuccess) return install;
 
-        result = await RunProcessAsync("sudo", ["-n", PmsetPath, .. pmsetArguments], ProcessTimeout);
+        result = await RunProcessAsync("sudo", arguments, ProcessTimeout);
         return result.Success ? Ok() : Fail(ErrorText(result));
     }
 
-    private async Task<WakeScheduleResult> InstallSudoersRuleAsync()
+    private async Task<WakeScheduleResult> InstallHelperAsync()
     {
         var user = Environment.UserName;
         if (!SafeUserNamePattern.IsMatch(user))
             return Fail($"Cannot grant pmset permission for user name '{user}'.");
 
-        // Narrow rule: only the exact pmset schedule forms BorgMate issues, anchored by owner.
-        var rule = $"{user} ALL=(root) NOPASSWD: {PmsetPath} schedule wakeorpoweron * {Owner}, " +
-                   $"{PmsetPath} schedule cancel wakeorpoweron * {Owner}\n";
-
-        var tempPath = Path.Combine(Path.GetTempPath(), "borgmate-sudoers");
-        File.WriteAllText(tempPath, rule);
-        try
-        {
-            var command = "/usr/sbin/visudo -c -f " + ShellQuote(tempPath) +
-                          " && /usr/bin/install -o root -g wheel -m 0440 " +
-                          ShellQuote(tempPath) + " " + SudoersPath;
-            return await RunPrivilegedShellAsync(command);
-        }
-        finally
-        {
-            try
-            {
-                File.Delete(tempPath);
-            }
-            catch
-            {
-                /* temp cleanup */
-            }
-        }
+        return await RunPrivilegedShellAsync(BuildInstallCommand(user, ReadHelperScript()));
     }
 
-    /// <summary>Cancels all events and removes the sudoers rule in one admin prompt.</summary>
+    /// <summary>
+    ///     Builds the root shell command that installs the helper and its sudoers rule. Root writes
+    ///     both into its own fresh temp directory before checking and installing them, so no
+    ///     user-writable file reaches /etc/sudoers.d between the check and the install.
+    /// </summary>
+    internal static string BuildInstallCommand(string user, IEnumerable<string> helperScript)
+    {
+        string[] rule = [$"{user} ALL=(root) NOPASSWD: {HelperPath}"];
+        string[] setup =
+        [
+            "umask 077",
+            "t=$(/usr/bin/mktemp -d /tmp/borgmate.XXXXXX) || exit 1",
+            "trap '/bin/rm -rf \"$t\"' EXIT"
+        ];
+        string[] install =
+        [
+            WriteLinesCommand(helperScript, "$t/helper"),
+            WriteLinesCommand(rule, "$t/sudoers"),
+            "/usr/sbin/visudo -c -q -f \"$t/sudoers\"",
+            $"/usr/bin/install -d -o root -g wheel -m 0755 {HelperDirectory}",
+            $"/usr/bin/install -o root -g wheel -m 0755 \"$t/helper\" {HelperPath}",
+            $"/usr/bin/install -o root -g wheel -m 0440 \"$t/sudoers\" {SudoersPath}"
+        ];
+        return $"{string.Join("; ", setup)}; {string.Join(" && ", install)}";
+    }
+
+    /// <summary>Cancels all events and removes the helper and its sudoers rule in one admin prompt.</summary>
     private async Task<WakeScheduleResult> CancelAllPrivilegedAsync(IReadOnlyList<DateTime> wakes)
     {
         var commands = wakes
@@ -150,7 +158,7 @@ internal class MacOsWakeScheduler : WakeSchedulerBase
                 string[] argv = [PmsetPath, .. CancelArguments(wake)];
                 return string.Join(" ", argv.Select(ShellQuote));
             })
-            .Append("/bin/rm -f " + SudoersPath);
+            .Append($"/bin/rm -f {SudoersPath} {HelperPath}");
         return await RunPrivilegedShellAsync(string.Join("; ", commands));
     }
 
@@ -158,11 +166,25 @@ internal class MacOsWakeScheduler : WakeSchedulerBase
     {
         foreach (var wake in wakes)
         {
-            var cancel = await RunPmsetAsync(false, CancelArguments(wake));
+            var cancel = await RunHelperAsync(false, "cancel", wake);
             if (!cancel.IsSuccess) return cancel;
         }
 
         return Ok();
+    }
+
+    internal static string[] ReadHelperScript()
+    {
+        using var stream = typeof(MacOsWakeScheduler).Assembly.GetManifestResourceStream(HelperResource)
+                           ?? throw new InvalidOperationException($"Embedded resource '{HelperResource}' is missing.");
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd().ReplaceLineEndings("\n").TrimEnd('\n').Split('\n');
+    }
+
+    /// <summary>Writes each line through printf arguments, keeping the AppleScript command on one line.</summary>
+    internal static string WriteLinesCommand(IEnumerable<string> lines, string target)
+    {
+        return $"printf '%s\\n' {string.Join(' ', lines.Select(ShellQuote))} > \"{target}\"";
     }
 
     private static string[] CancelArguments(DateTime wake)
