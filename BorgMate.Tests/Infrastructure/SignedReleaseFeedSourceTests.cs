@@ -101,6 +101,29 @@ public class SignedReleaseFeedSourceTests : IDisposable
     }
 
     [Fact]
+    public async Task CheckForUpdates_SignatureByValidSigningSubkey_OffersUpdate()
+    {
+        _downloader.Files[SignatureUrl] = UpdateFixtures.Read("manifest.json.lifecycle-subkey.asc");
+
+        var update = await CreateManager(embeddedKeys: "release-keys-lifecycle.asc").CheckForUpdatesAsync();
+
+        Assert.NotNull(update);
+    }
+
+    [Theory]
+    [InlineData("manifest.json.lifecycle-primary.asc")]
+    [InlineData("manifest.json.lifecycle-revoked.asc")]
+    [InlineData("manifest.json.lifecycle-expired.asc")]
+    [InlineData("manifest.json.lifecycle-future.asc")]
+    public async Task CheckForUpdates_SignatureByPrimaryRevokedExpiredOrFutureKey_OffersNoUpdate(string signature)
+    {
+        _downloader.Files[SignatureUrl] = UpdateFixtures.Read(signature);
+
+        await AssertRejectedAsync(CreateManager(embeddedKeys: "release-keys-lifecycle.asc"),
+            ReleaseVerificationFailure.UntrustedSignature);
+    }
+
+    [Fact]
     public async Task DownloadUpdates_PackageMatchingSignedFeed_StoresPackage()
     {
         var manager = CreateManager();

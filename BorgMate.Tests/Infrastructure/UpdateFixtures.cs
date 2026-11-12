@@ -5,6 +5,9 @@ namespace BorgMate.Tests.Infrastructure;
 ///     <c>release-keys-{current,next,both}.asc</c> export it with those subkeys, and
 ///     <c>manifest.json.{current,next,both}.asc</c> are signed by them.
 ///     <c>manifest.json.foreign.asc</c> is signed by an unrelated key.
+///     <c>release-keys-lifecycle.asc</c> was made with BouncyCastle: a 2019 release key with a valid, a
+///     revoked and a one-day signing subkey. <c>manifest.json.lifecycle-{subkey,primary,revoked,expired}.asc</c>
+///     are signed by that key on 2019-01-01 12:00 UTC, and <c>-future</c> by the valid subkey dated 2099.
 /// </summary>
 public static class UpdateFixtures
 {

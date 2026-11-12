@@ -21,7 +21,8 @@ public class UpdateService
     {
         _logger = logger;
         _manager = new VerifiedUpdateManager(new SignedReleaseFeedSource(
-            new Uri($"{UpdateBaseUrl}/{ReleasePlatform}"), ReleasePlatform, new HttpClientFileDownloader(), verifier));
+            new Uri($"{UpdateBaseUrl}/{ReleasePlatform}"), ReleasePlatform, new BoundedHttpClientFileDownloader(),
+            verifier));
     }
 
     private static string ReleasePlatform
@@ -93,7 +94,11 @@ public class UpdateService
         var entries = new List<ChangelogEntry>();
         try
         {
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            using var http = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(10),
+                MaxResponseContentBufferSize = BoundedHttpClientFileDownloader.MaxBufferedResponseBytes
+            };
             var json = await http.GetStringAsync("https://borgmate.oddbit.io/changelog-v2.json");
             entries.AddRange(ChangelogParser.ParseBetween(json, currentVersion, targetVersion));
         }

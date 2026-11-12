@@ -4,11 +4,14 @@ using System.IO;
 using System.Linq;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
+using Org.BouncyCastle.Bcpg.Sig;
 
 namespace BorgMate.Infrastructure.Updates;
 
 /// <summary>
-///     Verifies detached OpenPGP signatures made by any key of one trusted public key ring.
+///     Verifies detached OpenPGP signatures made by a release signing subkey of one trusted key. A
+///     subkey signs releases only while the primary key binds it for signing and it is neither revoked
+///     nor expired; the primary key itself only certifies subkeys.
 /// </summary>
 public class ReleaseSignatureVerifier
 {
@@ -20,14 +23,27 @@ public class ReleaseSignatureVerifier
     private static readonly HashAlgorithmTag[] AcceptedHashAlgorithms =
         [HashAlgorithmTag.Sha256, HashAlgorithmTag.Sha384, HashAlgorithmTag.Sha512];
 
-    private readonly Dictionary<long, PgpPublicKey> _trustedKeys = new();
+    // Tolerates a client clock that runs behind the release machine.
+    private static readonly TimeSpan MaxClockSkew = TimeSpan.FromDays(1);
 
-    /// <param name="armoredPublicKeyRing">Public key ring whose keys are all trusted to sign.</param>
-    public ReleaseSignatureVerifier(Stream armoredPublicKeyRing)
+    private readonly Dictionary<long, ReleaseSigningKey> _signingKeys = new();
+    private readonly TimeProvider _clock;
+
+    /// <param name="armoredPublicKeyRing">Public key ring of the release key with its signing subkeys.</param>
+    /// <param name="clock">Clock for expiration checks; the system clock when null.</param>
+    /// <exception cref="InvalidDataException">The ring holds no valid signing subkey.</exception>
+    public ReleaseSignatureVerifier(Stream armoredPublicKeyRing, TimeProvider? clock = null)
     {
+        _clock = clock ?? TimeProvider.System;
         var ring = new PgpPublicKeyRing(PgpUtilities.GetDecoderStream(armoredPublicKeyRing));
-        foreach (var key in ring.GetPublicKeys())
-            _trustedKeys.Add(key.KeyId, key);
+        var primary = ring.GetPublicKey();
+        if (!IsRevoked(primary))
+            foreach (var key in ring.GetPublicKeys().Where(key => !key.IsMasterKey))
+                if (ReadSigningSubkey(primary, key) is { } signingKey)
+                    _signingKeys.Add(key.KeyId, signingKey);
+
+        if (_signingKeys.Count == 0)
+            throw new InvalidDataException("The release key ring has no valid signing subkey.");
     }
 
     public static ReleaseSignatureVerifier CreateForReleases()
@@ -39,21 +55,23 @@ public class ReleaseSignatureVerifier
 
     /// <summary>
     ///     Accepts <paramref name="data" /> when any signature in the armored detached signature block
-    ///     is a valid binary-document signature by a trusted key.
+    ///     is a valid binary-document signature by a trusted signing subkey, made while it was valid.
     /// </summary>
     /// <exception cref="ReleaseVerificationException">No trusted signature covers the data.</exception>
     public void Verify(byte[] data, byte[] armoredSignature)
     {
+        var now = _clock.GetUtcNow().UtcDateTime;
         var foundTrustedSignature = false;
         foreach (var signature in ReadSignatures(armoredSignature))
         {
-            if (!_trustedKeys.TryGetValue(signature.KeyId, out var key)
+            if (!_signingKeys.TryGetValue(signature.KeyId, out var signingKey)
                 || signature.SignatureType != PgpSignature.BinaryDocument
-                || !AcceptedHashAlgorithms.Contains(signature.HashAlgorithm))
+                || !AcceptedHashAlgorithms.Contains(signature.HashAlgorithm)
+                || !signingKey.IsValidFor(signature.CreationTime, now, MaxClockSkew))
                 continue;
 
             foundTrustedSignature = true;
-            signature.InitVerify(key);
+            signature.InitVerify(signingKey.Key);
             signature.Update(data);
             if (signature.Verify())
                 return;
@@ -63,7 +81,44 @@ public class ReleaseSignatureVerifier
             ? new ReleaseVerificationException(ReleaseVerificationFailure.InvalidSignature,
                 "The trusted signature does not match the signed data.")
             : new ReleaseVerificationException(ReleaseVerificationFailure.UntrustedSignature,
-                "No signature was made by a trusted release signing key.");
+                "No signature was made by a valid release signing subkey.");
+    }
+
+    /// <summary>Returns the subkey when its newest valid binding marks it for signing and it is not revoked.</summary>
+    private static ReleaseSigningKey? ReadSigningSubkey(PgpPublicKey primary, PgpPublicKey subkey)
+    {
+        var binding = subkey.GetSignaturesOfType(PgpSignature.SubkeyBinding)
+            .Where(signature => VerifiesSubkey(signature, primary, subkey))
+            .MaxBy(signature => signature.CreationTime);
+        var packets = binding?.GetHashedSubPackets();
+        if (packets is null || (packets.GetKeyFlags() & KeyFlags.SignData) == 0)
+            return null;
+
+        if (subkey.GetSignaturesOfType(PgpSignature.SubkeyRevocation)
+            .Any(signature => VerifiesSubkey(signature, primary, subkey)))
+            return null;
+
+        var validSeconds = packets.GetKeyExpirationTime();
+        return new ReleaseSigningKey
+        {
+            Key = subkey,
+            ExpiresAt = validSeconds > 0 ? subkey.CreationTime.AddSeconds(validSeconds) : null
+        };
+    }
+
+    private static bool VerifiesSubkey(PgpSignature signature, PgpPublicKey primary, PgpPublicKey subkey)
+    {
+        signature.InitVerify(primary);
+        return signature.VerifyCertification(primary, subkey);
+    }
+
+    private static bool IsRevoked(PgpPublicKey primary)
+    {
+        return primary.GetSignaturesOfType(PgpSignature.KeyRevocation).Any(signature =>
+        {
+            signature.InitVerify(primary);
+            return signature.VerifyCertification(primary);
+        });
     }
 
     private static List<PgpSignature> ReadSignatures(byte[] armoredSignature)
