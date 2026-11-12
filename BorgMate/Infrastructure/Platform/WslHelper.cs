@@ -33,6 +33,8 @@ public partial class WslHelper
 
     private const int KeyDirectoryHashLength = 12;
 
+    private const string UserIdsScript = "echo \"$(id -u):$(id -g)\"";
+
     private static readonly TimeSpan WslCommandTimeout = TimeSpan.FromSeconds(5);
 
     private readonly IWslAvailabilityProbe _availabilityProbe;
@@ -41,6 +43,7 @@ public partial class WslHelper
     private readonly ILogger<WslHelper> _logger;
     private bool? _wslAvailable;
     private bool? _isWsl2;
+    private WslUserIds? _defaultUserIds;
     private string? _wslHome;
 
     public WslHelper(ILogger<WslHelper> logger)
@@ -108,6 +111,20 @@ public partial class WslHelper
         _logger.LogDebug("WSL kernel probe: exit={ExitCode}, kernel={Kernel}, isWsl2={IsWsl2}",
             result.ExitCode, result.StandardOutput.Trim(), _isWsl2);
         return _isWsl2.Value;
+    }
+
+    /// <summary>Ids of the WSL default user, which runs borg; null when WSL cannot report them.</summary>
+    public virtual async Task<WslUserIds?> GetDefaultUserIdsAsync(CancellationToken ct = default)
+    {
+        if (_defaultUserIds is not null)
+            return _defaultUserIds;
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(WslCommandTimeout);
+        var result = await ProcessRunner.RunAsync("wsl", ["--exec", "sh", "-c", UserIdsScript], timeout.Token);
+        // Concurrent probes compute the same value, so an unsynchronized cache write is benign.
+        _defaultUserIds = result.ExitCode == 0 ? WslUserIds.Parse(result.StandardOutput) : null;
+        return _defaultUserIds;
     }
 
     /// <summary>

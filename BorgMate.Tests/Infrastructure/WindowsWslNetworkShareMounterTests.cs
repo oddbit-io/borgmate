@@ -98,7 +98,7 @@ public class WindowsWslNetworkShareMounterTests
     {
         var location = new SmbLocation { Host = "nas", Share = "s", Username = "u,uid=0,sec=none" };
 
-        var result = WindowsWslNetworkShareMounter.BuildCifsOptions(location, true);
+        var result = WindowsWslNetworkShareMounter.BuildCifsOptions(location, true, Owner);
 
         Assert.True(result.IsT1);
         Assert.IsType<MountError.Failed>(result.AsT1);
@@ -109,9 +109,38 @@ public class WindowsWslNetworkShareMounterTests
     {
         var location = new SmbLocation { Host = "nas", Share = "s", Username = "DOM\\user=1" };
 
-        Assert.Equal("username=DOM\\user=1,noperm,iocharset=utf8",
-            WindowsWslNetworkShareMounter.BuildCifsOptions(location, true).AsT0);
+        Assert.Equal("username=DOM\\user=1,uid=1000,gid=1001,file_mode=0600,dir_mode=0700,iocharset=utf8",
+            WindowsWslNetworkShareMounter.BuildCifsOptions(location, true, Owner).AsT0);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void BuildCifsOptions_GivesTheShareOnlyToTheBorgUser(bool authenticated)
+    {
+        var location = new SmbLocation { Host = "nas", Share = "s", Username = "user" };
+
+        var options = WindowsWslNetworkShareMounter.BuildCifsOptions(location, authenticated, Owner).AsT0.Split(',');
+
+        Assert.DoesNotContain("noperm", options);
+        Assert.Contains("uid=1000", options);
+        Assert.Contains("file_mode=0600", options);
+        Assert.Contains("dir_mode=0700", options);
+    }
+
+    [Theory]
+    [InlineData("1000:1001\n", 1000, 1001)]
+    [InlineData("0:0", 0, 0)]
+    public void WslUserIds_ParsesIdOutput(string output, int uid, int gid)
+    {
+        var ids = WslUserIds.Parse(output);
+
+        Assert.NotNull(ids);
+        Assert.Equal(uid, ids.Uid);
+        Assert.Equal(gid, ids.Gid);
+    }
+
+    private static readonly WslUserIds Owner = new() { Uid = 1000, Gid = 1001 };
 
     [Fact]
     public void DiskSpaceParser_ParsesWindowsWslResultWithoutStartingWsl()

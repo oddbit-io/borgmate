@@ -131,9 +131,24 @@ public class NetworkShareMounterTests
     [Fact]
     public void BuildWslMountPoint_SanitizesAndLowercases()
     {
-        var path = WindowsWslNetworkShareMounter.BuildWslMountPoint("NAS.local", "My Share");
+        var path = WindowsWslNetworkShareMounter.BuildWslMountPoint(
+            new SmbLocation { Host = "NAS.local", Share = "My Share" });
 
-        Assert.Equal("/mnt/borgmate-smb/nas.local_my_share", path);
+        Assert.Matches("^/mnt/borgmate-smb/nas.local_my_share-[0-9a-f]{8}$", path);
+    }
+
+    [Theory]
+    [InlineData("share 1", "share_1", "")]
+    [InlineData("share$1", "share_1", "")]
+    [InlineData("backup", "backup", "other")]
+    public void BuildWslMountPoint_SharesWithSameSanitizedNameOrOtherAccount_GetSeparateMountPoints(
+        string share, string otherShare, string otherUser)
+    {
+        var first = WindowsWslNetworkShareMounter.BuildWslMountPoint(new SmbLocation { Host = "nas", Share = share });
+        var second = WindowsWslNetworkShareMounter.BuildWslMountPoint(
+            new SmbLocation { Host = "nas", Share = otherShare, Username = otherUser });
+
+        Assert.NotEqual(first, second);
     }
 
     // --- macOS: `mount` output parsing ---

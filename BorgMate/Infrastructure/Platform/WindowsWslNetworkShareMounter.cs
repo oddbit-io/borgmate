@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,10 +34,10 @@ public class WindowsWslNetworkShareMounter(
 
     private const char CifsOptionSeparator = ',';
 
-    // noperm: the share is a single-user backup target and server-side ACLs still apply;
-    // without it root-mounted cifs would block the borg user by client-side uid checks.
-    private const string CifsCommonOptions = "noperm,iocharset=utf8";
-    private const string CifsGuestOptions = "guest," + CifsCommonOptions;
+    // The mount runs as root; uid/gid hand the files to the WSL user who runs borg, and the modes
+    // keep every other WSL user out. Server-side ACLs still apply on top.
+    private const string CifsAccessOptions = "file_mode=0600,dir_mode=0700,iocharset=utf8";
+    private const int MountPointHashLength = 8;
 
     private const int NoError = 0;
     private const int ErrorAccessDenied = 5;
@@ -54,7 +55,7 @@ public class WindowsWslNetworkShareMounter(
         if (!await wsl.IsAvailableAsync(ct))
             throw new NetworkShareMountException(Strings.Get("Error.WslNotAvailable"));
 
-        var mountPoint = BuildWslMountPoint(location.Host, location.Share);
+        var mountPoint = BuildWslMountPoint(location);
         var result = await ProcessRunner.RunAsync("wsl", BuildMountPointCheckArguments(mountPoint), ct);
         return result.ExitCode == 0 ? mountPoint : null;
     }
@@ -102,16 +103,18 @@ public class WindowsWslNetworkShareMounter(
     ///     Builds the comma-separated mount.cifs option list. A comma in the username would add options
     ///     of the caller's choosing, so such a username is rejected.
     /// </summary>
-    internal static OneOf<string, MountError> BuildCifsOptions(SmbLocation location, bool authenticated)
+    internal static OneOf<string, MountError> BuildCifsOptions(SmbLocation location, bool authenticated,
+        WslUserIds owner)
     {
+        var access = $"uid={owner.Uid},gid={owner.Gid},{CifsAccessOptions}";
         if (!authenticated)
-            return CifsGuestOptions;
+            return $"guest,{access}";
 
         if (location.Username.Contains(CifsOptionSeparator))
             return new MountError.Failed(string.Format(
                 Strings.Get("Error.SmbUsernameInvalid"), location.DisplayName));
 
-        return $"username={location.Username},{CifsCommonOptions}";
+        return $"username={location.Username},{access}";
     }
 
     protected override async Task<OneOf<MountedShare, MountError>> MountOnceAsync(
@@ -179,7 +182,7 @@ public class WindowsWslNetworkShareMounter(
     private async Task<OneOf<MountedShare, MountError>> MountInsideWslAsync(
         SmbLocation location, string unc, CancellationToken ct)
     {
-        var mountPoint = BuildWslMountPoint(location.Host, location.Share);
+        var mountPoint = BuildWslMountPoint(location);
         var result = await ProcessRunner.RunAsync("wsl", BuildDrvfsMountArguments(unc, mountPoint), ct);
 
         Logger.LogDebug("WSL drvfs mount for {Share}: exit={ExitCode}, stderr={Stderr}",
@@ -201,9 +204,12 @@ public class WindowsWslNetworkShareMounter(
     private async Task<OneOf<MountedShare, MountError>> MountInsideWsl2Async(
         SmbLocation location, string? password, CancellationToken ct)
     {
-        var mountPoint = BuildWslMountPoint(location.Host, location.Share);
+        var mountPoint = BuildWslMountPoint(location);
         var source = $"//{location.Host}/{location.Share}";
-        if (!BuildCifsOptions(location, password is not null).TryPickT0(out var options, out var optionsError))
+        if (await wsl.GetDefaultUserIdsAsync(ct) is not { } owner)
+            return new MountError.Failed(string.Format(Strings.Get("Error.SmbWslMountFailed"),
+                location.DisplayName, "could not read the uid and gid of the WSL user"));
+        if (!BuildCifsOptions(location, password is not null, owner).TryPickT0(out var options, out var optionsError))
             return optionsError;
 
         var environment = password is null
@@ -228,10 +234,16 @@ public class WindowsWslNetworkShareMounter(
             $"{result.StandardError}\n{result.StandardOutput}".Trim()));
     }
 
-    /// <summary>Stable per-share WSL mountpoint derived from sanitized host and share names.</summary>
-    internal static string BuildWslMountPoint(string host, string share)
+    /// <summary>
+    ///     Stable WSL mountpoint per share and account. Sanitizing maps different names to one string
+    ///     (<c>share 1</c>, <c>share_1</c>), so a hash of the exact names keeps them apart; the account
+    ///     is part of it because an existing mount is reused with the credentials it was made with.
+    /// </summary>
+    internal static string BuildWslMountPoint(SmbLocation location)
     {
-        return $"/mnt/borgmate-smb/{Sanitize(host)}_{Sanitize(share)}";
+        var identity = $"{location.Host}/{location.Share}/{location.Username}".ToLowerInvariant();
+        var hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+        return $"/mnt/borgmate-smb/{Sanitize(location.Host)}_{Sanitize(location.Share)}-{hash[..MountPointHashLength]}";
     }
 
     private static string Sanitize(string value)
