@@ -65,16 +65,22 @@ public class SshRepositoryTransport
             return CreateTarget(host, path, uri.Port > 0 ? uri.Port : 22);
         }
 
-        var colonIndex = location.IndexOf(':', StringComparison.Ordinal);
+        // Borg parses an unparseable ssh:// location itself; the scp-style split below would miss its host.
+        if (location.Contains("://", StringComparison.Ordinal))
+            throw new ArgumentException("Invalid SSH repository URL.", nameof(repository));
+
+        var colonIndex = SshDestination.HostEndIndex(location);
         var legacyHost = colonIndex < 0 ? location : location[..colonIndex];
         var legacyPath = colonIndex < 0 ? string.Empty : location[(colonIndex + 1)..];
         return CreateTarget(legacyHost, legacyPath, repository.SshPort);
     }
 
+    /// <summary>Prepares the ssh command borg runs, after checking the destination borg will pass to it.</summary>
     public Task<PreparedSshConnection> PrepareForBorgAsync(
         BorgRepository repository,
         CancellationToken ct = default)
     {
+        _ = ResolveTarget(repository);
         var port = repository.LocationKind == BorgRepositoryLocationKind.BorgUrl ? 22 : repository.SshPort;
         return PrepareAsync(repository, port, ct);
     }
@@ -244,8 +250,7 @@ public class SshRepositoryTransport
 
     private static void ValidateHost(string host)
     {
-        if (string.IsNullOrWhiteSpace(host) || host.StartsWith("-", StringComparison.Ordinal) ||
-            host.Any(char.IsControl) || host.Any(char.IsWhiteSpace))
+        if (!SshDestination.IsValid(host))
             throw new ArgumentException("Invalid SSH host.", nameof(host));
     }
 

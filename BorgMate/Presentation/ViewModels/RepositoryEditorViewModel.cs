@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BorgMate.Domain.Repositories;
 using BorgMate.Infrastructure.Borg;
+using BorgMate.Infrastructure.Platform;
 using BorgMate.Presentation.Dialogs;
 using BorgMate.Runtime.Operations;
 using BorgMate.Runtime.Orchestration;
@@ -966,6 +967,11 @@ public partial class RepositoryEditorViewModel : ViewModelBase, ISaveable
         if (IsSsh && string.IsNullOrWhiteSpace(SshHost))
         {
             PathError = Strings.Get("ValidationRequired");
+            valid = false;
+        }
+        else if (IsSsh && !SshDestination.IsValid(SshUser.Trim(), SshHost.Trim()))
+        {
+            PathError = Strings.Get("Validation.SshDestinationInvalid");
             valid = false;
         }
 

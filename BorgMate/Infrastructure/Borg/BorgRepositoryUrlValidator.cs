@@ -1,10 +1,14 @@
 using System;
+using System.Text.RegularExpressions;
+using BorgMate.Infrastructure.Platform;
 
 namespace BorgMate.Infrastructure.Borg;
 
 /// <summary>Validates and redacts Borg 2 repository URLs accepted by BorgMate.</summary>
-public static class BorgRepositoryUrlValidator
+public static partial class BorgRepositoryUrlValidator
 {
+    private const string RclonePrefix = "rclone:";
+
     /// <summary>Returns true when <paramref name="value" /> is a supported Borg 2 repository URL.</summary>
     public static bool IsSupportedBorg2Url(string value)
     {
@@ -12,16 +16,22 @@ public static class BorgRepositoryUrlValidator
             return false;
 
         var trimmed = value.Trim();
-        if (trimmed.StartsWith("rclone:", StringComparison.OrdinalIgnoreCase))
-            return trimmed.Length > "rclone:".Length && !HasEmbeddedSecret(trimmed);
+        if (trimmed.StartsWith(RclonePrefix, StringComparison.OrdinalIgnoreCase))
+            return IsConfiguredRcloneRemote(trimmed[RclonePrefix.Length..]) && !HasEmbeddedSecret(trimmed);
 
         if (trimmed.StartsWith("s3:", StringComparison.OrdinalIgnoreCase) ||
             trimmed.StartsWith("b2:", StringComparison.OrdinalIgnoreCase))
             return !HasEmbeddedSecret(trimmed);
 
-        return Uri.TryCreate(trimmed, UriKind.Absolute, out var uri) &&
-               uri.Scheme is "ssh" or "sftp" or "file" or "rest" &&
-               !HasEmbeddedSecret(trimmed);
+        if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri) || HasEmbeddedSecret(trimmed))
+            return false;
+
+        return uri.Scheme switch
+        {
+            "ssh" or "sftp" => SshDestination.IsValid(Uri.UnescapeDataString(uri.UserInfo), uri.Host),
+            "file" or "rest" => true,
+            _ => false
+        };
     }
 
     /// <summary>Returns true for URLs whose transport can use SSH setup options.</summary>
@@ -68,4 +78,17 @@ public static class BorgRepositoryUrlValidator
 
         return string.Concat(value.AsSpan(0, prefixEnd), "***", value.AsSpan(atIndex));
     }
+
+    /// <summary>
+    ///     Accepts only <c>remote:path</c> with a remote from the rclone config. On-the-fly remotes
+    ///     (<c>:backend,…</c>) and connection-string parameters (<c>remote,ssh='…'</c>) can run commands.
+    /// </summary>
+    private static bool IsConfiguredRcloneRemote(string location)
+    {
+        var colonIndex = location.IndexOf(':', StringComparison.Ordinal);
+        return colonIndex > 0 && RcloneRemoteNamePattern().IsMatch(location[..colonIndex]);
+    }
+
+    [GeneratedRegex(@"^[\w.+@][\w.+@ -]*$")]
+    private static partial Regex RcloneRemoteNamePattern();
 }

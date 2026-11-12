@@ -1,4 +1,5 @@
 using BorgMate.Domain.Repositories;
+using BorgMate.Localization;
 using BorgMate.Presentation.Dialogs;
 using BorgMate.Runtime.Operations;
 using BorgMate.Runtime.Orchestration;
@@ -327,6 +328,25 @@ public class RepositoryEditorViewModelTests
         vm.SaveCommand.Execute(null);
 
         Assert.NotNull(vm.PathError);
+        Assert.False(vm.IsSaved);
+    }
+
+    [Theory]
+    [InlineData("-oProxyCommand=touch pwned", "example.com")]
+    [InlineData("backup", "-oProxyCommand=touch")]
+    [InlineData("", "-oProxyCommand=touch")]
+    public void Save_SshDestinationStartingWithDash_SetsPathError(string user, string host)
+    {
+        var vm = CreateVm();
+        vm.IsLocal = false;
+        vm.RepoPath = "/data/borg";
+        vm.SshUser = user;
+        vm.SshHost = host;
+        vm.SshKeyPath = "/keys/id_ed25519";
+
+        vm.SaveCommand.Execute(null);
+
+        Assert.Equal(Strings.Get("Validation.SshDestinationInvalid"), vm.PathError);
         Assert.False(vm.IsSaved);
     }
 

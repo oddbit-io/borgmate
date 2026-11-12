@@ -891,6 +891,9 @@ Continue only if you know why the location changed. BorgMate will remember this 
     <data name="Validation.SmbInvalid" xml:space="preserve">
     <value>Invalid SMB server or share name</value>
   </data>
+    <data name="Validation.SshDestinationInvalid" xml:space="preserve">
+    <value>SSH user and host must not start with "-" or contain spaces, "@", ":", or "/"</value>
+  </data>
     <data name="Validation.BorgVersionUnknown" xml:space="preserve">
     <value>Could not determine borg version from selected binary</value>
   </data>

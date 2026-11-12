@@ -32,7 +32,12 @@ public abstract class Borg2ServiceBase : BorgServiceBase
     protected string BuildRepositoryLocation(BorgRepository repo)
     {
         if (repo.LocationKind == BorgRepositoryLocationKind.BorgUrl)
-            return !string.IsNullOrWhiteSpace(repo.BorgUrl) ? repo.BorgUrl : repo.Path;
+        {
+            var url = !string.IsNullOrWhiteSpace(repo.BorgUrl) ? repo.BorgUrl : repo.Path;
+            return BorgRepositoryUrlValidator.IsSupportedBorg2Url(url)
+                ? url
+                : throw new ArgumentException("Unsupported Borg 2 repository URL.", nameof(repo));
+        }
 
         if (!repo.IsSsh)
             return Location(repo);

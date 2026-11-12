@@ -891,6 +891,9 @@
     <data name="Validation.SmbInvalid" xml:space="preserve">
     <value>Некорректное имя SMB-сервера или общей папки</value>
   </data>
+    <data name="Validation.SshDestinationInvalid" xml:space="preserve">
+    <value>Пользователь и хост SSH не должны начинаться с «-» и содержать пробелы, «@», «:» или «/»</value>
+  </data>
     <data name="Validation.BorgVersionUnknown" xml:space="preserve">
     <value>Не удалось определить версию borg выбранного бинарного файла</value>
   </data>

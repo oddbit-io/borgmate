@@ -191,6 +191,22 @@ public class Borg1ServiceTests
         Assert.Equal(expected, await svc.SupportsFeatureAsync(BorgCliFeature.ExcludeDataless));
     }
 
+    [Theory]
+    [InlineData("-oProxyCommand=touch pwned@example.com:repo")]
+    [InlineData("-oProxyCommand=touch:repo")]
+    [InlineData("ssh://-oProxyCommand=touch$IFS@example.com/repo")]
+    public async Task ListArchivesAsync_SshDestinationStartingWithDash_DoesNotRunBorg(string path)
+    {
+        var svc = CreateService();
+        var repo = new BorgRepository
+        {
+            Name = "test", Path = path, IsLocal = false, LocationKind = BorgRepositoryLocationKind.SshFields
+        };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => svc.ListArchivesAsync(repo));
+        Assert.Null(svc.LastArgs);
+    }
+
     [Fact]
     public async Task ListArchivesAsync_ProducesJsonFlag()
     {

@@ -23,6 +23,11 @@ public class BorgRepositoryUrlValidatorTests
     [InlineData("ssh://user:pass@host.example.com//srv/borg")]
     [InlineData("s3:access:secret@bucket/path")]
     [InlineData("rclone:user:token@remote:path")]
+    [InlineData("ssh://-oProxyCommand=touch%20pwned@host.example.com/repo")]
+    [InlineData("ssh://-oProxyCommand=touch%20pwned/repo")]
+    [InlineData("sftp://backup@-oProxyCommand=x/repo")]
+    [InlineData("rclone::sftp,ssh='touch pwned':path")]
+    [InlineData("rclone:remote,ssh='touch pwned':path")]
     public void IsSupportedBorg2Url_RejectsUnsupportedOrSecretUrls(string value)
     {
         Assert.False(BorgRepositoryUrlValidator.IsSupportedBorg2Url(value));
