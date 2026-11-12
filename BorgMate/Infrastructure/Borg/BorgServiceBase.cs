@@ -397,6 +397,15 @@ public abstract class BorgServiceBase : IBorgService
         return excludedPaths.SelectMany(path => new[] { "--exclude", $"pp:{P(path)}" });
     }
 
+    /// <summary>
+    ///     Marks archive paths as literal path prefixes. Borg reads a leading <c>re:</c>, <c>sh:</c> or
+    ///     similar as a pattern style, so an archive entry named like one would select other files.
+    /// </summary>
+    protected static IEnumerable<string> BuildExtractPathArgs(IEnumerable<string>? archivePaths)
+    {
+        return (archivePaths ?? []).Select(path => $"pp:{path}");
+    }
+
     /// <summary>Builds optional metadata flags for <c>borg extract</c>.</summary>
     protected static List<string> BuildExtractOptionArgs(BorgExtractOptions options)
     {

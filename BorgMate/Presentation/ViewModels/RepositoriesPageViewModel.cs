@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
@@ -987,6 +988,12 @@ public partial class RepositoriesPageViewModel : ViewModelBase
 
         var repo = SelectedRepository;
         var archiveName = SelectedArchive.Name;
+
+        // Borg overwrites existing files, so files from the archive could replace ones such as dotfiles.
+        if (Directory.Exists(restorePath) && Directory.EnumerateFileSystemEntries(restorePath).Any() &&
+            !await DialogHelper.ConfirmAsync(string.Format(Strings.Get("Restore.ConfirmNonEmptyDestination"),
+                restorePath)))
+            return;
 
         _jobController.ClearQueryInvalidated();
         await RunRepositoryOperationAsync(

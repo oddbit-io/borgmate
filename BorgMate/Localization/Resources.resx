@@ -987,6 +987,9 @@ Continue only if you know why the location changed. BorgMate will remember this 
     <data name="ConfirmDeleteArchive" xml:space="preserve">
     <value>Delete archive &#x27;{0}&#x27;? This cannot be undone.</value>
   </data>
+    <data name="Restore.ConfirmNonEmptyDestination" xml:space="preserve">
+    <value>The folder &#x27;{0}&#x27; is not empty. Restored files replace files with the same names. Restore here?</value>
+  </data>
     <data name="Delete" xml:space="preserve">
     <value>Delete</value>
   </data>

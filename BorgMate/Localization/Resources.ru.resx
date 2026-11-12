@@ -987,6 +987,9 @@
     <data name="ConfirmDeleteArchive" xml:space="preserve">
     <value>Удалить архив «{0}»? Это действие необратимо.</value>
   </data>
+    <data name="Restore.ConfirmNonEmptyDestination" xml:space="preserve">
+    <value>Папка «{0}» не пуста. Восстановленные файлы заменят файлы с теми же именами. Восстановить сюда?</value>
+  </data>
     <data name="Delete" xml:space="preserve">
     <value>Удалить</value>
   </data>

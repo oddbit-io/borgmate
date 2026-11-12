@@ -122,7 +122,7 @@ public class Borg2Service : Borg2ServiceBase
         AddRepositoryEnvironment(repo, env);
         var args = new List<string> { "extract", "--progress" };
         args.AddRange(BuildExtractOptionArgs(extractOptions));
-        args.AddRange(["--", archiveName, .. paths ?? []]);
+        args.AddRange(["--", archiveName, .. BuildExtractPathArgs(paths)]);
         return await RunSupportedCommandAsync(BorgBinary, args, env, P(restorePath), ct, onStderrLine);
     }
 

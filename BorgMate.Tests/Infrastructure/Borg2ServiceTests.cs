@@ -398,7 +398,7 @@ public class Borg2ServiceTests
 
         await svc.ExtractAsync(LocalRepo(), "archive", "/restore", new BorgExtractOptions(), [value]);
 
-        Assert.Equal(["--", "archive", value], svc.LastArgv!.TakeLast(3));
+        Assert.Equal(["--", "archive", $"pp:{value}"], svc.LastArgv!.TakeLast(3));
     }
 
     [Theory]

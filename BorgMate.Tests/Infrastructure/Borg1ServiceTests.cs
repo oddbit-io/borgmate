@@ -451,7 +451,19 @@ public class Borg1ServiceTests
 
         await svc.ExtractAsync(LocalRepo(), "archive", "/restore", new BorgExtractOptions(), [value]);
 
-        Assert.Equal(["--", "/repo::archive", value], svc.LastArgv!.TakeLast(3));
+        Assert.Equal(["--", "/repo::archive", $"pp:{value}"], svc.LastArgv!.TakeLast(3));
+    }
+
+    [Theory]
+    [InlineData("re:.*")]
+    [InlineData("sh:**")]
+    public async Task ExtractAsync_MemberPathLookingLikePattern_StaysLiteralPathPrefix(string value)
+    {
+        var svc = CreateService();
+
+        await svc.ExtractAsync(LocalRepo(), "archive", "/restore", new BorgExtractOptions(), [value]);
+
+        Assert.Equal($"pp:{value}", svc.LastArgv![^1]);
     }
 
     [Theory]

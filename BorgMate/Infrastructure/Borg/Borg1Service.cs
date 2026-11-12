@@ -113,7 +113,7 @@ public class Borg1Service : BorgServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         var args = new List<string> { "extract", "--progress" };
         args.AddRange(BuildExtractOptionArgs(extractOptions));
-        args.AddRange(["--", ArchiveLocation(repo, archiveName), .. paths ?? []]);
+        args.AddRange(["--", ArchiveLocation(repo, archiveName), .. BuildExtractPathArgs(paths)]);
         return await RunCommandAsync(BorgBinary, args, env, P(restorePath), ct, onStderrLine);
     }
 
