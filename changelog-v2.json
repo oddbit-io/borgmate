@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.3.1",
+    "date": "2026-11-12",
+    "changes": {
+      "fixes": [
+        "Stop only the cancelled operation on Windows, not every Borg process in WSL.",
+        "Ask before restoring into a non-empty folder, and restore exactly the selected paths.",
+        "Open, restore and delete Borg 1 archives with braces in their names.",
+        "Start at login on Linux when the BorgMate path has spaces.",
+        "Keep leading and trailing spaces of passphrases in the Linux keychain."
+      ],
+      "security": [
+        "Stop repository settings from running commands.",
+        "Install only updates that BorgMate has verified.",
+        "Confirm the SSH host key of a new server on Windows; reject changed keys.",
+        "Limit passwordless macOS wake scheduling to BorgMate's own wake events.",
+        "Keep BorgMate's data, WSL SSH key copies and WSL 2 SMB mounts private to your user.",
+        "Accept single-instance signals only from your user, and keep saved passwords that a server rejects."
+      ]
+    }
+  },
+  {
     "version": "1.3.0",
     "date": "2026-11-02",
     "changes": {
