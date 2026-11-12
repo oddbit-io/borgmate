@@ -28,4 +28,10 @@ public interface IPassphraseProvider
 
     /// <summary>Returns true when <paramref name="repo" /> should force a new passphrase prompt.</summary>
     bool IsWrong(BorgRepository repo);
+
+    /// <summary>
+    ///     Drops the cached and the keychain passphrase of a repository location. Callers ensure no
+    ///     configured repository still uses <paramref name="repositoryPath" />.
+    /// </summary>
+    Task ForgetAsync(string repositoryPath);
 }

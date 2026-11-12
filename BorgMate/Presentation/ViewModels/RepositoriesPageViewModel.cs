@@ -457,6 +457,8 @@ public partial class RepositoriesPageViewModel : ViewModelBase
             await _repositoryConfigStore.RemoveAsync(persistedBeforeEdit);
             await _repositoryConfigStore.AddAsync(repo);
             RequestSave();
+            if (persistedBeforeEdit.Path != repo.Path)
+                await ForgetPassphraseIfUnusedAsync(persistedBeforeEdit.Path);
             OnPropertyChanged(nameof(CanRunBackup));
 
             if (SelectedRepository == repo)
@@ -511,6 +513,14 @@ public partial class RepositoriesPageViewModel : ViewModelBase
         _store.Remove(repo);
         await _repositoryConfigStore.RemoveAsync(repo);
         RequestSave();
+        await ForgetPassphraseIfUnusedAsync(repo.Path);
+    }
+
+    /// <summary>Duplicated repositories share a location, so its passphrase stays while any of them uses it.</summary>
+    private async Task ForgetPassphraseIfUnusedAsync(string repositoryPath)
+    {
+        if (_repositoryConfigStore.FindByPath(repositoryPath) is null)
+            await _passphraseProvider.ForgetAsync(repositoryPath);
     }
 
     // === Backup ===

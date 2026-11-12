@@ -58,6 +58,15 @@ public class PromptingPassphraseProvider(ICredentialStore? keychain, INotificati
         return _wrongPassphrases.ContainsKey(repo.Path);
     }
 
+    /// <inheritdoc />
+    public async Task ForgetAsync(string repositoryPath)
+    {
+        _passphrases.TryRemove(repositoryPath, out _);
+        _wrongPassphrases.TryRemove(repositoryPath, out _);
+        if (keychain is not null)
+            await keychain.DeletePassphraseAsync(repositoryPath);
+    }
+
     /// <summary>Returns the cached passphrase for <paramref name="repo" />, if one is available.</summary>
     public string? GetCachedPassphrase(BorgRepository repo)
     {
@@ -116,13 +125,11 @@ public class PromptingPassphraseProvider(ICredentialStore? keychain, INotificati
     }
 
     /// <summary>
-    ///     Re-prompts after a wrong passphrase error. Clears the old keychain entry first.
+    ///     Re-prompts after a wrong passphrase error. The keychain entry stays until the user saves a
+    ///     replacement: a server that swaps the repository key can make a correct passphrase look wrong.
     /// </summary>
     public virtual async Task<bool> RePromptAsync(BorgRepository repo)
     {
-        if (keychain is not null && OperationInteractivity.IsInteractive)
-            await keychain.DeletePassphraseAsync(repo.Path);
-
         Clear(repo);
 
         return await PromptAndStoreAsync(

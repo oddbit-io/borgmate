@@ -14,8 +14,9 @@ public class LinuxKeychainService(ILogger<LinuxKeychainService> logger)
         {
             var result = await RunAsync("secret-tool",
                 "lookup", "service", ServiceName, "account", account);
+            // Only a line terminator is stripped: spaces at either end belong to the passphrase.
             return result.ExitCode == 0 && !string.IsNullOrWhiteSpace(result.Output)
-                ? result.Output.Trim()
+                ? result.Output.TrimEnd('\n').TrimEnd('\r')
                 : null;
         }
         catch (Exception ex)

@@ -112,9 +112,9 @@ public abstract class NetworkShareMounterBase(
             if (error is not MountError.AuthRejected)
                 throw ToMountException(error, location);
 
+            // The keychain entry stays until the user saves a replacement: the server decides what it
+            // rejects, so a rogue or misconfigured one must not erase the saved password.
             logger.LogWarning("SMB credentials rejected for {Share}", location.DisplayName);
-            if (keychain is not null && OperationInteractivity.IsInteractive)
-                await keychain.DeletePassphraseAsync(location.KeychainKey);
         }
 
         throw new NetworkShareMountException(
