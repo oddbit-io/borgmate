@@ -1095,6 +1095,9 @@ Continue only if you know why the location changed. BorgMate will remember this 
 The remote host is not in your known_hosts file. Connect manually once to accept the host key:
   ssh &lt;user@host&gt;</value>
   </data>
+    <data name="Error.RemoteOutputLabel" xml:space="preserve">
+    <value>Output from the repository server:</value>
+  </data>
     <data name="Error.SshPermissionDenied" xml:space="preserve">
     <value>SSH permission denied.
 

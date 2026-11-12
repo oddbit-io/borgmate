@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BorgMate.Infrastructure.Platform;
 using Microsoft.Extensions.Logging;
@@ -16,11 +14,6 @@ public abstract class KeychainServiceBase(ILogger logger)
     protected static string SanitizeAccount(string repoPath)
     {
         return repoPath.Replace("\"", "").Replace("'", "").Replace("\\", "/");
-    }
-
-    private static string RedactArguments(IEnumerable<string> arguments)
-    {
-        return string.Join(" ", arguments.Select(argument => Regex.Replace(argument, @"/pass:.+", "/pass:***")));
     }
 
     protected Task<ProcessResult> RunAsync(string fileName, params string[] arguments)
@@ -67,7 +60,7 @@ public abstract class KeychainServiceBase(ILogger logger)
         await process.WaitForExitAsync();
 
         logger.LogDebug("Keychain: {FileName} {Command} -> exit {ExitCode}",
-            fileName, RedactArguments(arguments), process.ExitCode);
+            fileName, string.Join(" ", arguments), process.ExitCode);
 
         return new ProcessResult(process.ExitCode, output, error);
     }

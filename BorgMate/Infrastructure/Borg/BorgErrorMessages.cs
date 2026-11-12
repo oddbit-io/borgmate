@@ -8,6 +8,8 @@ namespace BorgMate.Infrastructure.Borg;
 /// </summary>
 public static class BorgErrorMessages
 {
+    private const string RemotePrefix = "Remote: ";
+
     /// <summary>Returns the localized headline for an exact Borg modern exit code.</summary>
     public static string GetMessage(BorgModernExitCode code)
     {
@@ -27,12 +29,27 @@ public static class BorgErrorMessages
                 ? string.Format(Strings.Get("Error.UnknownBorgExitCode"), exitCode)
                 : string.Empty;
 
+        detail = LabelRemoteOutput(detail);
         if (string.IsNullOrWhiteSpace(headline))
             return detail;
 
         return string.IsNullOrWhiteSpace(detail)
             ? headline
             : $"{headline}{Environment.NewLine}{Environment.NewLine}{detail}";
+    }
+
+    /// <summary>
+    ///     Puts a label above the first line borg relays from the repository server ("Remote: …"), so
+    ///     instructions written by a compromised server do not read as BorgMate's own advice.
+    /// </summary>
+    private static string LabelRemoteOutput(string detail)
+    {
+        var lines = detail.Split('\n');
+        var first = Array.FindIndex(lines, line => line.StartsWith(RemotePrefix, StringComparison.Ordinal));
+        if (first < 0)
+            return detail;
+
+        return string.Join('\n', [.. lines[..first], Strings.Get("Error.RemoteOutputLabel"), .. lines[first..]]);
     }
 
     /// <summary>

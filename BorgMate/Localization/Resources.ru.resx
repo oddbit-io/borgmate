@@ -1095,6 +1095,9 @@
 Удалённый хост отсутствует в файле known_hosts. Подключитесь вручную для принятия ключа:
   ssh &lt;user@host&gt;</value>
   </data>
+    <data name="Error.RemoteOutputLabel" xml:space="preserve">
+    <value>Сообщение сервера репозитория:</value>
+  </data>
     <data name="Error.SshPermissionDenied" xml:space="preserve">
     <value>SSH: доступ запрещён.
 

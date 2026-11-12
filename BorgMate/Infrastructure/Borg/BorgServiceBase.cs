@@ -194,7 +194,8 @@ public abstract class BorgServiceBase : IBorgService
 
     private static bool IsSecretEnv(string key, string value)
     {
-        return key is "BORG_PASSPHRASE" or "BORG_NEW_PASSPHRASE" or SshRepositoryTransport.WslKeyPassphraseVariable &&
+        return key is "BORG_PASSPHRASE" or "BORG_NEW_PASSPHRASE" or "PASSWD"
+                   or SshRepositoryTransport.WslKeyPassphraseVariable or SshAgentHelper.ExpectPassphraseVariable &&
                value.Length > 0;
     }
 
