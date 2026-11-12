@@ -92,7 +92,6 @@ public class SshRepositoryTransportTests
             SshPort = 2202
         };
 
-        await transport.PrepareKeyAsync(repository, repository.SshKeyPath);
         var prepared = await transport.PrepareForBorgAsync(repository);
 
         await wsl.Received(1).CopySshKeyAsync(repository.SshKeyPath, Arg.Any<CancellationToken>());

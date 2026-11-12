@@ -218,6 +218,19 @@ public class WslHelperTests
     }
 
     [Fact]
+    public void WslKeyPath_SameFileNameInDifferentFolders_GetsSeparateCopiesOutsideUserKeys()
+    {
+        var work = WslHelper.WslKeyPath("/home/user", @"C:\Users\me\work\id_ed25519");
+        var personal = WslHelper.WslKeyPath("/home/user", @"C:\Users\me\.ssh\id_ed25519");
+
+        Assert.NotEqual(work, personal);
+        Assert.StartsWith("/home/user/.ssh/borgmate/", work);
+        Assert.EndsWith("-id_ed25519", work);
+        Assert.NotEqual("/home/user/.ssh/id_ed25519", personal);
+        Assert.Equal(work, WslHelper.WslKeyPath("/home/user", @"c:\users\me\WORK\id_ed25519"));
+    }
+
+    [Fact]
     public void ForwardEnvironment_ListsVariablesInWslEnv()
     {
         var environment = WslHelper.ForwardEnvironment(new Dictionary<string, string>

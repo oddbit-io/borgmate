@@ -177,25 +177,30 @@ public class SshRepositoryTransport
         int port,
         CancellationToken ct)
     {
+        var hasKey = !string.IsNullOrWhiteSpace(repository.SshKeyPath);
+        string? wslKeyPath = null;
         if (_wsl.RequiresWsl)
+        {
             await _hostKeys.EnsureTrustedAsync(target.Host, target.Port, ct);
+            // Copied on every connection, so the WSL copy follows the Windows key and exists
+            // before the passphrase check below reads it.
+            if (hasKey)
+                wslKeyPath = await _wsl.CopySshKeyAsync(repository.SshKeyPath, ct)
+                             ?? throw new FileNotFoundException("Failed to copy the SSH key into WSL.",
+                                 repository.SshKeyPath);
+        }
 
-        if (!string.IsNullOrWhiteSpace(repository.SshKeyPath) &&
-            !await _sshAgent.EnsureKeyLoadedAsync(repository.SshKeyPath, repository, ct))
+        if (hasKey && !await _sshAgent.EnsureKeyLoadedAsync(repository.SshKeyPath, repository, ct))
             throw new OperationCanceledException(ct);
 
         var arguments = new List<string>();
         List<string>? wslPreCommands = null;
         Dictionary<string, string>? wslEnvironment = null;
-        if (!string.IsNullOrWhiteSpace(repository.SshKeyPath))
+        if (hasKey)
         {
-            var keyPath = repository.SshKeyPath;
+            var keyPath = wslKeyPath ?? repository.SshKeyPath;
             if (_wsl.RequiresWsl)
             {
-                keyPath = await _wsl.GetWslKeyPathAsync(repository.SshKeyPath, ct)
-                          ?? throw new FileNotFoundException(
-                              "The copied SSH key is not available inside WSL.",
-                              repository.SshKeyPath);
                 if (_sshAgent.GetWslKeyPassphrase(repository.SshKeyPath) is { } keyPassphrase)
                 {
                     wslPreCommands = BuildWslAskPassCommands();

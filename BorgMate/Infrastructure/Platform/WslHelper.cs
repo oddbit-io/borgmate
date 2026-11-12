@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,8 +27,11 @@ public partial class WslHelper
     private const string KillJobScript =
         """for p in /proc/[0-9]*; do tr '\0' '\n' < "$p/environ" 2>/dev/null | grep -qxF -- "$1=$2" && kill -TERM "${p#/proc/}" 2>/dev/null; done; true""";
 
+    // umask 077 keeps the copy and its directory private from the moment they are created.
     private const string CopySshKeyScript =
-        "mkdir -p ~/.ssh && cp -- \"$1\" \"$2\" && chmod 600 -- \"$2\"";
+        "umask 077 && mkdir -p -- \"$(dirname -- \"$2\")\" && cp -- \"$1\" \"$2\" && chmod 600 -- \"$2\"";
+
+    private const int KeyDirectoryHashLength = 12;
 
     private static readonly TimeSpan WslCommandTimeout = TimeSpan.FromSeconds(5);
 
@@ -191,8 +196,9 @@ public partial class WslHelper
     }
 
     /// <summary>
-    ///     Copies a Windows SSH key into WSL's ~/.ssh/ with correct permissions (chmod 600).
-    ///     Call this when saving repo config so the key is ready for borg operations.
+    ///     Copies a Windows SSH key into WSL with owner-only permissions. Each Windows key gets its own
+    ///     file under <c>~/.ssh/borgmate</c>, so the copy never replaces a key of the WSL user or
+    ///     another Windows key with the same file name.
     /// </summary>
     public virtual async Task<string?> CopySshKeyAsync(string windowsKeyPath, CancellationToken ct = default)
     {
@@ -202,9 +208,8 @@ public partial class WslHelper
         var home = await GetWslHomeAsync(ct);
         if (home is null) return null;
 
-        var keyName = Path.GetFileName(windowsKeyPath);
         var wslSrc = ToWslPath(windowsKeyPath);
-        var wslDest = $"{home}/.ssh/{keyName}";
+        var wslDest = WslKeyPath(home, windowsKeyPath);
 
         var psi = new ProcessStartInfo
         {
@@ -245,7 +250,16 @@ public partial class WslHelper
         if (!await IsAvailableAsync(ct)) return null;
         var home = await GetWslHomeAsync(ct);
         if (home is null) return null;
-        return $"{home}/.ssh/{Path.GetFileName(windowsKeyPath)}";
+        return WslKeyPath(home, windowsKeyPath);
+    }
+
+    internal static string WslKeyPath(string home, string windowsKeyPath)
+    {
+        // Windows paths are case-insensitive, so differently cased spellings share one copy.
+        var hash = Convert.ToHexStringLower(
+            SHA256.HashData(Encoding.UTF8.GetBytes(windowsKeyPath.ToUpperInvariant())));
+        var fileName = windowsKeyPath[(windowsKeyPath.LastIndexOfAny(['\\', '/']) + 1)..];
+        return $"{home}/.ssh/borgmate/{hash[..KeyDirectoryHashLength]}-{fileName}";
     }
 
     private async Task<string?> GetWslHomeAsync(CancellationToken ct = default)
