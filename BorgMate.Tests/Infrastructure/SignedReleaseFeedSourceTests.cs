@@ -169,8 +169,8 @@ public class SignedReleaseFeedSourceTests : IDisposable
         using var keys = new MemoryStream(UpdateFixtures.Read(embeddedKeys));
         var verifier = new ReleaseSignatureVerifier(keys);
         var source = new SignedReleaseFeedSource(new Uri(PlatformUrl), platform, _downloader, verifier);
-        return new VerifiedUpdateManager(source, new UpdateOptions { ExplicitChannel = "win" },
-            new TestVelopackLocator("BorgMate", "1.0.0", _packagesDir, null));
+        return new VerifiedUpdateManager(source, new TestVelopackLocator("BorgMate", "1.0.0", _packagesDir, null),
+            explicitChannel: "win");
     }
 
     private static async Task AssertRejectedAsync(UpdateManager manager, ReleaseVerificationFailure failure)

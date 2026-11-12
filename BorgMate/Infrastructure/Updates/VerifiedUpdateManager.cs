@@ -8,11 +8,21 @@ using Velopack.Sources;
 
 namespace BorgMate.Infrastructure.Updates;
 
-/// <summary>Checks the final package against the signed feed, including cached and reconstructed packages.</summary>
+/// <summary>
+///     Installs only full packages that match the signed feed, never a lower version, and checks
+///     cached packages again before use.
+/// </summary>
 public class VerifiedUpdateManager : UpdateManager
 {
-    public VerifiedUpdateManager(IUpdateSource source, UpdateOptions? options = null, IVelopackLocator? locator = null)
-        : base(source, options, locator)
+    private const int DisableDeltas = -1;
+
+    public VerifiedUpdateManager(IUpdateSource source, IVelopackLocator? locator = null, string? explicitChannel = null)
+        : base(source, new UpdateOptions
+        {
+            ExplicitChannel = explicitChannel,
+            AllowVersionDowngrade = false,
+            MaximumDeltasBeforeFallback = DisableDeltas
+        }, locator)
     {
     }
 
@@ -29,14 +39,6 @@ public class VerifiedUpdateManager : UpdateManager
     {
         RequireSha256(release);
         return VerifyPackageChecksumAsync(release);
-    }
-
-    protected override async Task DownloadAndApplyDeltaUpdates(UpdateInfo updates, string targetFile,
-        Action<int> progress, CancellationToken cancelToken)
-    {
-        await base.DownloadAndApplyDeltaUpdates(updates, targetFile, progress, cancelToken).ConfigureAwait(false);
-        // Validate reconstruction before Velopack extracts and replaces the updater from the package.
-        await VerifyPackageChecksumAsync(updates.TargetFullRelease, targetFile).ConfigureAwait(false);
     }
 
     private void RequireSha256(VelopackAsset release)

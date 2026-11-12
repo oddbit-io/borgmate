@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Avalonia;
 using BorgMate.Infrastructure.Notifications;
 using BorgMate.Infrastructure.Platform;
+using BorgMate.Infrastructure.Updates;
 using Microsoft.Extensions.Logging.Abstractions;
 using Velopack;
+using Velopack.Logging;
 
 namespace BorgMate;
 
@@ -47,7 +49,11 @@ internal sealed class Program
         PrivateDirectory.Ensure(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BorgMate"));
 
-        VelopackApp.Build().Run();
+        // Updates are applied only by UpdateService, after the package matches the signed feed.
+        var velopack = VelopackApp.Build().SetAutoApplyOnStartup(false);
+        if (OperatingSystem.IsLinux())
+            velopack = velopack.SetLocator(new UserCacheLinuxVelopackLocator(new NullVelopackLogger()));
+        velopack.Run();
 
         InstanceGuard = new SingleInstanceGuard();
         if (!InstanceGuard.TryAcquire(activateExisting: !ScheduledWakeMode))
