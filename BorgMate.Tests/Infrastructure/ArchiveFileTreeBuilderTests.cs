@@ -9,6 +9,27 @@ public class ArchiveFileTreeBuilderTests
         $$"""{"path":"{{path}}","type":"{{type}}","size":{{size}}}""";
 
     [Fact]
+    public void Build_PathWithHundredThousandComponents_SkipsItWithoutOverflowingTheStack()
+    {
+        var hostile = string.Join('/', Enumerable.Repeat("a", 100_000));
+        var json = MakeJsonLine(hostile) + "\n" + MakeJsonLine("readme.txt");
+
+        var roots = ArchiveFileTreeBuilder.Build(json);
+
+        Assert.Equal("readme.txt", Assert.Single(roots).Name);
+    }
+
+    [Fact]
+    public void Build_PathAtComponentLimit_IsKept()
+    {
+        var deepest = string.Join('/', Enumerable.Repeat("a", ArchiveFileTreeBuilder.MaxPathComponents));
+
+        var roots = ArchiveFileTreeBuilder.Build(MakeJsonLine(deepest));
+
+        Assert.Equal("a", Assert.Single(roots).Name);
+    }
+
+    [Fact]
     public void Build_SingleFile()
     {
         var json = MakeJsonLine("readme.txt", size: 100);

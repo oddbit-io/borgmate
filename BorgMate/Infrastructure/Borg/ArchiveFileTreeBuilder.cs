@@ -7,6 +7,13 @@ namespace BorgMate.Infrastructure.Borg;
 
 public static class ArchiveFileTreeBuilder
 {
+    /// <summary>
+    ///     Deepest archive path the tree accepts. Building, sorting and showing the tree recurse once per
+    ///     path component, so a crafted path with tens of thousands of components would overflow the
+    ///     stack and end the process. PATH_MAX (4096 bytes) allows at most 2048 components.
+    /// </summary>
+    internal const int MaxPathComponents = 2048;
+
     private static readonly Comparison<ArchiveFileNode> NodeComparison = (a, b) =>
     {
         if (a.IsDirectory != b.IsDirectory)
@@ -27,7 +34,7 @@ public static class ArchiveFileTreeBuilder
                 var root = doc.RootElement;
 
                 var path = root.TryGetProperty("path", out var pathProp) ? pathProp.GetString() : null;
-                if (string.IsNullOrEmpty(path)) continue;
+                if (string.IsNullOrEmpty(path) || path.AsSpan().Count('/') >= MaxPathComponents) continue;
 
                 var type = root.TryGetProperty("type", out var typeProp) ? typeProp.GetString() : "-";
                 var size = root.TryGetProperty("size", out var sizeProp) && sizeProp.ValueKind == JsonValueKind.Number
