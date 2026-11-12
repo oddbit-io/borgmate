@@ -8,6 +8,8 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
         <InvariantGlobalization>false</InvariantGlobalization>
+        <!-- Listed so packages.lock.json also pins the runtime-specific packages of every release platform. -->
+        <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,25 +26,25 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="12.1.0" />
-        <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.0" />
-        <PackageReference Include="Avalonia.Themes.Simple" Version="12.1.0" />
+        <PackageReference Include="Avalonia" Version="12.1.6" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.6" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.6" />
+        <PackageReference Include="Avalonia.Themes.Simple" Version="12.1.6" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0"/>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2"/>
         <PackageReference Include="Humanizer.Core" Version="3.0.10"/>
         <PackageReference Include="Humanizer.Core.ru" Version="3.0.10"/>
 
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.15" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.15" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.15" />
         <PackageReference Include="OneOf" Version="3.0.271"/>
         <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
-        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
         <PackageReference Include="Velopack" Version="1.2.161" />
-        <PackageReference Include="Tmds.DBus.Protocol" Version="0.94.2" />
+        <PackageReference Include="Tmds.DBus.Protocol" Version="0.95.2" />
     </ItemGroup>
 
 </Project>
