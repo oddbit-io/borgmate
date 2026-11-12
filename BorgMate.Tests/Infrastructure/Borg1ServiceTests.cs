@@ -477,6 +477,16 @@ public class Borg1ServiceTests
         Assert.Equal(["delete", "--", $"/repo::{value}"], svc.LastArgv);
     }
 
+    [Fact]
+    public async Task DeleteArchiveAsync_ArchiveNameWithBraces_StaysLiteralForPlaceholderExpansion()
+    {
+        var svc = CreateService();
+
+        await svc.DeleteArchiveAsync(LocalRepo(), "backup-{now}");
+
+        Assert.Equal(["delete", "--", "/repo::backup-{{now}}"], svc.LastArgv);
+    }
+
     /// <summary>
     /// Test subclass that captures RunCommandAsync arguments instead of executing processes.
     /// </summary>

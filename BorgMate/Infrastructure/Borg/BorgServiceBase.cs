@@ -353,6 +353,15 @@ public abstract class BorgServiceBase : IBorgService
         return $"{Location(repo)}::{archiveName}";
     }
 
+    /// <summary>
+    ///     Addresses an archive by the exact name borg reported. Borg 1 expands <c>{placeholders}</c> in
+    ///     <c>REPO::ARCHIVE</c>, so braces in such a name are doubled to keep them literal.
+    /// </summary>
+    protected string ExistingArchiveLocation(BorgRepository repo, string archiveName)
+    {
+        return ArchiveLocation(repo, archiveName.Replace("{", "{{").Replace("}", "}}"));
+    }
+
     private static SmbLocation ParseSmbLocation(BorgRepository repo)
     {
         return SmbLocation.TryParse(repo.Path)

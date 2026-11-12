@@ -91,7 +91,7 @@ public class Borg1Service : BorgServiceBase
         BorgRepository repo, string archiveName, CancellationToken ct = default)
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
-        var args = new List<string> { "info", "--json", "--", ArchiveLocation(repo, archiveName) };
+        var args = new List<string> { "info", "--json", "--", ExistingArchiveLocation(repo, archiveName) };
         return await RunCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -99,7 +99,7 @@ public class Borg1Service : BorgServiceBase
         BorgRepository repo, string archiveName, CancellationToken ct = default)
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
-        var args = new List<string> { "list", "--json-lines", "--", ArchiveLocation(repo, archiveName) };
+        var args = new List<string> { "list", "--json-lines", "--", ExistingArchiveLocation(repo, archiveName) };
         return await RunCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -113,7 +113,7 @@ public class Borg1Service : BorgServiceBase
         var env = await BuildEnvironmentAsync(repo, ct: ct);
         var args = new List<string> { "extract", "--progress" };
         args.AddRange(BuildExtractOptionArgs(extractOptions));
-        args.AddRange(["--", ArchiveLocation(repo, archiveName), .. BuildExtractPathArgs(paths)]);
+        args.AddRange(["--", ExistingArchiveLocation(repo, archiveName), .. BuildExtractPathArgs(paths)]);
         return await RunCommandAsync(BorgBinary, args, env, P(restorePath), ct, onStderrLine);
     }
 
@@ -122,7 +122,7 @@ public class Borg1Service : BorgServiceBase
         CancellationToken ct = default)
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
-        var args = new List<string> { "delete", "--", ArchiveLocation(repo, archiveName) };
+        var args = new List<string> { "delete", "--", ExistingArchiveLocation(repo, archiveName) };
         return await RunCommandAsync(BorgBinary, args, env, ct: ct);
     }
 
@@ -182,7 +182,7 @@ public class Borg1Service : BorgServiceBase
         CancellationToken ct = default)
     {
         var env = await BuildEnvironmentAsync(repo, ct: ct);
-        var args = new List<string> { "diff", "--", ArchiveLocation(repo, archive1), archive2 };
+        var args = new List<string> { "diff", "--", ExistingArchiveLocation(repo, archive1), archive2 };
         return await RunCommandAsync(BorgBinary, args, env, ct: ct);
     }
 }
