@@ -11,21 +11,27 @@ namespace BorgMate.Infrastructure.Borg;
 internal static class ArchiveJsonParser
 {
     /// <summary>
-    ///     Parses borg JSON output with "archives" array. Falls back to treating
-    ///     non-JSON lines as plain archive names when JSON parsing fails.
+    ///     Parses borg JSON output with an "archives" array, skipping entries without a string name.
+    ///     Returns null when the output is not JSON, so garbage never becomes archive names that
+    ///     later commands act on.
     /// </summary>
-    public static List<BorgArchive> ParseArchiveList(string json)
+    public static List<BorgArchive>? ParseArchiveList(string json)
     {
         var archives = new List<BorgArchive>();
         try
         {
             using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("archives", out var archivesArray))
+            if (!doc.RootElement.TryGetProperty("archives", out var archivesArray) ||
+                archivesArray.ValueKind != JsonValueKind.Array)
                 return archives;
 
             foreach (var item in archivesArray.EnumerateArray())
             {
-                var name = item.GetProperty("name").GetString() ?? "";
+                if (item.ValueKind != JsonValueKind.Object ||
+                    !item.TryGetProperty("name", out var nameProp) || nameProp.ValueKind != JsonValueKind.String ||
+                    nameProp.GetString() is not { Length: > 0 } name)
+                    continue;
+
                 var time = item.TryGetProperty("time", out var timeProp)
                     ? DateTime.TryParse(timeProp.GetString(), out var dt) ? dt : DateTime.MinValue
                     : item.TryGetProperty("start", out var startProp)
@@ -35,12 +41,9 @@ internal static class ArchiveJsonParser
                 archives.Add(new BorgArchive(name, time));
             }
         }
-        catch
+        catch (JsonException)
         {
-            foreach (var line in json.Split('\n',
-                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                if (!line.StartsWith("{") && !line.StartsWith("["))
-                    archives.Add(new BorgArchive(line, DateTime.MinValue));
+            return null;
         }
 
         return archives;

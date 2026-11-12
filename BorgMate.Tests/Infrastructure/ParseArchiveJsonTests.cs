@@ -17,6 +17,7 @@ public class ParseArchiveJsonTests
         """;
 
         var archives = ArchiveJsonParser.ParseArchiveList(json);
+        Assert.NotNull(archives);
         Assert.Equal(2, archives.Count);
         Assert.Equal("daily-2026-03-27", archives[0].Name);
         Assert.Equal(new DateTime(2026, 3, 27, 14, 0, 0), archives[0].Date);
@@ -34,6 +35,7 @@ public class ParseArchiveJsonTests
         """;
 
         var archives = ArchiveJsonParser.ParseArchiveList(json);
+        Assert.NotNull(archives);
         Assert.Single(archives);
         Assert.Equal("backup-2026-04-01", archives[0].Name);
         Assert.Equal(new DateTime(2026, 4, 1, 3, 0, 0), archives[0].Date);
@@ -43,6 +45,7 @@ public class ParseArchiveJsonTests
     public void NoArchivesProperty_ReturnsEmpty()
     {
         var archives = ArchiveJsonParser.ParseArchiveList("{}");
+        Assert.NotNull(archives);
         Assert.Empty(archives);
     }
 
@@ -50,28 +53,28 @@ public class ParseArchiveJsonTests
     public void EmptyArchives_ReturnsEmpty()
     {
         var archives = ArchiveJsonParser.ParseArchiveList("""{"archives": []}""");
+        Assert.NotNull(archives);
         Assert.Empty(archives);
     }
 
-    [Fact]
-    public void InvalidJson_FallsBackToLineNames()
+    [Theory]
+    [InlineData("daily-2026-03-27\ndaily-2026-03-26\n")]
+    [InlineData("{invalid\n[broken\nactual-archive-name\n")]
+    public void InvalidJson_YieldsNoArchiveNames(string text)
     {
-        var text = "daily-2026-03-27\ndaily-2026-03-26\n";
-
-        var archives = ArchiveJsonParser.ParseArchiveList(text);
-        Assert.Equal(2, archives.Count);
-        Assert.Equal("daily-2026-03-27", archives[0].Name);
-        Assert.Equal(DateTime.MinValue, archives[0].Date);
+        Assert.Null(ArchiveJsonParser.ParseArchiveList(text));
     }
 
     [Fact]
-    public void InvalidJson_SkipsJsonLines()
+    public void EntryWithoutStringName_IsSkipped()
     {
-        var text = "{invalid\n[broken\nactual-archive-name\n";
+        var json = """{"archives": [{"time": "2026-03-27T10:00:00"}, {"name": 5}, {"name": "kept"}]}""";
 
-        var archives = ArchiveJsonParser.ParseArchiveList(text);
-        Assert.Single(archives);
-        Assert.Equal("actual-archive-name", archives[0].Name);
+        var archives = ArchiveJsonParser.ParseArchiveList(json);
+
+        Assert.NotNull(archives);
+        var archive = Assert.Single(archives);
+        Assert.Equal("kept", archive.Name);
     }
 
     [Fact]
@@ -80,6 +83,7 @@ public class ParseArchiveJsonTests
         var json = """{"archives": [{"name": "no-date"}]}""";
 
         var archives = ArchiveJsonParser.ParseArchiveList(json);
+        Assert.NotNull(archives);
         Assert.Single(archives);
         Assert.Equal(DateTime.MinValue, archives[0].Date);
     }

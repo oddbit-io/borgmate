@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using BorgMate.Domain.Repositories;
@@ -55,7 +56,9 @@ public class ArchiveOperationRunner : IArchiveOperationRunner
         if (result.IsT1)
             return result.AsT1;
 
-        return new ArchiveListResult(ArchiveJsonParser.ParseArchiveList(result.AsT0.Result.StandardOutput));
+        return ArchiveJsonParser.ParseArchiveList(result.AsT0.Result.StandardOutput) is { } archives
+            ? new ArchiveListResult(archives)
+            : new OperationError.Unexpected(new InvalidDataException("borg list returned output that is not JSON."));
     }
 
     public async Task<OneOf<ArchiveDetailResult, OperationError>> GetArchiveDetailAsync(
