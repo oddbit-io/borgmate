@@ -4,12 +4,22 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ApplicationManifest>app.manifest</ApplicationManifest>
-        <ApplicationIcon>Assets/borgmate.ico</ApplicationIcon>
+        <!-- Spelled like the AvaloniaResource item, so every OS stores the default window icon once and builds the same assembly. -->
+        <ApplicationIcon>Assets\borgmate.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
         <InvariantGlobalization>false</InvariantGlobalization>
         <!-- Listed so packages.lock.json also pins the runtime-specific packages of every release platform. -->
         <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+    </PropertyGroup>
+    <!--
+        Release builds are byte-identical wherever they are built. ContinuousIntegrationBuild maps source paths to /_/,
+        which RegexGenerator hashes into type names. No PDB is produced because the Avalonia XAML compiler writes the
+        absolute App.axaml path into it, and the PDB checksum is part of the assembly.
+    -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+        <DebugType>none</DebugType>
     </PropertyGroup>
 
     <ItemGroup>

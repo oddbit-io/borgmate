@@ -1,2 +1,5 @@
+# Every text file is checked out with LF, so Release builds are identical on Windows, macOS and Linux.
+* text=auto eol=lf
+
 # Signed and hashed update fixtures must keep their exact bytes.
 BorgMate.Tests/Infrastructure/Fixtures/Updates/** -text

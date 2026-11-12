@@ -60,7 +60,7 @@
         </StackPanel>
 
         <StackPanel Spacing="2" HorizontalAlignment="Center">
-            <TextBlock Text="Licensed under GPL-3.0 or commercial license" FontSize="11"
+            <TextBlock Text="Licensed under GPL-3.0" FontSize="11"
                        Foreground="{DynamicResource ThemeForegroundLowBrush}"
                        HorizontalAlignment="Center" />
             <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
