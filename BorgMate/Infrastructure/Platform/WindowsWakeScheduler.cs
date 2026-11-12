@@ -27,7 +27,7 @@ internal class WindowsWakeScheduler : WakeSchedulerBase
 
     protected override Task<WakeScheduleResult> ScheduleCoreAsync(DateTime wakeAt, bool interactive, bool acOnly)
     {
-        var exePath = Environment.ProcessPath ?? "BorgMate.exe";
+        var exePath = Environment.ProcessPath ?? throw new InvalidOperationException("The BorgMate executable path is unknown.");
         var xml = CreateTaskDocument(exePath, wakeAt, acOnly).ToString();
 
         return Task.FromResult(WithRootFolder(folder =>

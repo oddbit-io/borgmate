@@ -21,7 +21,7 @@ internal class LinuxSleepInhibitor : ISleepInhibitor
         {
             _inhibit = Process.Start(new ProcessStartInfo
             {
-                FileName = "systemd-inhibit",
+                FileName = ExecutableResolver.Resolve("systemd-inhibit"),
                 ArgumentList =
                 {
                     "--what=idle:sleep",

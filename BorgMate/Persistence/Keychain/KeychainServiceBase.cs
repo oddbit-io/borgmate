@@ -37,7 +37,7 @@ public abstract class KeychainServiceBase(ILogger logger)
     {
         var psi = new ProcessStartInfo
         {
-            FileName = fileName,
+            FileName = ExecutableResolver.Resolve(fileName),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = stdinData is not null,

@@ -17,7 +17,7 @@ internal class WindowsAutoStartService : IAutoStartService
 
         if (enabled)
         {
-            var exePath = Environment.ProcessPath ?? "BorgMate.exe";
+            var exePath = Environment.ProcessPath ?? throw new InvalidOperationException("The BorgMate executable path is unknown.");
             key.SetValue(AppName, $"\"{exePath}\"");
         }
         else

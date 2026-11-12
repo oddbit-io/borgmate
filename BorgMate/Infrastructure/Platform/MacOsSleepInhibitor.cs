@@ -20,7 +20,7 @@ internal class MacOsSleepInhibitor : ISleepInhibitor
             var parentPid = Environment.ProcessId;
             _caffeinate = Process.Start(new ProcessStartInfo
             {
-                FileName = "caffeinate",
+                FileName = "/usr/bin/caffeinate",
                 // -i: prevent idle sleep; -w <pid>: exit when our process exits
                 Arguments = $"-i -w {parentPid}",
                 CreateNoWindow = true,

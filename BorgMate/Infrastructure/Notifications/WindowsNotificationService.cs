@@ -30,7 +30,9 @@ public class WindowsNotificationService : INotificationService
     public void Send(string title, string body)
     {
         EnsureRegistered();
-        Process.Start(BuildToastStartInfo(StringHelpers.AppName, _iconPath, title, body))?.Dispose();
+        var startInfo = BuildToastStartInfo(StringHelpers.AppName, _iconPath, title, body);
+        startInfo.FileName = ExecutableResolver.Resolve(startInfo.FileName);
+        Process.Start(startInfo)?.Dispose();
     }
 
     internal static ProcessStartInfo BuildToastStartInfo(string appUserModelId, string? iconPath, string title,

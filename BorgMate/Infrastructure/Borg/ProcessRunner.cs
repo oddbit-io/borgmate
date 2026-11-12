@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BorgMate.Infrastructure.Platform;
 
 namespace BorgMate.Infrastructure.Borg;
 
@@ -89,6 +90,7 @@ public static class ProcessRunner
     {
         try
         {
+            psi.FileName = ExecutableResolver.Resolve(psi.FileName);
             using var process = Process.Start(psi)!;
             // Borg reads [yN] answers from stdin. At end of input it takes the default answer
             // and exits; an inherited console stdin would keep it waiting forever.
@@ -134,7 +136,7 @@ public static class ProcessRunner
 
             return new BorgResult(process.ExitCode, stdoutTask.Result, stderrTask.Result);
         }
-        catch (Win32Exception)
+        catch (Exception ex) when (ex is Win32Exception or FileNotFoundException)
         {
             return new BorgResult(-1, "", $"Binary not found: '{fileName}'. Check application settings.");
         }

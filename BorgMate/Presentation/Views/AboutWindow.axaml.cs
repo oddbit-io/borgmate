@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia.Input;
+using BorgMate.Infrastructure.Platform;
 using BorgMate.Infrastructure.Updates;
 
 namespace BorgMate.Presentation.Views;
@@ -33,8 +34,8 @@ public partial class AboutWindow : ModalWindow
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose();
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            Process.Start("open", url)?.Dispose();
+            Process.Start("/usr/bin/open", url)?.Dispose();
         else
-            Process.Start("xdg-open", url)?.Dispose();
+            Process.Start(ExecutableResolver.Resolve("xdg-open"), url)?.Dispose();
     }
 }

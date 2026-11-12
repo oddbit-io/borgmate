@@ -27,7 +27,7 @@ internal class WslAvailabilityProbe : IWslAvailabilityProbe
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "wsl",
+                FileName = ExecutableResolver.Resolve("wsl"),
                 Arguments = "--list --quiet",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

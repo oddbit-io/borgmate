@@ -340,7 +340,7 @@ public class SshAgentHelper(
     {
         var psi = new ProcessStartInfo
         {
-            FileName = invocation.FileName,
+            FileName = ExecutableResolver.Resolve(invocation.FileName),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = true,

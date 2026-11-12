@@ -230,7 +230,7 @@ public partial class WslHelper
 
         var psi = new ProcessStartInfo
         {
-            FileName = "wsl",
+            FileName = ExecutableResolver.Resolve("wsl"),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -285,7 +285,7 @@ public partial class WslHelper
 
         var psi = new ProcessStartInfo
         {
-            FileName = "wsl",
+            FileName = ExecutableResolver.Resolve("wsl"),
             Arguments = "-- bash -c \"echo $HOME\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -365,7 +365,7 @@ public partial class WslHelper
     {
         var psi = new ProcessStartInfo
         {
-            FileName = "wsl",
+            FileName = ExecutableResolver.Resolve("wsl"),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,

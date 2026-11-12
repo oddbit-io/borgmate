@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using BorgMate.Domain.Repositories;
+using BorgMate.Infrastructure.Platform;
 
 namespace BorgMate.Infrastructure.Borg;
 
@@ -184,6 +185,7 @@ public static class BorgPathHelper
         psi.Environment["LC_ALL"] = "C";
         try
         {
+            psi.FileName = ExecutableResolver.Resolve(psi.FileName);
             using var proc = new Process { StartInfo = psi };
             var stdout = new StringBuilder();
             var stderr = new StringBuilder();
